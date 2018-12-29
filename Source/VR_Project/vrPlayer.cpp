@@ -5,10 +5,10 @@
 #include "Camera/CameraComponent.h"
 #include "MotionControllerComponent.h"
 #include "Components/SphereComponent.h"
+#include "vrPickup.h"
 
 AvrPlayer::AvrPlayer()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	vrRoot = CreateDefaultSubobject<USceneComponent>("vrRoot");
@@ -54,9 +54,27 @@ void AvrPlayer::OffsetRoot()
 // Locomotion Functions
 void AvrPlayer::MoveForward(float Value)
 {
+	if (Value != 0)
+	{
+		auto HeadForwardRot = HeadsetCamera->GetComponentRotation();
+		HeadForwardRot.Pitch = 0.f;
+		HeadForwardRot.Roll = 0.f;
+		auto HeadForward = HeadForwardRot.Vector();
+
+		AddMovementInput(HeadForward, Value);
+	}
 }
 void AvrPlayer::MoveRight(float Value)
 {
+	if (Value != 0)
+	{
+		auto HeadForwardRot = HeadsetCamera->GetComponentRotation();
+		HeadForwardRot.Pitch = 0.f;
+		HeadForwardRot.Roll = 0.f;
+		auto HeadForward = HeadForwardRot.Vector();
+
+		AddMovementInput(HeadForward, Value);
+	}
 }
 
 // Interaction Functions
