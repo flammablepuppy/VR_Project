@@ -79,13 +79,12 @@ protected:
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftBottomPush();
 	UFUNCTION(Category = "Left Controller Functions")
-	void LeftBottomRelease();
+	void LeftBottomRelease();*/
 
-	/*
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightGripPull();
 	UFUNCTION(Category = "Right Controller Functions")
-	void RightGripRelease();
+	void RightGripRelease();/*
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightTriggerPull();
 	UFUNCTION(Category = "Right Controller Functions")
@@ -103,6 +102,7 @@ protected:
 	// Call Execution Functions
 	void ExecuteGrip(AvrPickup* &ScanObject, AvrPickup* &GrippedObjectPointer, UMotionControllerComponent* GrabbingMC);
 	void ExecuteDrop(AvrPickup* &ObjectToDrop);
+	void ScanForClosestObject(USphereComponent* VolumeToScan, AvrPickup* &ScanRef, UMotionControllerComponent* MotionController);
 
 	void BeginGrabHighlight(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 	void EndGrabHighlight(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);

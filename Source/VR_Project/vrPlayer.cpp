@@ -45,7 +45,9 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MouseLookPitch", this, &AvrPlayer::MouseLookPitch);
 	PlayerInputComponent->BindAxis("MouseLookYaw", this, &AvrPlayer::MouseLookYaw);
 	PlayerInputComponent->BindAction("LGrip", IE_Pressed, this, &AvrPlayer::LeftGripPull);
-	PlayerInputComponent->BindAction("LGrip", IE_Released, this, &AvrPlayer::LeftGripPull);
+	PlayerInputComponent->BindAction("LGrip", IE_Released, this, &AvrPlayer::LeftGripRelease);
+	PlayerInputComponent->BindAction("RGrip", IE_Pressed, this, &AvrPlayer::RightGripPull);
+	PlayerInputComponent->BindAction("RGrip", IE_Released, this, &AvrPlayer::RightGripRelease);
 
 }
 void AvrPlayer::BeginPlay()
@@ -112,11 +114,27 @@ void AvrPlayer::MouseLookYaw(float Value)
 // Interaction Calls
 void AvrPlayer::LeftGripPull()
 {
+	ScanForClosestObject(LeftVolume, LeftScanTarget, LeftController);
 	ExecuteGrip(LeftScanTarget, LeftHeldObject, LeftController);
 }
 void AvrPlayer::LeftGripRelease()
 {
-	ExecuteDrop(LeftHeldObject);
+	if (LeftHeldObject)
+	{
+		ExecuteDrop(LeftHeldObject);
+	}
+}
+void AvrPlayer::RightGripPull()
+{
+	ScanForClosestObject(RightVolume, RightScanTarget, RightController);
+	ExecuteGrip(RightScanTarget, RightHeldObject, RightController);
+}
+void AvrPlayer::RightGripRelease()
+{
+	if (RightHeldObject)
+	{
+		ExecuteDrop(RightHeldObject);
+	}
 }
 
 // Interaction Execution
@@ -125,7 +143,7 @@ void AvrPlayer::ExecuteGrip(AvrPickup* &ScanObject, AvrPickup* &GrippedObjectPoi
 	if (ScanObject)
 	{
 		GrippedObjectPointer = ScanObject;
-		//GrippedObjectPointer->SnapTo(GrabbingMC);
+		GrippedObjectPointer->SnapTo(GrabbingMC);
 		ScanObject = nullptr;
 	}
 }
@@ -133,8 +151,33 @@ void AvrPlayer::ExecuteDrop(AvrPickup *& ObjectToDrop)
 {
 	if (ObjectToDrop)
 	{
-		// ObjectToDrop->DropFrom(this);
-		// ObjectToDrop = nullptr;
+		ObjectToDrop->Drop();
+		ObjectToDrop = nullptr;
+	}
+}
+void AvrPlayer::ScanForClosestObject(USphereComponent * VolumeToScan, AvrPickup* &ScanRef, UMotionControllerComponent* MotionController)
+{
+	ScanRef = nullptr;
+
+	TSet<AActor*> ScannedActors;
+	VolumeToScan->GetOverlappingActors(ScannedActors);
+
+	for (AActor* Pickup : ScannedActors)
+	{
+		AvrPickup* ValidPickup = Cast<AvrPickup>(Pickup);
+		if (ValidPickup && !ScanRef)
+		{
+			ScanRef = ValidPickup;
+		}
+		else if (ValidPickup)
+		{
+			float PickupDistance = (ValidPickup->GetActorLocation() - MotionController->GetComponentLocation()).Size();
+			float CurrentScanDistance = (ScanRef->GetActorLocation() - MotionController->GetComponentLocation()).Size();
+			if (PickupDistance < CurrentScanDistance)
+			{
+				ScanRef = ValidPickup;
+			}
+		}
 	}
 }
 
@@ -149,5 +192,11 @@ void AvrPlayer::BeginGrabHighlight(UPrimitiveComponent * OverlappedComponent, AA
 }
 void AvrPlayer::EndGrabHighlight(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
 {
-	// TODO: De-activate highlight animation or effect.
+	TSet<AActor*> ScannedActors;
+	OverlappedComponent->GetOverlappingActors(ScannedActors);
+
+	if (ScannedActors.Num() < 1)
+	{
+		// TODO: De-activate highlight animation or effect.
+	}
 }

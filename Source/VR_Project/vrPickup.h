@@ -6,21 +6,68 @@
 #include "GameFramework/Actor.h"
 #include "vrPickup.generated.h"
 
+class UStaticMeshComponent;
+class UMotionControllerComponent;
+
 UCLASS()
 class VR_PROJECT_API AvrPickup : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AvrPickup();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", Meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* PickupMesh;
+
+	UPROPERTY(VisibleAnywhere)
+	UMotionControllerComponent* OwningMC;
+
+	UPROPERTY()
+	bool bMoving = false;
+	UFUNCTION()
+	void MoveToGrabbingMC();
+	UPROPERTY(EditAnywhere, Category = "Interaction")
+	float TimeToAttach = 0.25f;
+	float CurrentTimeToAttach = 0.f;
+
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE UStaticMeshComponent* GetPickupMesh() { return PickupMesh; }
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
+	void BPTriggerPull();
+	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
+	void BPTriggerRelease();
+	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
+	void BPTopPush();
+	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
+	void BPTopRelease();
+	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
+	void BPBottomPush();
+	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
+	void BPBottomRelease();
+
+	UFUNCTION()
+	void SnapTo(UMotionControllerComponent* GrabbingController);
+	UFUNCTION()
+	void Drop();
+	UFUNCTION()
+	void TriggerPulled();
+	UFUNCTION()
+	void TriggerReleased();
+	/*UFUNCTION()
+	void TopPushed();
+	UFUNCTION()
+	void TopReleased();
+	UFUNCTION()
+	void BottomPushed();
+	UFUNCTION()
+	void BottomReleased();*/
 
 };
