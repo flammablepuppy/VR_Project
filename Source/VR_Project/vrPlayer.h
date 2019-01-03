@@ -44,19 +44,31 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* RightVolume;
 
-	UFUNCTION(Category = "vrFunction")
-	void OffsetRoot();
-
+	// Basic Locomotion Functions
 	UFUNCTION(Category = "Locomotion")
 	void MoveForward(float Value);
 	UFUNCTION(Category = "Locomotion")
 	void MoveRight(float Value);
+	UFUNCTION(Category = "Locomotion")
+	void MouseLookPitch(float Value);
+	UFUNCTION(Category = "Locomotion")
+	void MouseLookYaw(float Value);
 
+	UPROPERTY(EditDefaultsOnly, Category = "Controls")
+	bool bMouseEnabled = true;
+
+	UFUNCTION(BlueprintCallable, Category = "vrFunction")
+	void OffsetRoot();
+
+	UPROPERTY(BlueprintReadWrite, Category = "vrParameters")
+	float PlayerHeight = 1.78f;
+
+	// Controller Function calls
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftGripPull();
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftGripRelease();
-	UFUNCTION(Category = "Left Controller Functions")
+	/*UFUNCTION(Category = "Left Controller Functions")
 	void LeftTriggerPull();
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftTriggerRelease();
@@ -69,6 +81,7 @@ protected:
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftBottomRelease();
 
+	/*
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightGripPull();
 	UFUNCTION(Category = "Right Controller Functions")
@@ -85,21 +98,28 @@ protected:
 	void RightBottomPush();
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightBottomRelease();
+	*/
 
-	UPROPERTY(BlueprintReadWrite)
+	// Call Execution Functions
+	void ExecuteGrip(AvrPickup* &ScanObject, AvrPickup* &GrippedObjectPointer, UMotionControllerComponent* GrabbingMC);
+	void ExecuteDrop(AvrPickup* &ObjectToDrop);
+
+	void BeginGrabHighlight(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	void EndGrabHighlight(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UPROPERTY()
 	AvrPickup* LeftScanTarget;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY()
 	AvrPickup* LeftHeldObject;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY()
 	AvrPickup* RightScanTarget;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY()
 	AvrPickup* RightHeldObject;
 
-
-	UFUNCTION(Category = "Motion Controller Execution")
+	/*UFUNCTION(Category = "Motion Controller Execution")
 	void TriggerPulled(AvrPickup* HeldObject);
 	UFUNCTION(Category = "Motion Controller Execution")
-	void TriggerReleased(AvrPickup* HeldObject);
+	void TriggerReleased(AvrPickup* HeldObject);*/
 
 
 public:	
