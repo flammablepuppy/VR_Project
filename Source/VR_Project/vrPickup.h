@@ -30,6 +30,8 @@ protected:
 	bool bPickupEnabled = true;
 	UPROPERTY()
 	bool bMoving = false;
+	UPROPERTY()
+	bool bReadyToUse = false;
 	UFUNCTION()
 	void MoveToGrabbingMC();
 

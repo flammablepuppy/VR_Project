@@ -38,6 +38,7 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 void AvrPickup::Drop()
 {
 	OwningMC = nullptr;
+	bReadyToUse = false;
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
 }
@@ -84,6 +85,7 @@ void AvrPickup::MoveToGrabbingMC()
 	{
 		bMoving = false;
 		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		bReadyToUse = true;
 	}
 
 	FVector NewLocation = GetActorLocation();
@@ -93,37 +95,37 @@ void AvrPickup::MoveToGrabbingMC()
 // Object Functions
 void AvrPickup::TriggerPulled()
 {
-	if (!OwningMC) { return; }
+	if (!OwningMC || !bReadyToUse) { return; }
 
 	BPTriggerPull();
 }
 void AvrPickup::TriggerReleased()
 {
-	if (!OwningMC) { return; }
+	if (!OwningMC || !bReadyToUse) { return; }
 
 	BPTriggerRelease();
 }
 void AvrPickup::TopPushed()
 {
-	if (!OwningMC) { return; }
+	if (!OwningMC || !bReadyToUse) { return; }
 
 	BPTopPush();
 }
 void AvrPickup::TopReleased()
 {
-	if (!OwningMC) { return; }
+	if (!OwningMC || !bReadyToUse) { return; }
 
 	BPTopRelease();
 }
 void AvrPickup::BottomPushed()
 {
-	if (!OwningMC) { return; }
+	if (!OwningMC || !bReadyToUse) { return; }
 
 	BPBottomPush();
 }
 void AvrPickup::BottomReleased()
 {
-	if (!OwningMC) { return; }
+	if (!OwningMC || !bReadyToUse) { return; }
 
 	BPBottomRelease();
 }
