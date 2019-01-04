@@ -30,9 +30,16 @@ protected:
 	bool bMoving = false;
 	UFUNCTION()
 	void MoveToGrabbingMC();
-	UPROPERTY(EditAnywhere, Category = "Interaction")
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float TimeToAttach = 0.25f;
 	float CurrentTimeToAttach = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float AttachAcceleration = 1000.f;
+	float CurrentAttachSpeed = 0.f;
+	FVector OldVelocity; // initialize in BeginPlay
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float TerminalVelocityFactor = 0.95f;
 
 public:	
 	virtual void Tick(float DeltaTime) override;

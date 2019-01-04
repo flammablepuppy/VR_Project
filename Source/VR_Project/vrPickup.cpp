@@ -17,6 +17,8 @@ AvrPickup::AvrPickup()
 void AvrPickup::BeginPlay()
 {
 	Super::BeginPlay();
+
+	OldVelocity = PickupMesh->GetComponentVelocity();
 	
 }
 void AvrPickup::Tick(float DeltaTime)
@@ -33,19 +35,12 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
 	CurrentTimeToAttach = TimeToAttach;
+	CurrentAttachSpeed = AttachAcceleration;
 }
 void AvrPickup::Drop()
 {
-	if (!bMoving)
-	{
-		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	}
-
-	if (OwningMC)
-	{
-		OwningMC = nullptr;
-	}
-
+	OwningMC = nullptr;
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
 }
 void AvrPickup::MoveToGrabbingMC()
@@ -53,11 +48,12 @@ void AvrPickup::MoveToGrabbingMC()
 	if (!OwningMC) { bMoving = false; return; }
 
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
-	FVector CurrentLocation = GetActorLocation();
+
+	// Linear acceleration version
+	/*FVector CurrentLocation = GetActorLocation();
 	FVector TargetLocation = OwningMC->GetComponentLocation();
 	FVector LocationDelta = TargetLocation - CurrentLocation;
 
-	UE_LOG(LogTemp, Warning, TEXT("FIRED, time is: %f"), DeltaTime)
 	SetActorLocation(CurrentLocation + LocationDelta * DeltaTime / CurrentTimeToAttach);
 
 	CurrentTimeToAttach -= DeltaTime;
@@ -67,6 +63,29 @@ void AvrPickup::MoveToGrabbingMC()
 		bMoving = false;
 		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	}
+	UE_LOG(LogTemp, Warning, TEXT("FIRED, time is: %f"), DeltaTime)*/
+
+
+	// Velocity based version
+	FVector CurrentLocation = GetActorLocation();
+	FVector TargetLocation = OwningMC->GetComponentLocation();
+	FVector Direction = TargetLocation - CurrentLocation;
+	Direction.Normalize();
+
+	FVector Acceleration = Direction * AttachAcceleration * DeltaTime;
+	FVector PickupVelocity = (OldVelocity + Acceleration) * TerminalVelocityFactor;
+
+	SetActorLocation(CurrentLocation + PickupVelocity + Acceleration); 
+
+	if ((TargetLocation - CurrentLocation).Size() < 1.f)
+	{
+		bMoving = false;
+		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	}
+	UE_LOG(LogTemp, Warning, TEXT("FIRED, speed is: "))
+
+	FVector NewLocation = GetActorLocation();
+	OldVelocity = NewLocation - CurrentLocation;
 }
 
 // Interaction Functions
