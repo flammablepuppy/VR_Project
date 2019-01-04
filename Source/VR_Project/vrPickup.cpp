@@ -127,3 +127,9 @@ void AvrPickup::BottomReleased()
 
 	BPBottomRelease();
 }
+
+// Setters
+void AvrPickup::SetPickupEnabled(bool NewState)
+{
+	bPickupEnabled = NewState;
+}

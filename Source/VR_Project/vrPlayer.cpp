@@ -52,7 +52,7 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	PlayerInputComponent->BindAction("LTrigger", IE_Pressed, this, &AvrPlayer::LeftTriggerPull);
 	PlayerInputComponent->BindAction("LTrigger", IE_Released, this, &AvrPlayer::LeftTriggerRelease);
-	PlayerInputComponent->BindAction("RTrigger", IE_Pressed, this, &AvrPlayer::RightGripPull);
+	PlayerInputComponent->BindAction("RTrigger", IE_Pressed, this, &AvrPlayer::RightTriggerPull);
 	PlayerInputComponent->BindAction("RTrigger", IE_Released, this, &AvrPlayer::RightTriggerRelease);
 
 	PlayerInputComponent->BindAction("LTop", IE_Pressed, this, &AvrPlayer::LeftTopPush);
@@ -75,6 +75,7 @@ void AvrPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	OffsetRoot();
 }
  
 // VR Functions
@@ -90,10 +91,10 @@ void AvrPlayer::MoveForward(float Value)
 {
 	if (Value != 0)
 	{
-		auto HeadForwardRot = HeadsetCamera->GetComponentRotation();
+		FRotator HeadForwardRot = HeadsetCamera->GetComponentRotation();
 		HeadForwardRot.Pitch = 0.f;
 		HeadForwardRot.Roll = 0.f;
-		auto HeadForward = HeadForwardRot.Vector();
+		FVector HeadForward = HeadForwardRot.Vector();
 
 		AddMovementInput(HeadForward, Value);
 	}
@@ -102,11 +103,11 @@ void AvrPlayer::MoveRight(float Value)
 {
 	if (Value != 0)
 	{
-		auto HeadForwardRot = HeadsetCamera->GetComponentRotation();
+		FRotator HeadForwardRot = HeadsetCamera->GetComponentRotation();
 		HeadForwardRot.Pitch = 0.f;
 		HeadForwardRot.Roll = 0.f;
 		HeadForwardRot.Yaw += 90.f;
-		auto HeadForward = HeadForwardRot.Vector();
+		FVector HeadForward = HeadForwardRot.Vector();
 
 		AddMovementInput(HeadForward, Value);
 	}
@@ -169,6 +170,7 @@ void AvrPlayer::LeftBottomRelease()
 	if (!LeftHeldObject) { return; }
 	LeftHeldObject->BottomReleased();
 }
+
 void AvrPlayer::RightGripPull()
 {
 	ScanForClosestObject(RightVolume, RightScanTarget, RightController);

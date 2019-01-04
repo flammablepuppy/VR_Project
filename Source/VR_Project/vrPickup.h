@@ -27,6 +27,8 @@ protected:
 	UMotionControllerComponent* OwningMC;
 
 	UPROPERTY()
+	bool bPickupEnabled = true;
+	UPROPERTY()
 	bool bMoving = false;
 	UFUNCTION()
 	void MoveToGrabbingMC();
@@ -50,9 +52,6 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
-
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE UStaticMeshComponent* GetPickupMesh() { return PickupMesh; }
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPTriggerPull();
@@ -84,5 +83,14 @@ public:
 	void BottomPushed();
 	UFUNCTION()
 	void BottomReleased();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE UStaticMeshComponent* GetPickupMesh() { return PickupMesh; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetPickupEnabled() { return bPickupEnabled; }
+	UFUNCTION(BlueprintCallable)
+	void SetPickupEnabled(bool NewState); 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE UMotionControllerComponent* GetOwningMC() { return OwningMC; }
 
 };
