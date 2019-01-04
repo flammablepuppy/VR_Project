@@ -69,7 +69,9 @@ protected:
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftGripRelease();
 	UFUNCTION(Category = "Left Controller Functions")
-	void LeftTriggerPull();
+	void LeftTriggerHandle(float Value);
+	UFUNCTION(Category = "Left Controller Functions")
+	void LeftTriggerPull(float Value);
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftTriggerRelease();
 	UFUNCTION(Category = "Left Controller Functions")
@@ -86,7 +88,9 @@ protected:
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightGripRelease();
 	UFUNCTION(Category = "Right Controller Functions")
-	void RightTriggerPull();
+	void RightTriggerHandle(float Value);
+	UFUNCTION(Category = "Right Controller Functions")
+	void RightTriggerPull(float Value);
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightTriggerRelease();
 	UFUNCTION(Category = "Right Controller Functions")

@@ -56,7 +56,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
-	void BPTriggerPull();
+	void BPTriggerPull(float Value);
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPTriggerRelease();
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
@@ -74,7 +74,7 @@ public:
 	void Drop();
 
 	UFUNCTION()
-	void TriggerPulled();
+	void TriggerPulled(float Value);
 	UFUNCTION()
 	void TriggerReleased();
 	UFUNCTION()

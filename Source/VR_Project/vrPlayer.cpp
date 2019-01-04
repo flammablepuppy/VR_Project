@@ -50,10 +50,13 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("RGrip", IE_Pressed, this, &AvrPlayer::RightGripPull);
 	PlayerInputComponent->BindAction("RGrip", IE_Released, this, &AvrPlayer::RightGripRelease);
 
-	PlayerInputComponent->BindAction("LTrigger", IE_Pressed, this, &AvrPlayer::LeftTriggerPull);
-	PlayerInputComponent->BindAction("LTrigger", IE_Released, this, &AvrPlayer::LeftTriggerRelease);
-	PlayerInputComponent->BindAction("RTrigger", IE_Pressed, this, &AvrPlayer::RightTriggerPull);
-	PlayerInputComponent->BindAction("RTrigger", IE_Released, this, &AvrPlayer::RightTriggerRelease);
+	//PlayerInputComponent->BindAction("LTrigger", IE_Pressed, this, &AvrPlayer::LeftTriggerPull);
+	//PlayerInputComponent->BindAction("LTrigger", IE_Released, this, &AvrPlayer::LeftTriggerRelease);
+	//PlayerInputComponent->BindAction("RTrigger", IE_Pressed, this, &AvrPlayer::RightTriggerPull);
+	//PlayerInputComponent->BindAction("RTrigger", IE_Released, this, &AvrPlayer::RightTriggerRelease);
+
+	PlayerInputComponent->BindAxis("LTrig", this, &AvrPlayer::LeftTriggerHandle);
+	PlayerInputComponent->BindAxis("RTrig", this, &AvrPlayer::RightTriggerHandle);
 
 	PlayerInputComponent->BindAction("LTop", IE_Pressed, this, &AvrPlayer::LeftTopPush);
 	PlayerInputComponent->BindAction("LTop", IE_Released, this, &AvrPlayer::LeftTopRelease);
@@ -140,10 +143,17 @@ void AvrPlayer::LeftGripRelease()
 		ExecuteDrop(LeftHeldObject);
 	}
 }
-void AvrPlayer::LeftTriggerPull()
+void AvrPlayer::LeftTriggerHandle(float Value)
+{
+	if (Value != 0)
+	{
+		LeftTriggerPull(Value);
+	}
+}
+void AvrPlayer::LeftTriggerPull(float Value)
 {
 	if (!LeftHeldObject) { return; }
-	LeftHeldObject->TriggerPulled();
+	LeftHeldObject->TriggerPulled(Value);
 }
 void AvrPlayer::LeftTriggerRelease()
 {
@@ -183,10 +193,17 @@ void AvrPlayer::RightGripRelease()
 		ExecuteDrop(RightHeldObject);
 	}
 }
-void AvrPlayer::RightTriggerPull()
+void AvrPlayer::RightTriggerHandle(float Value)
+{
+	if (Value != 0)
+	{
+		RightTriggerPull(Value);
+	}
+}
+void AvrPlayer::RightTriggerPull(float Value)
 {
 	if (!RightHeldObject) { return; }
-	RightHeldObject->TriggerPulled();
+	RightHeldObject->TriggerPulled(Value);
 }
 void AvrPlayer::RightTriggerRelease()
 {

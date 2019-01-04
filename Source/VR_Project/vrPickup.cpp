@@ -93,11 +93,11 @@ void AvrPickup::MoveToGrabbingMC()
 }
 
 // Object Functions
-void AvrPickup::TriggerPulled()
+void AvrPickup::TriggerPulled(float Value)
 {
 	if (!OwningMC || !bReadyToUse) { return; }
 
-	BPTriggerPull();
+	BPTriggerPull(Value);
 }
 void AvrPickup::TriggerReleased()
 {
