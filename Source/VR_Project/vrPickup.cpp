@@ -12,14 +12,13 @@ AvrPickup::AvrPickup()
 
 	PickupMesh = CreateDefaultSubobject<UStaticMeshComponent>("Pickup Mesh");
 	PickupMesh->SetSimulatePhysics(true);
+	PickupMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	RootComponent = PickupMesh;
 }
 void AvrPickup::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OldVelocity = PickupMesh->GetComponentVelocity();
-	
 }
 void AvrPickup::Tick(float DeltaTime)
 {
@@ -34,8 +33,7 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	OwningMC = GrabbingController;
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
-	CurrentTimeToAttach = TimeToAttach;
-	CurrentAttachSpeed = AttachAcceleration;
+	OldVelocity = PickupMesh->GetComponentVelocity();
 }
 void AvrPickup::Drop()
 {
@@ -62,46 +60,70 @@ void AvrPickup::MoveToGrabbingMC()
 	{
 		bMoving = false;
 		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	}
-	UE_LOG(LogTemp, Warning, TEXT("FIRED, time is: %f"), DeltaTime)*/
-
+	}*/
 
 	// Velocity based version
 	FVector CurrentLocation = GetActorLocation();
 	FVector TargetLocation = OwningMC->GetComponentLocation();
 	FVector Direction = TargetLocation - CurrentLocation;
-	Direction.Normalize();
+	Direction.GetSafeNormal();
 
 	FVector Acceleration = Direction * AttachAcceleration * DeltaTime;
-	FVector PickupVelocity = (OldVelocity + Acceleration) * TerminalVelocityFactor;
+	Acceleration += OldVelocity * TerminalVelocityFactor;
 
-	SetActorLocation(CurrentLocation + PickupVelocity + Acceleration); 
+	SetActorLocation(CurrentLocation + Acceleration);
 
-	if ((TargetLocation - CurrentLocation).Size() < 1.f)
+	FQuat StartRot = GetActorRotation().Quaternion();
+	FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
+	FQuat DeltaRot = TargetRot - StartRot;
+	DeltaRot *= DeltaTime / TimeToRotate;
+
+	SetActorRotation(StartRot + DeltaRot);
+
+	if ((TargetLocation - CurrentLocation).Size() < AttachThresholdDistance)
 	{
 		bMoving = false;
 		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("FIRED, speed is: "))
 
 	FVector NewLocation = GetActorLocation();
 	OldVelocity = NewLocation - CurrentLocation;
 }
 
-// Interaction Functions
+// Object Functions
 void AvrPickup::TriggerPulled()
 {
 	if (!OwningMC) { return; }
 
 	BPTriggerPull();
-
-
 }
 void AvrPickup::TriggerReleased()
 {
 	if (!OwningMC) { return; }
 
 	BPTriggerRelease();
+}
+void AvrPickup::TopPushed()
+{
+	if (!OwningMC) { return; }
 
+	BPTopPush();
+}
+void AvrPickup::TopReleased()
+{
+	if (!OwningMC) { return; }
 
+	BPTopRelease();
+}
+void AvrPickup::BottomPushed()
+{
+	if (!OwningMC) { return; }
+
+	BPBottomPush();
+}
+void AvrPickup::BottomReleased()
+{
+	if (!OwningMC) { return; }
+
+	BPBottomRelease();
 }

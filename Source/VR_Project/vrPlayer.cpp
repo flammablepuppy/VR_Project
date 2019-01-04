@@ -44,10 +44,26 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveRight", this, &AvrPlayer::MoveRight);
 	PlayerInputComponent->BindAxis("MouseLookPitch", this, &AvrPlayer::MouseLookPitch);
 	PlayerInputComponent->BindAxis("MouseLookYaw", this, &AvrPlayer::MouseLookYaw);
+
 	PlayerInputComponent->BindAction("LGrip", IE_Pressed, this, &AvrPlayer::LeftGripPull);
 	PlayerInputComponent->BindAction("LGrip", IE_Released, this, &AvrPlayer::LeftGripRelease);
 	PlayerInputComponent->BindAction("RGrip", IE_Pressed, this, &AvrPlayer::RightGripPull);
 	PlayerInputComponent->BindAction("RGrip", IE_Released, this, &AvrPlayer::RightGripRelease);
+
+	PlayerInputComponent->BindAction("LTrigger", IE_Pressed, this, &AvrPlayer::LeftTriggerPull);
+	PlayerInputComponent->BindAction("LTrigger", IE_Released, this, &AvrPlayer::LeftTriggerRelease);
+	PlayerInputComponent->BindAction("RTrigger", IE_Pressed, this, &AvrPlayer::RightGripPull);
+	PlayerInputComponent->BindAction("RTrigger", IE_Released, this, &AvrPlayer::RightTriggerRelease);
+
+	PlayerInputComponent->BindAction("LTop", IE_Pressed, this, &AvrPlayer::LeftTopPush);
+	PlayerInputComponent->BindAction("LTop", IE_Released, this, &AvrPlayer::LeftTopRelease);
+	PlayerInputComponent->BindAction("RTop", IE_Pressed, this, &AvrPlayer::RightTopPush);
+	PlayerInputComponent->BindAction("RTop", IE_Released, this, &AvrPlayer::RightTopRelease);
+
+	PlayerInputComponent->BindAction("LBottom", IE_Pressed, this, &AvrPlayer::LeftBottomPush);
+	PlayerInputComponent->BindAction("LBottom", IE_Released, this, &AvrPlayer::LeftBottomRelease);
+	PlayerInputComponent->BindAction("RBottom", IE_Pressed, this, &AvrPlayer::RightBottomPush);
+	PlayerInputComponent->BindAction("RBottom", IE_Released, this, &AvrPlayer::RightBottomRelease);
 
 }
 void AvrPlayer::BeginPlay()
@@ -68,7 +84,6 @@ void AvrPlayer::OffsetRoot()
 	AddActorWorldOffset(HeadDelta);
 	vrRoot->AddWorldOffset(-HeadDelta);
 }
-
 
 // Locomotion Functions
 void AvrPlayer::MoveForward(float Value)
@@ -124,6 +139,36 @@ void AvrPlayer::LeftGripRelease()
 		ExecuteDrop(LeftHeldObject);
 	}
 }
+void AvrPlayer::LeftTriggerPull()
+{
+	if (!LeftHeldObject) { return; }
+	LeftHeldObject->TriggerPulled();
+}
+void AvrPlayer::LeftTriggerRelease()
+{
+	if (!LeftHeldObject) { return; }
+	LeftHeldObject->TriggerReleased();
+}
+void AvrPlayer::LeftTopPush()
+{
+	if (!LeftHeldObject) { return; }
+	LeftHeldObject->TopPushed();
+}
+void AvrPlayer::LeftTopRelease()
+{
+	if (!LeftHeldObject) { return; }
+	LeftHeldObject->TopReleased();
+}
+void AvrPlayer::LeftBottomPush()
+{
+	if (!LeftHeldObject) { return; }
+	LeftHeldObject->BottomPushed();
+}
+void AvrPlayer::LeftBottomRelease()
+{
+	if (!LeftHeldObject) { return; }
+	LeftHeldObject->BottomReleased();
+}
 void AvrPlayer::RightGripPull()
 {
 	ScanForClosestObject(RightVolume, RightScanTarget, RightController);
@@ -135,6 +180,36 @@ void AvrPlayer::RightGripRelease()
 	{
 		ExecuteDrop(RightHeldObject);
 	}
+}
+void AvrPlayer::RightTriggerPull()
+{
+	if (!RightHeldObject) { return; }
+	RightHeldObject->TriggerPulled();
+}
+void AvrPlayer::RightTriggerRelease()
+{
+	if (!RightHeldObject) { return; }
+	RightHeldObject->TriggerReleased();
+}
+void AvrPlayer::RightTopPush()
+{
+	if (!RightHeldObject) { return; }
+	RightHeldObject->TopPushed();
+}
+void AvrPlayer::RightTopRelease()
+{
+	if (!RightHeldObject) { return; }
+	RightHeldObject->TopReleased();
+}
+void AvrPlayer::RightBottomPush()
+{
+	if (!RightHeldObject) { return; }
+	RightHeldObject->BottomPushed();
+}
+void AvrPlayer::RightBottomRelease()
+{
+	if (!RightHeldObject) { return; }
+	RightHeldObject->BottomReleased();
 }
 
 // Interaction Execution

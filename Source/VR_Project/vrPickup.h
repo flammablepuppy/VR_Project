@@ -30,16 +30,23 @@ protected:
 	bool bMoving = false;
 	UFUNCTION()
 	void MoveToGrabbingMC();
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float TimeToAttach = 0.25f;
-	float CurrentTimeToAttach = 0.f;
 
+	// Linear Acceleration Snapping
+	/*UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float TimeToAttach = 0.25f;
+	float CurrentTimeToAttach = 0.f;*/
+
+	// Velocity Snapping
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction") // Default is gravity speed acceleration
+	float AttachAcceleration = 0.981f;
+	UPROPERTY(BlueprintReadOnly, Category = "Interaction") // Initialized in SnapTo
+	FVector OldVelocity; 
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float AttachAcceleration = 1000.f;
-	float CurrentAttachSpeed = 0.f;
-	FVector OldVelocity; // initialize in BeginPlay
+	float TerminalVelocityFactor = 0.915f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float TerminalVelocityFactor = 0.95f;
+	float TimeToRotate = 0.15f;
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float AttachThresholdDistance = 15.f;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -64,17 +71,18 @@ public:
 	void SnapTo(UMotionControllerComponent* GrabbingController);
 	UFUNCTION()
 	void Drop();
+
 	UFUNCTION()
 	void TriggerPulled();
 	UFUNCTION()
 	void TriggerReleased();
-	/*UFUNCTION()
+	UFUNCTION()
 	void TopPushed();
 	UFUNCTION()
 	void TopReleased();
 	UFUNCTION()
 	void BottomPushed();
 	UFUNCTION()
-	void BottomReleased();*/
+	void BottomReleased();
 
 };

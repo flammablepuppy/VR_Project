@@ -68,7 +68,7 @@ protected:
 	void LeftGripPull();
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftGripRelease();
-	/*UFUNCTION(Category = "Left Controller Functions")
+	UFUNCTION(Category = "Left Controller Functions")
 	void LeftTriggerPull();
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftTriggerRelease();
@@ -79,12 +79,12 @@ protected:
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftBottomPush();
 	UFUNCTION(Category = "Left Controller Functions")
-	void LeftBottomRelease();*/
+	void LeftBottomRelease();
 
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightGripPull();
 	UFUNCTION(Category = "Right Controller Functions")
-	void RightGripRelease();/*
+	void RightGripRelease();
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightTriggerPull();
 	UFUNCTION(Category = "Right Controller Functions")
@@ -97,7 +97,6 @@ protected:
 	void RightBottomPush();
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightBottomRelease();
-	*/
 
 	// Call Execution Functions
 	void ExecuteGrip(AvrPickup* &ScanObject, AvrPickup* &GrippedObjectPointer, UMotionControllerComponent* GrabbingMC);
