@@ -99,12 +99,12 @@ void AvrPickup::TriggerPulled(float Value)
 
 	BPTriggerPull(Value);
 }
-void AvrPickup::TriggerReleased()
-{
-	if (!OwningMC || !bReadyToUse) { return; }
-
-	BPTriggerRelease();
-}
+//void AvrPickup::TriggerReleased()
+//{
+//	if (!OwningMC || !bReadyToUse) { return; }
+//
+//	BPTriggerRelease();
+//}
 void AvrPickup::TopPushed()
 {
 	if (!OwningMC || !bReadyToUse) { return; }

@@ -52,7 +52,13 @@ protected:
 	UFUNCTION(Category = "Locomotion")
 	void MouseLookPitch(float Value);
 	UFUNCTION(Category = "Locomotion")
-	void MouseLookYaw(float Value);
+	void MouseLookYaw(float Value); 
+	/*UFUNCTION(Category = "Locomotion")  TODO: Enable snap turns
+	void SnapTurn();
+	UFUNCTION(Category = "Locomotion")
+	void SnapRight();
+	UFUNCTION(Category = "Locomotion")
+	void SnapLeft();*/
 
 	UPROPERTY(EditDefaultsOnly, Category = "Controls")
 	bool bMouseEnabled = true;
@@ -70,10 +76,10 @@ protected:
 	void LeftGripRelease();
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftTriggerHandle(float Value);
-	UFUNCTION(Category = "Left Controller Functions")
-	void LeftTriggerPull(float Value);
-	UFUNCTION(Category = "Left Controller Functions")
-	void LeftTriggerRelease();
+	//UFUNCTION(Category = "Left Controller Functions")
+	//void LeftTriggerPull(float Value);
+	//UFUNCTION(Category = "Left Controller Functions")
+	//void LeftTriggerRelease();
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftTopPush();
 	UFUNCTION(Category = "Left Controller Functions")
@@ -89,10 +95,10 @@ protected:
 	void RightGripRelease();
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightTriggerHandle(float Value);
-	UFUNCTION(Category = "Right Controller Functions")
-	void RightTriggerPull(float Value);
-	UFUNCTION(Category = "Right Controller Functions")
-	void RightTriggerRelease();
+	//UFUNCTION(Category = "Right Controller Functions")
+	//void RightTriggerPull(float Value);
+	//UFUNCTION(Category = "Right Controller Functions")
+	//void RightTriggerRelease();
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightTopPush();
 	UFUNCTION(Category = "Right Controller Functions")
@@ -126,5 +132,10 @@ protected:
 
 
 public:	
+
+	UFUNCTION()
+	FORCEINLINE AvrPickup* GetLeftHeldObject() { return LeftHeldObject; }
+	UFUNCTION()
+	FORCEINLINE AvrPickup* GetRightHeldObject() { return RightHeldObject; }
 
 };

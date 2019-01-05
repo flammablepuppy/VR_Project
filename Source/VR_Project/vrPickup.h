@@ -58,8 +58,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPTriggerPull(float Value);
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
-	void BPTriggerRelease();
-	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
+	//void BPTriggerRelease();
+	//UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPTopPush();
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPTopRelease();
@@ -75,8 +75,8 @@ public:
 
 	UFUNCTION()
 	void TriggerPulled(float Value);
-	UFUNCTION()
-	void TriggerReleased();
+	//UFUNCTION()
+	//void TriggerReleased();
 	UFUNCTION()
 	void TopPushed();
 	UFUNCTION()

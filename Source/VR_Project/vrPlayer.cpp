@@ -19,14 +19,14 @@ AvrPlayer::AvrPlayer()
 	HeadsetCamera->SetupAttachment(vrRoot);
 
 	LeftController = CreateDefaultSubobject<UMotionControllerComponent>("Left Controller");
-	LeftController->SetupAttachment(HeadsetCamera); 
+	LeftController->SetupAttachment(vrRoot); 
 	LeftController->MotionSource = "Left";
 
 	LeftVolume = CreateDefaultSubobject<USphereComponent>("Left Pickup Scan Volume");
 	LeftVolume->SetupAttachment(LeftController);
 
 	RightController = CreateDefaultSubobject<UMotionControllerComponent>("Right Controller");
-	RightController->SetupAttachment(HeadsetCamera);
+	RightController->SetupAttachment(vrRoot);
 	RightController->MotionSource = "Right";
 
 	RightVolume = CreateDefaultSubobject<USphereComponent>("Right Pickup Scan Volume");
@@ -145,40 +145,59 @@ void AvrPlayer::LeftGripRelease()
 }
 void AvrPlayer::LeftTriggerHandle(float Value)
 {
-	if (Value > 0)
+	if (!LeftHeldObject) { return; }
+	if (Value > 0 && LeftHeldObject->GetOwningMC() == LeftController)
 	{
-		LeftTriggerPull(Value);
+		LeftHeldObject->TriggerPulled(Value);
 	}
 }
-void AvrPlayer::LeftTriggerPull(float Value)
-{
-	if (!LeftHeldObject) { return; }
-	LeftHeldObject->TriggerPulled(Value);
-}
-void AvrPlayer::LeftTriggerRelease()
-{
-	if (!LeftHeldObject) { return; }
-	LeftHeldObject->TriggerReleased();
-}
+//void AvrPlayer::LeftTriggerPull(float Value)
+//{
+//	if (!LeftHeldObject) { return; }
+//	if (LeftHeldObject->GetOwningMC() == LeftController)
+//	{
+//		LeftHeldObject->TriggerPulled(Value);
+//	}
+//}
+//void AvrPlayer::LeftTriggerRelease()
+//{
+//	if (!LeftHeldObject) { return; }
+//	if (LeftHeldObject->GetOwningMC() == LeftController)
+//	{
+//		LeftHeldObject->TriggerReleased();
+//	}
+//}
 void AvrPlayer::LeftTopPush()
 {
 	if (!LeftHeldObject) { return; }
-	LeftHeldObject->TopPushed();
+	if (LeftHeldObject->GetOwningMC() == LeftController)
+	{
+		LeftHeldObject->TopPushed();
+	}
 }
 void AvrPlayer::LeftTopRelease()
 {
 	if (!LeftHeldObject) { return; }
-	LeftHeldObject->TopReleased();
+	if (LeftHeldObject->GetOwningMC() == LeftController)
+	{
+		LeftHeldObject->TopReleased();
+	}
 }
 void AvrPlayer::LeftBottomPush()
 {
 	if (!LeftHeldObject) { return; }
-	LeftHeldObject->BottomPushed();
+	if (LeftHeldObject->GetOwningMC() == LeftController)
+	{
+		LeftHeldObject->BottomPushed();
+	}
 }
 void AvrPlayer::LeftBottomRelease()
 {
 	if (!LeftHeldObject) { return; }
-	LeftHeldObject->BottomReleased();
+	if (LeftHeldObject->GetOwningMC() == LeftController)
+	{
+		LeftHeldObject->BottomReleased();
+	}
 }
 
 void AvrPlayer::RightGripPull()
@@ -195,40 +214,53 @@ void AvrPlayer::RightGripRelease()
 }
 void AvrPlayer::RightTriggerHandle(float Value)
 {
-	if (Value > 0)
+	if (!RightHeldObject) { return; }
+	if (Value > 0 && RightHeldObject->GetOwningMC() == RightController)
 	{
-		RightTriggerPull(Value);
+		RightHeldObject->TriggerPulled(Value);
 	}
 }
-void AvrPlayer::RightTriggerPull(float Value)
-{
-	if (!RightHeldObject) { return; }
-	RightHeldObject->TriggerPulled(Value);
-}
-void AvrPlayer::RightTriggerRelease()
-{
-	if (!RightHeldObject) { return; }
-	RightHeldObject->TriggerReleased();
-}
+//void AvrPlayer::RightTriggerPull(float Value)
+//{
+//	if (!RightHeldObject) { return; }
+//	RightHeldObject->TriggerPulled(Value);
+//}
+//void AvrPlayer::RightTriggerRelease()
+//{
+//	if (!RightHeldObject) { return; }
+//	RightHeldObject->TriggerReleased();
+//}
 void AvrPlayer::RightTopPush()
 {
 	if (!RightHeldObject) { return; }
-	RightHeldObject->TopPushed();
+	if (RightHeldObject->GetOwningMC() == RightController)
+	{
+		RightHeldObject->TopPushed();
+	}
 }
 void AvrPlayer::RightTopRelease()
 {
 	if (!RightHeldObject) { return; }
-	RightHeldObject->TopReleased();
+	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
+	{
+		RightHeldObject->TopReleased();
+	}
 }
 void AvrPlayer::RightBottomPush()
 {
 	if (!RightHeldObject) { return; }
-	RightHeldObject->BottomPushed();
+	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
+	{
+		RightHeldObject->BottomPushed();
+	}
 }
 void AvrPlayer::RightBottomRelease()
 {
 	if (!RightHeldObject) { return; }
-	RightHeldObject->BottomReleased();
+	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
+	{
+		RightHeldObject->BottomReleased();
+	}
 }
 
 // Interaction Execution
