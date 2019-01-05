@@ -19,15 +19,15 @@ AvrPlayer::AvrPlayer()
 	HeadsetCamera->SetupAttachment(vrRoot);
 
 	LeftController = CreateDefaultSubobject<UMotionControllerComponent>("Left Controller");
-	LeftController->SetupAttachment(vrRoot); 
+	LeftController->SetupAttachment(HeadsetCamera); 
 	LeftController->MotionSource = "Left";
-
-	RightController = CreateDefaultSubobject<UMotionControllerComponent>("Right Controller");
-	RightController->SetupAttachment(vrRoot);
-	RightController->MotionSource = "Right";
 
 	LeftVolume = CreateDefaultSubobject<USphereComponent>("Left Pickup Scan Volume");
 	LeftVolume->SetupAttachment(LeftController);
+
+	RightController = CreateDefaultSubobject<UMotionControllerComponent>("Right Controller");
+	RightController->SetupAttachment(HeadsetCamera);
+	RightController->MotionSource = "Right";
 
 	RightVolume = CreateDefaultSubobject<USphereComponent>("Right Pickup Scan Volume");
 	RightVolume->SetupAttachment(RightController);
@@ -78,7 +78,7 @@ void AvrPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	OffsetRoot();
+	//OffsetRoot();
 }
  
 // VR Functions
@@ -138,14 +138,14 @@ void AvrPlayer::LeftGripPull()
 }
 void AvrPlayer::LeftGripRelease()
 {
-	if (LeftHeldObject)
+	if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
 	{
 		ExecuteDrop(LeftHeldObject);
 	}
 }
 void AvrPlayer::LeftTriggerHandle(float Value)
 {
-	if (Value != 0)
+	if (Value > 0)
 	{
 		LeftTriggerPull(Value);
 	}
@@ -188,14 +188,14 @@ void AvrPlayer::RightGripPull()
 }
 void AvrPlayer::RightGripRelease()
 {
-	if (RightHeldObject)
+	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
 	{
 		ExecuteDrop(RightHeldObject);
 	}
 }
 void AvrPlayer::RightTriggerHandle(float Value)
 {
-	if (Value != 0)
+	if (Value > 0)
 	{
 		RightTriggerPull(Value);
 	}
