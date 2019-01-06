@@ -27,9 +27,9 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USceneComponent* vrRoot;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UCameraComponent* HeadsetCamera;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UMotionControllerComponent* LeftController;
@@ -53,9 +53,11 @@ protected:
 	void SnapTurn(float Value);
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	float SnapTurnIncrement = 90.f;
+	UPROPERTY()
+	bool bSnapTurnReady = true;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "Controls")
+	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	bool bMouseEnabled = true;
 
 	UFUNCTION(BlueprintCallable, Category = "vrFunction")
@@ -118,5 +120,12 @@ public:
 	FORCEINLINE AvrPickup* GetLeftHeldObject() { return LeftHeldObject; }
 	UFUNCTION()
 	FORCEINLINE AvrPickup* GetRightHeldObject() { return RightHeldObject; }
-
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool GetMouseEnabled() { return bMouseEnabled; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE UMotionControllerComponent* GetLeftMC() { return LeftController; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE UMotionControllerComponent* GetRightMC() { return RightController; }
+	UFUNCTION(BlueprintCallable)
+	void SetMouseEnabled(bool NewState);
 };

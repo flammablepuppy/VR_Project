@@ -6,11 +6,11 @@
 #include "MotionControllerComponent.h"
 #include "Components/SphereComponent.h"
 #include "vrPickup.h"
+#include "Components/CapsuleComponent.h"
 
 AvrPlayer::AvrPlayer()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	bUseControllerRotationPitch = true;
 
 	vrRoot = CreateDefaultSubobject<USceneComponent>("vrRoot");
 	vrRoot->SetupAttachment(RootComponent);
@@ -51,11 +51,6 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("RGrip", IE_Pressed, this, &AvrPlayer::RightGripPull);
 	PlayerInputComponent->BindAction("RGrip", IE_Released, this, &AvrPlayer::RightGripRelease);
 
-	//PlayerInputComponent->BindAction("LTrigger", IE_Pressed, this, &AvrPlayer::LeftTriggerPull);
-	//PlayerInputComponent->BindAction("LTrigger", IE_Released, this, &AvrPlayer::LeftTriggerRelease);
-	//PlayerInputComponent->BindAction("RTrigger", IE_Pressed, this, &AvrPlayer::RightTriggerPull);
-	//PlayerInputComponent->BindAction("RTrigger", IE_Released, this, &AvrPlayer::RightTriggerRelease);
-
 	PlayerInputComponent->BindAxis("LTrig", this, &AvrPlayer::LeftTriggerHandle);
 	PlayerInputComponent->BindAxis("RTrig", this, &AvrPlayer::RightTriggerHandle);
 
@@ -79,13 +74,14 @@ void AvrPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//OffsetRoot();
+	OffsetRoot();
 }
  
 // VR Functions
 void AvrPlayer::OffsetRoot()
 {
-	FVector HeadDelta = GetActorLocation() - HeadsetCamera->GetComponentLocation();
+	FVector HeadDelta = HeadsetCamera->GetComponentLocation() - GetActorLocation();
+	HeadDelta.Z = 0.f;
 	AddActorWorldOffset(HeadDelta);
 	vrRoot->AddWorldOffset(-HeadDelta);
 }
@@ -120,7 +116,9 @@ void AvrPlayer::MouseLookPitch(float Value)
 {
 	if (Value != 0 && bMouseEnabled)
 	{
-		AddControllerPitchInput(Value);
+		FRotator NewRot = vrRoot->GetComponentRotation();
+		NewRot -= FRotator(Value, 0.f, 0.f);
+		vrRoot->SetWorldRotation(NewRot);
 	}
 }
 void AvrPlayer::MouseLookYaw(float Value)
@@ -130,19 +128,25 @@ void AvrPlayer::MouseLookYaw(float Value)
 		AddControllerYawInput(Value);
 	}
 }
-void AvrPlayer::SnapTurn(float Value)
+void AvrPlayer::SnapTurn(float Value) // TODO: Make a tick function that rapidly rotates the veiw to give better indication of where you turned to
 {
-	if (Value > 0.1f)
+	if (Value > 0.1f && bSnapTurnReady)
 	{
-		FRotator LookDirection = GetActorRotation();
+		FRotator LookDirection = GetCapsuleComponent()->GetComponentRotation();
 		LookDirection += FRotator(0.f, SnapTurnIncrement, 0.f);
-		SetActorRotation(LookDirection);
+		GetCapsuleComponent()->SetWorldRotation(LookDirection);
+		bSnapTurnReady = false;
 	}
-	if (Value < -0.1f)
+	if (Value < -0.1f && bSnapTurnReady)
 	{
-		FRotator LookDirection = GetActorRotation();
+		FRotator LookDirection = GetCapsuleComponent()->GetComponentRotation();
 		LookDirection -= FRotator(0.f, SnapTurnIncrement, 0.f);
-		SetActorRotation(LookDirection);
+		GetCapsuleComponent()->SetWorldRotation(LookDirection);
+		bSnapTurnReady = false;
+	}
+	if (Value < 0.1 && Value > -0.1 && !bSnapTurnReady)
+	{
+		bSnapTurnReady = true;
 	}
 }
 
@@ -315,4 +319,10 @@ void AvrPlayer::EndGrabHighlight(UPrimitiveComponent * OverlappedComponent, AAct
 	{
 		// TODO: De-activate highlight animation or effect.
 	}
+}
+
+// Setters
+void AvrPlayer::SetMouseEnabled(bool NewState)
+{
+	bMouseEnabled = NewState;
 }
