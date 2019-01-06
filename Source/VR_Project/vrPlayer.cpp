@@ -10,7 +10,9 @@
 
 AvrPlayer::AvrPlayer()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true; 
+	bUseControllerRotationYaw = false;
+	GetCapsuleComponent()->SetCapsuleRadius(15.f);
 
 	vrRoot = CreateDefaultSubobject<USceneComponent>("vrRoot");
 	vrRoot->SetupAttachment(RootComponent);
@@ -24,6 +26,7 @@ AvrPlayer::AvrPlayer()
 
 	LeftVolume = CreateDefaultSubobject<USphereComponent>("Left Pickup Scan Volume");
 	LeftVolume->SetupAttachment(LeftController);
+	LeftVolume->OnComponentBeginOverlap.AddDynamic(this, &AvrPlayer::BeginGrabHighlight); // Not working
 
 	RightController = CreateDefaultSubobject<UMotionControllerComponent>("Right Controller");
 	RightController->SetupAttachment(vrRoot);
@@ -31,14 +34,12 @@ AvrPlayer::AvrPlayer()
 
 	RightVolume = CreateDefaultSubobject<USphereComponent>("Right Pickup Scan Volume");
 	RightVolume->SetupAttachment(RightController);
+	RightVolume->OnComponentEndOverlap.AddDynamic(this, &AvrPlayer::EndGrabHighlight); // Not working
 
 }
 void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	// LeftVolume->OnComponentBeginOverlap.BindDynamic( TODO: Finsh binding overlap and endoverlap events for both volumes to show when a pickup is in range
-	// RightVolume->OnComponentBeginOverlap.BindDynamic( 
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AvrPlayer::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AvrPlayer::MoveRight);
@@ -301,13 +302,15 @@ void AvrPlayer::ScanForClosestObject(USphereComponent * VolumeToScan, AvrPickup*
 	}
 }
 
-// Interaction FX Functions
+// Interaction FX Functions - TODO: Make these work
 void AvrPlayer::BeginGrabHighlight(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-	auto ValidPickup = Cast<AvrPickup>(OtherActor);
-	if (ValidPickup)
+	TSet<AActor*> ScannedActors;
+	OverlappedComponent->GetOverlappingActors(ScannedActors);
+
+	if (ScannedActors.Num() > 1)
 	{
-		// TODO: Activate an animation or highlight effect.
+		BPHighlight();
 	}
 }
 void AvrPlayer::EndGrabHighlight(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
@@ -317,7 +320,7 @@ void AvrPlayer::EndGrabHighlight(UPrimitiveComponent * OverlappedComponent, AAct
 
 	if (ScannedActors.Num() < 1)
 	{
-		// TODO: De-activate highlight animation or effect.
+		BPEndHighlight();
 	}
 }
 

@@ -62,6 +62,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "vrFunction")
 	void OffsetRoot();
+	// TODO: Make a height finding function as well as an arm length finder
 
 	UPROPERTY(BlueprintReadWrite, Category = "vrParameters")
 	float PlayerHeight = 1.78f;
@@ -104,6 +105,11 @@ protected:
 
 	void BeginGrabHighlight(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 	void EndGrabHighlight(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "BP Events")
+	void BPHighlight();
+	UFUNCTION(BlueprintImplementableEvent, Category = "BP Events")
+	void BPEndHighlight();
 
 	UPROPERTY()
 	AvrPickup* LeftScanTarget;
