@@ -18,22 +18,18 @@ class VR_PROJECT_API AvrPlayer : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
+
 	AvrPlayer();
-
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
-	// Called when the game starts or when spawned
+
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USceneComponent* vrRoot;
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", Meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* HeadsetCamera;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UMotionControllerComponent* LeftController;
@@ -53,12 +49,11 @@ protected:
 	void MouseLookPitch(float Value);
 	UFUNCTION(Category = "Locomotion")
 	void MouseLookYaw(float Value); 
-	/*UFUNCTION(Category = "Locomotion")  TODO: Enable snap turns
-	void SnapTurn();
-	UFUNCTION(Category = "Locomotion")
-	void SnapRight();
-	UFUNCTION(Category = "Locomotion")
-	void SnapLeft();*/
+	UFUNCTION(Category = "Locomotion")  
+	void SnapTurn(float Value);
+	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
+	float SnapTurnIncrement = 90.f;
+
 
 	UPROPERTY(EditDefaultsOnly, Category = "Controls")
 	bool bMouseEnabled = true;
@@ -76,10 +71,6 @@ protected:
 	void LeftGripRelease();
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftTriggerHandle(float Value);
-	//UFUNCTION(Category = "Left Controller Functions")
-	//void LeftTriggerPull(float Value);
-	//UFUNCTION(Category = "Left Controller Functions")
-	//void LeftTriggerRelease();
 	UFUNCTION(Category = "Left Controller Functions")
 	void LeftTopPush();
 	UFUNCTION(Category = "Left Controller Functions")
@@ -95,10 +86,6 @@ protected:
 	void RightGripRelease();
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightTriggerHandle(float Value);
-	//UFUNCTION(Category = "Right Controller Functions")
-	//void RightTriggerPull(float Value);
-	//UFUNCTION(Category = "Right Controller Functions")
-	//void RightTriggerRelease();
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightTopPush();
 	UFUNCTION(Category = "Right Controller Functions")
@@ -124,12 +111,6 @@ protected:
 	AvrPickup* RightScanTarget;
 	UPROPERTY()
 	AvrPickup* RightHeldObject;
-
-	/*UFUNCTION(Category = "Motion Controller Execution")
-	void TriggerPulled(AvrPickup* HeldObject);
-	UFUNCTION(Category = "Motion Controller Execution")
-	void TriggerReleased(AvrPickup* HeldObject);*/
-
 
 public:	
 

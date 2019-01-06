@@ -33,7 +33,9 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	OwningMC = GrabbingController;
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
-	OldVelocity = PickupMesh->GetComponentVelocity();
+
+	if (!bUsingGravitySnap) { CurrentHomingSpeed = 0.f; }
+	if (bUsingGravitySnap) { OldVelocity = PickupMesh->GetComponentVelocity(); }	
 }
 void AvrPickup::Drop()
 {
@@ -48,48 +50,61 @@ void AvrPickup::MoveToGrabbingMC()
 
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	// Linear acceleration version
-	/*FVector CurrentLocation = GetActorLocation();
-	FVector TargetLocation = OwningMC->GetComponentLocation();
-	FVector LocationDelta = TargetLocation - CurrentLocation;
-
-	SetActorLocation(CurrentLocation + LocationDelta * DeltaTime / CurrentTimeToAttach);
-
-	CurrentTimeToAttach -= DeltaTime;
-
-	if (LocationDelta.Size() < (LocationDelta * DeltaTime / CurrentTimeToAttach).Size())
+	// Homing Snap
+	if (!bUsingGravitySnap)
 	{
-		bMoving = false;
-		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	}*/
+		FVector CurrentLocation = GetActorLocation();
+		FVector TargetLocation = OwningMC->GetComponentLocation();
+		FVector LocationDelta = TargetLocation - CurrentLocation;
 
-	// Velocity based version
-	FVector CurrentLocation = GetActorLocation();
-	FVector TargetLocation = OwningMC->GetComponentLocation();
-	FVector Direction = TargetLocation - CurrentLocation;
-	Direction.GetSafeNormal();
+		FVector Direction = LocationDelta.GetSafeNormal();
+		CurrentHomingSpeed += HomingAcceleration;
+		FVector NewLocation = CurrentLocation + Direction * CurrentHomingSpeed * DeltaTime;
 
-	FVector Acceleration = Direction * AttachAcceleration * DeltaTime;
-	Acceleration += OldVelocity * TerminalVelocityFactor;
+		SetActorLocation(NewLocation);
 
-	SetActorLocation(CurrentLocation + Acceleration);
+		FQuat StartRot = GetActorRotation().Quaternion();
+		FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
+		FQuat DeltaRot = TargetRot - StartRot;
+		DeltaRot *= DeltaTime / TimeToRotate;
+		SetActorRotation(StartRot + DeltaRot);
 
-	FQuat StartRot = GetActorRotation().Quaternion();
-	FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
-	FQuat DeltaRot = TargetRot - StartRot;
-	DeltaRot *= DeltaTime / TimeToRotate;
-
-	SetActorRotation(StartRot + DeltaRot);
-
-	if ((TargetLocation - CurrentLocation).Size() < AttachThresholdDistance)
-	{
-		bMoving = false;
-		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-		bReadyToUse = true;
+		if (LocationDelta.Size() < (TargetLocation - NewLocation).Size())
+		{
+			bMoving = false;
+			AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			bReadyToUse = true;
+		}
 	}
+	// Gravity Snap
+	if (bUsingGravitySnap)
+	{
+		FVector CurrentLocation = GetActorLocation();
+		FVector TargetLocation = OwningMC->GetComponentLocation();
+		FVector LocationDelta = TargetLocation - CurrentLocation;
 
-	FVector NewLocation = GetActorLocation();
-	OldVelocity = NewLocation - CurrentLocation;
+		FVector Direction = LocationDelta.GetSafeNormal(); 
+		FVector Acceleration = Direction * AttachAcceleration * DeltaTime;
+		Acceleration += OldVelocity * TerminalVelocityFactor;
+
+		SetActorLocation(CurrentLocation + Acceleration);
+
+		FQuat StartRot = GetActorRotation().Quaternion();
+		FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
+		FQuat DeltaRot = TargetRot - StartRot;
+		DeltaRot *= DeltaTime / TimeToRotate;
+		SetActorRotation(StartRot + DeltaRot);
+
+		if (LocationDelta.Size() < AttachThresholdDistance)
+		{
+			bMoving = false;
+			AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			bReadyToUse = true;
+		}
+
+		FVector NewLocation = GetActorLocation();
+		OldVelocity = NewLocation - CurrentLocation;
+	}
 }
 
 // Object Functions
@@ -99,12 +114,6 @@ void AvrPickup::TriggerPulled(float Value)
 
 	BPTriggerPull(Value);
 }
-//void AvrPickup::TriggerReleased()
-//{
-//	if (!OwningMC || !bReadyToUse) { return; }
-//
-//	BPTriggerRelease();
-//}
 void AvrPickup::TopPushed()
 {
 	if (!OwningMC || !bReadyToUse) { return; }

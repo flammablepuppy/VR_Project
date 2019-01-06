@@ -35,16 +35,17 @@ protected:
 	UFUNCTION()
 	void MoveToGrabbingMC();
 
-	// Linear Acceleration Snapping
-	/*UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float TimeToAttach = 0.25f;
-	float CurrentTimeToAttach = 0.f;*/
-
-	// Velocity Snapping
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction") // Default is gravity speed acceleration
+	// Grabbing: Either uses Homing or Gravity snapping
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	bool bUsingGravitySnap = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float HomingAcceleration = 20.f;
+	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
+	float CurrentHomingSpeed = 0.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction") 
 	float AttachAcceleration = 0.981f;
-	UPROPERTY(BlueprintReadOnly, Category = "Interaction") // Initialized in SnapTo
-	FVector OldVelocity; 
+	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
+	FVector OldVelocity;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float TerminalVelocityFactor = 0.915f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
@@ -58,8 +59,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPTriggerPull(float Value);
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
-	//void BPTriggerRelease();
-	//UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPTopPush();
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPTopRelease();
@@ -74,17 +73,15 @@ public:
 	void Drop();
 
 	UFUNCTION()
-	void TriggerPulled(float Value);
-	//UFUNCTION()
-	//void TriggerReleased();
+	virtual void TriggerPulled(float Value);
 	UFUNCTION()
-	void TopPushed();
+	virtual void TopPushed();
 	UFUNCTION()
-	void TopReleased();
+	virtual void TopReleased();
 	UFUNCTION()
-	void BottomPushed();
+	virtual void BottomPushed();
 	UFUNCTION()
-	void BottomReleased();
+	virtual void BottomReleased();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UStaticMeshComponent* GetPickupMesh() { return PickupMesh; }

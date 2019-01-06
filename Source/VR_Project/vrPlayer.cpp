@@ -44,6 +44,7 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveRight", this, &AvrPlayer::MoveRight);
 	PlayerInputComponent->BindAxis("MouseLookPitch", this, &AvrPlayer::MouseLookPitch);
 	PlayerInputComponent->BindAxis("MouseLookYaw", this, &AvrPlayer::MouseLookYaw);
+	PlayerInputComponent->BindAxis("SnapTurn", this, &AvrPlayer::SnapTurn);
 
 	PlayerInputComponent->BindAction("LGrip", IE_Pressed, this, &AvrPlayer::LeftGripPull);
 	PlayerInputComponent->BindAction("LGrip", IE_Released, this, &AvrPlayer::LeftGripRelease);
@@ -129,6 +130,21 @@ void AvrPlayer::MouseLookYaw(float Value)
 		AddControllerYawInput(Value);
 	}
 }
+void AvrPlayer::SnapTurn(float Value)
+{
+	if (Value > 0.1f)
+	{
+		FRotator LookDirection = GetActorRotation();
+		LookDirection += FRotator(0.f, SnapTurnIncrement, 0.f);
+		SetActorRotation(LookDirection);
+	}
+	if (Value < -0.1f)
+	{
+		FRotator LookDirection = GetActorRotation();
+		LookDirection -= FRotator(0.f, SnapTurnIncrement, 0.f);
+		SetActorRotation(LookDirection);
+	}
+}
 
 // Interaction Calls
 void AvrPlayer::LeftGripPull()
@@ -151,22 +167,6 @@ void AvrPlayer::LeftTriggerHandle(float Value)
 		LeftHeldObject->TriggerPulled(Value);
 	}
 }
-//void AvrPlayer::LeftTriggerPull(float Value)
-//{
-//	if (!LeftHeldObject) { return; }
-//	if (LeftHeldObject->GetOwningMC() == LeftController)
-//	{
-//		LeftHeldObject->TriggerPulled(Value);
-//	}
-//}
-//void AvrPlayer::LeftTriggerRelease()
-//{
-//	if (!LeftHeldObject) { return; }
-//	if (LeftHeldObject->GetOwningMC() == LeftController)
-//	{
-//		LeftHeldObject->TriggerReleased();
-//	}
-//}
 void AvrPlayer::LeftTopPush()
 {
 	if (!LeftHeldObject) { return; }
@@ -220,16 +220,6 @@ void AvrPlayer::RightTriggerHandle(float Value)
 		RightHeldObject->TriggerPulled(Value);
 	}
 }
-//void AvrPlayer::RightTriggerPull(float Value)
-//{
-//	if (!RightHeldObject) { return; }
-//	RightHeldObject->TriggerPulled(Value);
-//}
-//void AvrPlayer::RightTriggerRelease()
-//{
-//	if (!RightHeldObject) { return; }
-//	RightHeldObject->TriggerReleased();
-//}
 void AvrPlayer::RightTopPush()
 {
 	if (!RightHeldObject) { return; }
