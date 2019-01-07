@@ -35,7 +35,7 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	bMoving = true;
 
 	if (!bUsingGravitySnap) { CurrentHomingSpeed = 0.f; }
-	if (bUsingGravitySnap) { OldVelocity = GetVelocity(); }
+	if (bUsingGravitySnap) { OldVelocity = PickupMesh->GetComponentVelocity(); }	
 }
 void AvrPickup::Drop()
 {
@@ -44,7 +44,7 @@ void AvrPickup::Drop()
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
 }
-void AvrPickup::MoveToGrabbingMC() // TODO: Figure out how to make the snapping take into account current velocity so items don't chase
+void AvrPickup::MoveToGrabbingMC()
 {
 	if (!OwningMC) { bMoving = false; return; }
 
@@ -103,7 +103,7 @@ void AvrPickup::MoveToGrabbingMC() // TODO: Figure out how to make the snapping 
 		}
 
 		FVector NewLocation = GetActorLocation();
-		OldVelocity = NewLocation - CurrentLocation; 
+		OldVelocity = NewLocation - CurrentLocation;
 	}
 }
 

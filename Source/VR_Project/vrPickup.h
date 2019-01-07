@@ -43,11 +43,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
 	float CurrentHomingSpeed = 0.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction") 
-	float AttachAcceleration = 98.1f;
+	float AttachAcceleration = 0.981f;
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
 	FVector OldVelocity;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float TerminalVelocityFactor = 0.975f;
+	float TerminalVelocityFactor = 0.915f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float TimeToRotate = 0.15f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
