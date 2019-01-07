@@ -8,6 +8,7 @@
 
 class UStaticMeshComponent;
 class UMotionControllerComponent;
+class UPhysicsHandleComponent;
 
 UCLASS()
 class VR_PROJECT_API AvrPickup : public AActor
@@ -20,9 +21,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* PickupMesh;
-
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPhysicsHandleComponent* PhysicsHandle;
+	
 	UPROPERTY(VisibleAnywhere)
 	UMotionControllerComponent* OwningMC;
 
@@ -36,18 +39,14 @@ protected:
 	void MoveToGrabbingMC();
 
 	// Grabbing: Either uses Homing or Gravity snapping
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	bool bUsingGravitySnap = false;
+	UPROPERTY()
+	FVector LastVelocity;
+	UPROPERTY()
+	FVector LastVelocityMotionController = FVector(0.f, 0.f, 0.f);
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float HomingAcceleration = 20.f;
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
 	float CurrentHomingSpeed = 0.f;
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction") 
-	float AttachAcceleration = 98.1f;
-	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
-	FVector OldVelocity;
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float TerminalVelocityFactor = 0.975f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float TimeToRotate = 0.15f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")

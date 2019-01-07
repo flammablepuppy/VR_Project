@@ -4,6 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "MotionControllerComponent.h"
 #include "vrPlayer.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 
 AvrPickup::AvrPickup()
 {
@@ -14,6 +15,9 @@ AvrPickup::AvrPickup()
 	PickupMesh->SetSimulatePhysics(true);
 	PickupMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	RootComponent = PickupMesh;
+
+	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>("Physics Handle");
+
 }
 void AvrPickup::BeginPlay()
 {
@@ -24,7 +28,11 @@ void AvrPickup::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	LastVelocityMotionController -= OwningMC->GetComponentLocation();
 	if (bMoving) { MoveToGrabbingMC(); }
+	LastVelocity = GetVelocity();
+	LastVelocityMotionController = OwningMC->GetComponentLocation();
+	UE_LOG(LogTemp, Warning, TEXT("%f"), LastVelocity.Size())
 }
 
 // Grabbing
@@ -34,15 +42,15 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
 
-	if (!bUsingGravitySnap) { CurrentHomingSpeed = 0.f; }
-	if (bUsingGravitySnap) { OldVelocity = GetVelocity(); }
+	CurrentHomingSpeed = LastVelocity.Size(); 
 }
 void AvrPickup::Drop()
 {
-	OwningMC = nullptr;
-	bReadyToUse = false;
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
+	if (bReadyToUse) { SetActorLocation(OwningMC->GetComponentLocation() + OwningMC->GetForwardVector() * 10.f); }
+	OwningMC = nullptr;
+	bReadyToUse = false;
 }
 void AvrPickup::MoveToGrabbingMC() // TODO: Figure out how to make the snapping take into account current velocity so items don't chase
 {
@@ -50,60 +58,28 @@ void AvrPickup::MoveToGrabbingMC() // TODO: Figure out how to make the snapping 
 
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	// Homing Snap
-	if (!bUsingGravitySnap)
+	FVector CurrentLocation = GetActorLocation();
+	FVector TargetLocation = OwningMC->GetComponentLocation() + LastVelocityMotionController;
+	FVector LocationDelta = TargetLocation - CurrentLocation;
+
+	FVector Direction = LocationDelta.GetSafeNormal();
+	CurrentHomingSpeed += HomingAcceleration;
+	UE_LOG(LogTemp, Warning, TEXT("CurrentSpeed: %f"), CurrentHomingSpeed)
+	FVector NewLocation = CurrentLocation + Direction * CurrentHomingSpeed * DeltaTime;
+
+	SetActorLocation(NewLocation);
+
+	FQuat StartRot = GetActorRotation().Quaternion();
+	FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
+	FQuat DeltaRot = TargetRot - StartRot;
+	DeltaRot *= DeltaTime / TimeToRotate;
+	SetActorRotation(StartRot + DeltaRot);
+
+	if (LocationDelta.Size() < (TargetLocation - NewLocation).Size())
 	{
-		FVector CurrentLocation = GetActorLocation();
-		FVector TargetLocation = OwningMC->GetComponentLocation();
-		FVector LocationDelta = TargetLocation - CurrentLocation;
-
-		FVector Direction = LocationDelta.GetSafeNormal();
-		CurrentHomingSpeed += HomingAcceleration;
-		FVector NewLocation = CurrentLocation + Direction * CurrentHomingSpeed * DeltaTime;
-
-		SetActorLocation(NewLocation);
-
-		FQuat StartRot = GetActorRotation().Quaternion();
-		FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
-		FQuat DeltaRot = TargetRot - StartRot;
-		DeltaRot *= DeltaTime / TimeToRotate;
-		SetActorRotation(StartRot + DeltaRot);
-
-		if (LocationDelta.Size() < (TargetLocation - NewLocation).Size())
-		{
-			bMoving = false;
-			AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-			bReadyToUse = true;
-		}
-	}
-	// Gravity Snap
-	if (bUsingGravitySnap)
-	{
-		FVector CurrentLocation = GetActorLocation();
-		FVector TargetLocation = OwningMC->GetComponentLocation();
-		FVector LocationDelta = TargetLocation - CurrentLocation;
-
-		FVector Direction = LocationDelta.GetSafeNormal(); 
-		FVector Acceleration = Direction * AttachAcceleration * DeltaTime;
-		Acceleration += OldVelocity * TerminalVelocityFactor;
-
-		SetActorLocation(CurrentLocation + Acceleration);
-
-		FQuat StartRot = GetActorRotation().Quaternion();
-		FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
-		FQuat DeltaRot = TargetRot - StartRot;
-		DeltaRot *= DeltaTime / TimeToRotate;
-		SetActorRotation(StartRot + DeltaRot);
-
-		if (LocationDelta.Size() < AttachThresholdDistance)
-		{
-			bMoving = false;
-			AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-			bReadyToUse = true;
-		}
-
-		FVector NewLocation = GetActorLocation();
-		OldVelocity = NewLocation - CurrentLocation; 
+		bMoving = false;
+		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		bReadyToUse = true;
 	}
 }
 

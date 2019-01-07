@@ -40,6 +40,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* RightVolume;
 
+	UFUNCTION(BlueprintCallable, Category = "vrFunction")
+	void OffsetRoot();
+
 	// Basic Locomotion Functions
 	UFUNCTION(Category = "Locomotion")
 	void MoveForward(float Value);
@@ -55,15 +58,10 @@ protected:
 	float SnapTurnIncrement = 90.f;
 	UPROPERTY()
 	bool bSnapTurnReady = true;
-
-
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	bool bMouseEnabled = true;
-
-	UFUNCTION(BlueprintCallable, Category = "vrFunction")
-	void OffsetRoot();
+	
 	// TODO: Make a height finding function as well as an arm length finder
-
 	UPROPERTY(BlueprintReadWrite, Category = "vrParameters")
 	float PlayerHeight = 1.78f;
 
@@ -103,7 +101,9 @@ protected:
 	void ExecuteDrop(AvrPickup* &ObjectToDrop);
 	void ScanForClosestObject(USphereComponent* VolumeToScan, AvrPickup* &ScanRef, UMotionControllerComponent* MotionController);
 
+	UFUNCTION()
 	void BeginGrabHighlight(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	UFUNCTION()
 	void EndGrabHighlight(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Events")
