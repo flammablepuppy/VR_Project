@@ -25,6 +25,7 @@ void AvrPickup::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (bMoving) { MoveToGrabbingMC(); }
+	VelocityLastTick = GetVelocity();
 }
 
 // Grabbing
@@ -34,15 +35,16 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
 
-	if (!bUsingGravitySnap) { CurrentHomingSpeed = 0.f; }
+	if (!bUsingGravitySnap) { CurrentHomingSpeed = VelocityLastTick.Size(); }
 	if (bUsingGravitySnap) { OldVelocity = PickupMesh->GetComponentVelocity(); }	
 }
 void AvrPickup::Drop()
 {
-	OwningMC = nullptr;
-	bReadyToUse = false;
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
+	if (bReadyToUse) { SetActorLocation(OwningMC->GetComponentLocation() + OwningMC->GetForwardVector() * 10.f); }
+	OwningMC = nullptr;
+	bReadyToUse = false;
 }
 void AvrPickup::MoveToGrabbingMC()
 {

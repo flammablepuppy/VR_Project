@@ -11,6 +11,8 @@
 AvrPlayer::AvrPlayer()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationPitch = false;
 
 	vrRoot = CreateDefaultSubobject<USceneComponent>("vrRoot");
 	vrRoot->SetupAttachment(RootComponent);
@@ -116,9 +118,7 @@ void AvrPlayer::MouseLookPitch(float Value)
 {
 	if (Value != 0 && bMouseEnabled)
 	{
-		FRotator NewRot = vrRoot->GetComponentRotation();
-		NewRot -= FRotator(Value, 0.f, 0.f);
-		vrRoot->SetWorldRotation(NewRot);
+		AddControllerPitchInput(Value);
 	}
 }
 void AvrPlayer::MouseLookYaw(float Value)

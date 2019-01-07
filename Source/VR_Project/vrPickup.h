@@ -52,6 +52,8 @@ protected:
 	float TimeToRotate = 0.15f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float AttachThresholdDistance = 15.f;
+	UPROPERTY()
+	FVector VelocityLastTick;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -66,6 +68,8 @@ public:
 	void BPBottomPush();
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPBottomRelease();
+	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
+	void BPDrop();
 
 	UFUNCTION()
 	void SnapTo(UMotionControllerComponent* GrabbingController);
