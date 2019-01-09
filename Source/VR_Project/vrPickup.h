@@ -27,7 +27,7 @@ protected:
 	UMotionControllerComponent* OwningMC;
 
 	UPROPERTY()
-	bool bPickupEnabled = true;
+	bool bPickupEnabled= true;
 	UPROPERTY()
 	bool bMoving = false;
 	UPROPERTY()

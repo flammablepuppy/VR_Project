@@ -35,7 +35,9 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
 
-	if (!bUsingGravitySnap) { CurrentHomingSpeed = VelocityLastTick.Size(); }
+	AttachToComponent(OwningMC, FAttachmentTransformRules::KeepWorldTransform);
+
+	if (!bUsingGravitySnap) { CurrentHomingSpeed = 0.f; }
 	if (bUsingGravitySnap) { OldVelocity = PickupMesh->GetComponentVelocity(); }	
 }
 void AvrPickup::Drop()
@@ -45,6 +47,7 @@ void AvrPickup::Drop()
 	if (bReadyToUse) { SetActorLocation(OwningMC->GetComponentLocation() + OwningMC->GetForwardVector() * 10.f); }
 	OwningMC = nullptr;
 	bReadyToUse = false;
+	bPickupEnabled = true;
 }
 void AvrPickup::MoveToGrabbingMC()
 {
@@ -73,6 +76,8 @@ void AvrPickup::MoveToGrabbingMC()
 
 		if (LocationDelta.Size() < (TargetLocation - NewLocation).Size())
 		{
+			bPickupEnabled = true;
+			DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 			bMoving = false;
 			AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			bReadyToUse = true;
