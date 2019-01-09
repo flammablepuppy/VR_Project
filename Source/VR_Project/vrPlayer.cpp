@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Aviator Games 2019
 
 #include "vrPlayer.h"
 #include "Components/SceneComponent.h"
@@ -7,6 +7,7 @@
 #include "Components/SphereComponent.h"
 #include "vrPickup.h"
 #include "Components/CapsuleComponent.h"
+#include "HealthStats.h"
 
 AvrPlayer::AvrPlayer()
 {
@@ -34,6 +35,7 @@ AvrPlayer::AvrPlayer()
 	RightVolume = CreateDefaultSubobject<USphereComponent>("Right Pickup Scan Volume");
 	RightVolume->SetupAttachment(RightController);
 
+	HealthStatsComp = CreateDefaultSubobject<UHealthStats>("Health and Stats Component");
 }
 void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

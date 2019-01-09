@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Aviator Games 2019
 
 #include "vrPickup.h"
 #include "Components/StaticMeshComponent.h"
@@ -35,9 +35,11 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
 
-	AttachToComponent(OwningMC, FAttachmentTransformRules::KeepWorldTransform);
-
-	if (!bUsingGravitySnap) { CurrentHomingSpeed = 0.f; }
+	if (!bUsingGravitySnap) 
+	{ 
+		CurrentHomingSpeed = 0.f; 
+		AttachToComponent(OwningMC, FAttachmentTransformRules::KeepWorldTransform);
+	}
 	if (bUsingGravitySnap) { OldVelocity = PickupMesh->GetComponentVelocity(); }	
 }
 void AvrPickup::Drop()

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Aviator Games 2019
 
 #pragma once
 
@@ -11,6 +11,7 @@ class UCameraComponent;
 class UMotionControllerComponent;
 class USphereComponent;
 class AvrPickup;
+class UHealthStats;
 
 UCLASS()
 class VR_PROJECT_API AvrPlayer : public ACharacter
@@ -39,6 +40,8 @@ protected:
 	USphereComponent* LeftVolume;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* RightVolume;
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UHealthStats* HealthStatsComp;
 
 	// Basic Locomotion Functions
 	UFUNCTION(Category = "Locomotion")
