@@ -18,7 +18,7 @@ void UHealthStats::BeginPlay()
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
 	{
-		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthStats::AdjustCurrentHealth);
+		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthStats::OwnerTakesDamage);
 	}
 }
 
@@ -30,7 +30,7 @@ void UHealthStats::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 	// ...
 }
 
-void UHealthStats::AdjustCurrentHealth(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
+void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
 	if (Damage > 0.f)
 	{

@@ -40,7 +40,11 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 		CurrentHomingSpeed = 0.f; 
 		AttachToComponent(OwningMC, FAttachmentTransformRules::KeepWorldTransform);
 	}
-	if (bUsingGravitySnap) { OldVelocity = PickupMesh->GetComponentVelocity(); }	
+	if (bUsingGravitySnap) 
+	{ 
+
+		OldVelocity = PickupMesh->GetComponentVelocity(); 
+	}	
 }
 void AvrPickup::Drop()
 {
