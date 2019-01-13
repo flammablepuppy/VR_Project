@@ -25,7 +25,6 @@ void AvrPickup::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (bMoving) { MoveToGrabbingMC(); }
-	VelocityLastTick = GetVelocity();
 }
 
 // Grabbing
@@ -36,23 +35,14 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	OwningMC = GrabbingController;
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
-
-	if (!bUsingGravitySnap) 
-	{ 
-		CurrentHomingSpeed = 0.f; 
-		AttachToComponent(OwningMC, FAttachmentTransformRules::KeepWorldTransform);
-	}
-	if (bUsingGravitySnap) 
-	{ 
-
-		OldVelocity = PickupMesh->GetComponentVelocity(); 
-	}	
+	CurrentHomingSpeed = 0.f; 
+	AttachToComponent(OwningMC, FAttachmentTransformRules::KeepWorldTransform);
 }
 void AvrPickup::Drop()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
-	if (bReadyToUse) { SetActorLocation(OwningMC->GetComponentLocation() + OwningMC->GetForwardVector() * 10.f); }
+	//if (bReadyToUse) { SetActorLocation(OwningMC->GetComponentLocation() + OwningMC->GetForwardVector() * 10.f); }
 	OwningMC = nullptr;
 	bReadyToUse = false;
 	bPickupEnabled = true;
@@ -64,62 +54,29 @@ void AvrPickup::MoveToGrabbingMC()
 
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	// Homing Snap
-	if (!bUsingGravitySnap)
+	FVector CurrentLocation = GetActorLocation();
+	FVector TargetLocation = OwningMC->GetComponentLocation();
+	FVector LocationDelta = TargetLocation - CurrentLocation;
+
+	FVector Direction = LocationDelta.GetSafeNormal();
+	CurrentHomingSpeed += HomingAcceleration;
+	FVector NewLocation = CurrentLocation + Direction * CurrentHomingSpeed * DeltaTime;
+
+	SetActorLocation(NewLocation);
+
+	FQuat StartRot = GetActorRotation().Quaternion();
+	FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
+	FQuat DeltaRot = TargetRot - StartRot;
+	DeltaRot *= DeltaTime / TimeToRotate;
+	SetActorRotation(StartRot + DeltaRot);
+
+	if (LocationDelta.Size() < (TargetLocation - NewLocation).Size())
 	{
-		FVector CurrentLocation = GetActorLocation();
-		FVector TargetLocation = OwningMC->GetComponentLocation();
-		FVector LocationDelta = TargetLocation - CurrentLocation;
-
-		FVector Direction = LocationDelta.GetSafeNormal();
-		CurrentHomingSpeed += HomingAcceleration;
-		FVector NewLocation = CurrentLocation + Direction * CurrentHomingSpeed * DeltaTime;
-
-		SetActorLocation(NewLocation);
-
-		FQuat StartRot = GetActorRotation().Quaternion();
-		FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
-		FQuat DeltaRot = TargetRot - StartRot;
-		DeltaRot *= DeltaTime / TimeToRotate;
-		SetActorRotation(StartRot + DeltaRot);
-
-		if (LocationDelta.Size() < (TargetLocation - NewLocation).Size())
-		{
-			bPickupEnabled = false;
-			DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			bMoving = false;
-			AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-			bReadyToUse = true;
-		}
-	}
-	// Gravity Snap
-	if (bUsingGravitySnap)
-	{
-		FVector CurrentLocation = GetActorLocation();
-		FVector TargetLocation = OwningMC->GetComponentLocation();
-		FVector LocationDelta = TargetLocation - CurrentLocation;
-
-		FVector Direction = LocationDelta.GetSafeNormal(); 
-		FVector Acceleration = Direction * AttachAcceleration * DeltaTime;
-		Acceleration += OldVelocity * TerminalVelocityFactor;
-
-		SetActorLocation(CurrentLocation + Acceleration);
-
-		FQuat StartRot = GetActorRotation().Quaternion();
-		FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
-		FQuat DeltaRot = TargetRot - StartRot;
-		DeltaRot *= DeltaTime / TimeToRotate;
-		SetActorRotation(StartRot + DeltaRot);
-
-		if (LocationDelta.Size() < AttachThresholdDistance)
-		{
-			bMoving = false;
-			AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-			bReadyToUse = true;
-		}
-
-		FVector NewLocation = GetActorLocation();
-		OldVelocity = NewLocation - CurrentLocation;
+		bPickupEnabled = false;
+		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		bMoving = false;
+		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		bReadyToUse = true;
 	}
 }
 

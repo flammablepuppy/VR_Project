@@ -37,25 +37,14 @@ protected:
 	UPROPERTY()
 	bool bCanBeGrabbed = true;
 
-	// Grabbing: Either uses Homing or Gravity snapping
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	bool bUsingGravitySnap = false;
+	// Rate grabbed objets accelerate to grabbing hand
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float HomingAcceleration = 20.f;
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
 	float CurrentHomingSpeed = 0.f;
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction") 
-	float AttachAcceleration = 0.981f;
-	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
-	FVector OldVelocity;
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float TerminalVelocityFactor = 0.915f;
+	// Time it takes for grabbed object to match the rotation of the grabbing hand
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float TimeToRotate = 0.15f;
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float AttachThresholdDistance = 15.f;
-	UPROPERTY()
-	FVector VelocityLastTick;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -76,7 +65,7 @@ public:
 	UFUNCTION()
 	void SnapTo(UMotionControllerComponent* GrabbingController);
 	UFUNCTION()
-	void Drop();
+	virtual void Drop();
 
 	UFUNCTION()
 	virtual void TriggerPulled(float Value);
