@@ -34,6 +34,8 @@ protected:
 	bool bReadyToUse = false;
 	UFUNCTION()
 	void MoveToGrabbingMC();
+	UPROPERTY()
+	bool bCanBeGrabbed = true;
 
 	// Grabbing: Either uses Homing or Gravity snapping
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")

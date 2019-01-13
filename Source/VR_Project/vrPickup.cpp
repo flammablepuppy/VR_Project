@@ -31,6 +31,8 @@ void AvrPickup::Tick(float DeltaTime)
 // Grabbing
 void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 {
+	if (!bPickupEnabled) { return; }
+
 	OwningMC = GrabbingController;
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
@@ -54,6 +56,7 @@ void AvrPickup::Drop()
 	OwningMC = nullptr;
 	bReadyToUse = false;
 	bPickupEnabled = true;
+	BPDrop();
 }
 void AvrPickup::MoveToGrabbingMC()
 {
@@ -82,7 +85,7 @@ void AvrPickup::MoveToGrabbingMC()
 
 		if (LocationDelta.Size() < (TargetLocation - NewLocation).Size())
 		{
-			bPickupEnabled = true;
+			bPickupEnabled = false;
 			DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 			bMoving = false;
 			AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);

@@ -59,7 +59,6 @@ protected:
 	UPROPERTY()
 	bool bSnapTurnReady = true;
 
-
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	bool bMouseEnabled = true;
 

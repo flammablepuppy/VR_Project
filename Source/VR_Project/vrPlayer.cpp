@@ -8,6 +8,7 @@
 #include "vrPickup.h"
 #include "Components/CapsuleComponent.h"
 #include "HealthStats.h"
+#include "TimerManager.h"
 
 AvrPlayer::AvrPlayer()
 {
@@ -72,7 +73,7 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 void AvrPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 void AvrPlayer::Tick(float DeltaTime)
 {
@@ -130,7 +131,7 @@ void AvrPlayer::MouseLookYaw(float Value)
 		AddControllerYawInput(Value);
 	}
 }
-void AvrPlayer::SnapTurn(float Value) // TODO: Make a tick function that rapidly rotates the veiw to give better indication of where you turned to
+void AvrPlayer::SnapTurn(float Value)
 {
 	if (Value > 0.1f && bSnapTurnReady)
 	{
