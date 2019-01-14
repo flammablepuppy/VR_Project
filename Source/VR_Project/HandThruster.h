@@ -29,15 +29,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float TerminalVelocitySpeed = 9000.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectThrustMultiplier = 1.45f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Thruster Properties")
+	float GroundEffectMultiplier = 1.35f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	float TranslationalLiftMultiplier = 1.2f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	float GroundEffectDistance = 350.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	float TranslationalLiftSpeed = 1250.f;
+	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")
 	bool bThrottleLocked = false;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Thruster Properties")
+	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")
 	float LockedThrottleValue;
-	UFUNCTION()
-	bool CheckInGroundEffect();
+	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")
 	bool bSetLockedThrottle = false;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Thruster Properties")
+	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")
 	float CurrentTriggerAxisValue;
 
 public:
@@ -49,6 +54,9 @@ public:
 	virtual void BottomPushed() override;
 	virtual void BottomReleased() override;
 	virtual void Drop() override;
+
+	UFUNCTION(BlueprintCallable)
+	void ApplyThrust(float ThrustAmount);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetMaxFuel() { return MaxFuel; }

@@ -25,25 +25,7 @@ void AHandThruster::Tick(float DeltaTime)
 
 	if (bThrottleLocked && CurrentFuel > 0.f)
 	{
-		CurrentFuel -= LockedThrottleValue * DeltaTime;
-		AvrPlayer* OwningPlayer = Cast<AvrPlayer>(GetOwningMC()->GetOwner());
-		FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * LockedThrottleValue;
-
-		if (!OwningPlayer->GetMovementComponent()->IsFalling())
-		{
-			OwningPlayer->LaunchCharacter(ThrusterOutput, false, false);
-		}
-		if (OwningPlayer->GetMovementComponent()->IsFalling())
-		{
-			OwningPlayer->GetMovementComponent()->Velocity += ThrusterOutput;
-			OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
-
-			if (OwningPlayer->GetMovementComponent()->Velocity.Size() > TerminalVelocitySpeed)
-			{
-				OwningPlayer->GetMovementComponent()->Velocity *= 0.9f;
-				OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
-			}
-		}
+		ApplyThrust(LockedThrottleValue);
 	}
 }
 
@@ -59,29 +41,10 @@ void AHandThruster::TriggerPulled(float Value)
 	Super::TriggerPulled(Value);
 
 	if (!bThrottleLocked) { CurrentTriggerAxisValue = Value; }
-	float DeltaSeconds = GetWorld()->GetDeltaSeconds();
 
 	if (Value > 0.1f && !bThrottleLocked && CurrentFuel > 0.f)
 	{
-		// TODO: Write a linetrace to check for ground effect thrust bonus application
-		CurrentFuel -= Value * DeltaSeconds;
-		AvrPlayer* OwningPlayer = Cast<AvrPlayer>(GetOwningMC()->GetOwner());
-		FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * Value;
-
-		if (!OwningPlayer->GetMovementComponent()->IsFalling()) 
-		{
-			OwningPlayer->LaunchCharacter(ThrusterOutput, false, false); 
-		}
-		if (OwningPlayer->GetMovementComponent()->IsFalling()) 
-		{
-			OwningPlayer->GetMovementComponent()->Velocity += ThrusterOutput;
-			OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
-			if (OwningPlayer->GetMovementComponent()->Velocity.Size() > TerminalVelocitySpeed)
-			{
-				OwningPlayer->GetMovementComponent()->Velocity *= 0.9f;
-				OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
-			}
-		}
+		ApplyThrust(Value);
 	}
 	else if (bSetLockedThrottle)
 	{
@@ -113,9 +76,43 @@ void AHandThruster::BottomReleased()
 
 }
 
-// Info Functions
-bool AHandThruster::CheckInGroundEffect()
+void AHandThruster::ApplyThrust(float ThrustAmount)
 {
-	// TODO: Line trace straight down from bottom of cube, if world is in range return true
-	return false;
+	float DeltaSeconds = GetWorld()->GetDeltaSeconds();
+	AvrPlayer* OwningPlayer = Cast<AvrPlayer>(GetOwningMC()->GetOwner());
+
+	// Initialize Thrust
+	FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * ThrustAmount;
+
+	// Reduce Fuel
+	CurrentFuel -= ThrustAmount * DeltaSeconds;
+
+	// Ground Effect
+	FHitResult TraceHit;
+	if (GetWorld()->LineTraceSingleByChannel(TraceHit, PickupMesh->GetComponentLocation(), PickupMesh->GetComponentLocation() + -PickupMesh->GetUpVector() * GroundEffectDistance, ECC_Visibility))
+	{
+		ThrusterOutput *= GroundEffectMultiplier;
+	}
+
+	// Translational Lift
+	if (OwningPlayer->GetVelocity().Size() > TranslationalLiftSpeed)
+	{
+		ThrusterOutput *= TranslationalLiftMultiplier;
+	}
+
+	// Apply Thrust
+	if (!OwningPlayer->GetMovementComponent()->IsFalling())
+	{
+		OwningPlayer->LaunchCharacter(ThrusterOutput, false, false);
+	}
+	if (OwningPlayer->GetMovementComponent()->IsFalling())
+	{
+		OwningPlayer->GetMovementComponent()->Velocity += ThrusterOutput;
+		OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
+		if (OwningPlayer->GetMovementComponent()->Velocity.Size() > TerminalVelocitySpeed)
+		{
+			OwningPlayer->GetMovementComponent()->Velocity *= 0.9f;
+			OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
+		}
+	}
 }
