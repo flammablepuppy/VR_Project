@@ -9,6 +9,7 @@
 #include "Components/CapsuleComponent.h"
 #include "HealthStats.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
 
 AvrPlayer::AvrPlayer()
 {
@@ -176,11 +177,13 @@ void AvrPlayer::LeftTriggerHandle(float Value)
 }
 void AvrPlayer::LeftTopPush()
 {
-	if (!LeftHeldObject) { return; }
-	if (LeftHeldObject->GetOwningMC() == LeftController)
-	{
-		LeftHeldObject->TopPushed();
-	}
+	UGameplayStatics::OpenLevel(GetWorld(), "TestingMap");
+
+	//if (!LeftHeldObject) { return; }
+	//if (LeftHeldObject->GetOwningMC() == LeftController)
+	//{
+	//	LeftHeldObject->TopPushed();
+	//}
 }
 void AvrPlayer::LeftTopRelease()
 {
