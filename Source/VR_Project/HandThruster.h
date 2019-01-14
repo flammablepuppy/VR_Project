@@ -25,15 +25,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Thruster Properties")
 	float CurrentFuel;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float ThrustPower = 20.f;
+	float ThrustPower = 16.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TerminalVelocitySpeed = 9000.f;
+	float TerminalVelocitySpeed = 6900.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectMultiplier = 1.35f;
+	float GroundEffectMultiplier = 1.25f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftMultiplier = 1.2f;
+	float TranslationalLiftMultiplier = 1.18f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectDistance = 350.f;
+	float GroundEffectDistance = 375.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float TranslationalLiftSpeed = 1250.f;
 	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")
