@@ -95,7 +95,7 @@ void AHandThruster::ApplyThrust(float ThrustAmount)
 	}
 
 	// Translational Lift
-	if (OwningPlayer->GetVelocity().Size() > TranslationalLiftSpeed)
+	if (OwningPlayer->GetVelocity().X + OwningPlayer->GetVelocity().Y > TranslationalLiftSpeed)
 	{
 		ThrusterOutput *= TranslationalLiftMultiplier;
 	}

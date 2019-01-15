@@ -21,17 +21,17 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float MaxFuel = 5.f;
+	float MaxFuel = 8.f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Thruster Properties")
 	float CurrentFuel;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float ThrustPower = 16.f;
+	float ThrustPower = 28.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float TerminalVelocitySpeed = 6900.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectMultiplier = 1.25f;
+	float GroundEffectMultiplier = 1.32;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftMultiplier = 1.18f;
+	float TranslationalLiftMultiplier = 1.35;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float GroundEffectDistance = 375.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
