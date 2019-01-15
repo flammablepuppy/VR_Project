@@ -99,6 +99,9 @@ protected:
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightBottomRelease();
 
+	UFUNCTION()
+	void ResetTestingMap();
+
 	// Call Execution Functions
 	void ExecuteGrip(AvrPickup* &ScanObject, AvrPickup* &GrippedObjectPointer, UMotionControllerComponent* GrabbingMC);
 	void ExecuteDrop(AvrPickup* &ObjectToDrop);
@@ -117,6 +120,12 @@ protected:
 	AvrPickup* RightScanTarget;
 	UPROPERTY()
 	AvrPickup* RightHeldObject;
+
+	// Motion Input and abrupt velocity change damage
+	/*UFUNCTION()
+	void CheckForFIT();
+	UPROPERTY()
+	FVector VelocityLastFrame;*/
 
 public:	
 

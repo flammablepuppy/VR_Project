@@ -20,22 +20,37 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	// Fuel
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float MaxFuel = 8.f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Thruster Properties")
 	float CurrentFuel;
+
+	// Thrust
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float ThrustPower = 28.f;
+	float ThrustPower = 17.5;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float TerminalVelocitySpeed = 6900.f;
+	
+	// Ground Effect
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectMultiplier = 1.32;
+	float GroundEffectMultiplier = 1.45;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftMultiplier = 1.35;
+	float GroundEffectDistance = 750.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectDistance = 375.f;
+	float GEBeginFalloff = 0.5f;
+
+	// Translational Lift
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftSpeed = 1250.f;
+	float TranslationalLiftMultiplier = 1.6f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	float TranslationalLiftSpeed = 3250.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	float TranslationalLiftFalloff = 1250.f;
+
+	// Features
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	float AutoHoverThrottle = 0.45f;
 	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")
 	bool bThrottleLocked = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")

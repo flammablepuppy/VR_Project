@@ -70,6 +70,8 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("RBottom", IE_Pressed, this, &AvrPlayer::RightBottomPush);
 	PlayerInputComponent->BindAction("RBottom", IE_Released, this, &AvrPlayer::RightBottomRelease);
 
+	PlayerInputComponent->BindAction("ResetLevel", IE_Pressed, this, &AvrPlayer::ResetTestingMap);
+
 }
 void AvrPlayer::BeginPlay()
 {
@@ -177,13 +179,11 @@ void AvrPlayer::LeftTriggerHandle(float Value)
 }
 void AvrPlayer::LeftTopPush()
 {
-	UGameplayStatics::OpenLevel(GetWorld(), "TestingMap");
-
-	//if (!LeftHeldObject) { return; }
-	//if (LeftHeldObject->GetOwningMC() == LeftController)
-	//{
-	//	LeftHeldObject->TopPushed();
-	//}
+	if (!LeftHeldObject) { return; }
+	if (LeftHeldObject->GetOwningMC() == LeftController)
+	{
+		LeftHeldObject->TopPushed();
+	}
 }
 void AvrPlayer::LeftTopRelease()
 {
@@ -261,6 +261,12 @@ void AvrPlayer::RightBottomRelease()
 	{
 		RightHeldObject->BottomReleased();
 	}
+}
+
+void AvrPlayer::ResetTestingMap()
+{
+	UGameplayStatics::OpenLevel(GetWorld(), "TestingMap");
+
 }
 
 // Interaction Execution

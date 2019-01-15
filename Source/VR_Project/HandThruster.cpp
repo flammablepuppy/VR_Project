@@ -23,9 +23,9 @@ void AHandThruster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bThrottleLocked && CurrentFuel > 0.f)
+	if (bThrottleLocked)
 	{
-		ApplyThrust(LockedThrottleValue);
+		ApplyThrust(CurrentTriggerAxisValue);
 	}
 }
 
@@ -40,23 +40,38 @@ void AHandThruster::TriggerPulled(float Value)
 {
 	Super::TriggerPulled(Value);
 
-	if (!bThrottleLocked) { CurrentTriggerAxisValue = Value; }
-
-	if (Value > 0.1f && !bThrottleLocked && CurrentFuel > 0.f)
-	{
-		ApplyThrust(Value);
-	}
-	else if (bSetLockedThrottle)
+	if (bSetLockedThrottle)
 	{
 		LockedThrottleValue = Value;
 		bSetLockedThrottle = false;
 		CurrentTriggerAxisValue = LockedThrottleValue;
 	}
+
+	if (!bThrottleLocked && Value < 0.1f)
+	{
+		CurrentTriggerAxisValue = 0.f;
+	}
+	if (!bThrottleLocked && Value > 0.1f)
+	{
+		CurrentTriggerAxisValue = Value;
+		ApplyThrust(Value);
+	}
+	else if (bThrottleLocked && Value > LockedThrottleValue)
+	{
+		CurrentTriggerAxisValue = Value;
+	}
+	else if (bThrottleLocked && Value <= LockedThrottleValue)
+	{
+		CurrentTriggerAxisValue = LockedThrottleValue;
+	}
+
 }
 void AHandThruster::TopPushed()
 {
 	Super::TopPushed();
 
+	bThrottleLocked = true;
+	LockedThrottleValue = AutoHoverThrottle;
 }
 void AHandThruster::TopReleased()
 {
@@ -67,6 +82,7 @@ void AHandThruster::BottomPushed()
 {
 	Super::BottomPushed();
 
+	CurrentTriggerAxisValue = 0.f;
 	bThrottleLocked ? bThrottleLocked = false : bThrottleLocked = true;
 	bSetLockedThrottle = true;
 }
@@ -78,10 +94,12 @@ void AHandThruster::BottomReleased()
 
 void AHandThruster::ApplyThrust(float ThrustAmount)
 {
+	if (CurrentFuel <= 0.f) { return; }
+
 	float DeltaSeconds = GetWorld()->GetDeltaSeconds();
 	AvrPlayer* OwningPlayer = Cast<AvrPlayer>(GetOwningMC()->GetOwner());
 
-	// Initialize Thrust
+	// Initialize Thrust Velocity
 	FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * ThrustAmount;
 
 	// Reduce Fuel
@@ -91,13 +109,33 @@ void AHandThruster::ApplyThrust(float ThrustAmount)
 	FHitResult TraceHit;
 	if (GetWorld()->LineTraceSingleByChannel(TraceHit, PickupMesh->GetComponentLocation(), PickupMesh->GetComponentLocation() + -PickupMesh->GetUpVector() * GroundEffectDistance, ECC_Visibility))
 	{
-		ThrusterOutput *= GroundEffectMultiplier;
+		float HeightAboveTerrain = (GetActorLocation() - TraceHit.Location).Size();
+
+		// Interoplate over a distance where ground effect is applied between max benefit and none
+		float BotInterp, TopInterp, GEInterp;
+		BotInterp = GroundEffectDistance * GEBeginFalloff;
+		TopInterp = GroundEffectDistance;
+		 
+		if (HeightAboveTerrain < BotInterp)
+		{
+			ThrusterOutput *= (GroundEffectMultiplier);
+		}
+		else if (HeightAboveTerrain > BotInterp && HeightAboveTerrain < TopInterp)
+		{
+			GEInterp = (HeightAboveTerrain - TopInterp) / (BotInterp - TopInterp);
+			ThrusterOutput *= (GroundEffectMultiplier * GEInterp);
+		}
 	}
 
 	// Translational Lift
-	if (OwningPlayer->GetVelocity().X + OwningPlayer->GetVelocity().Y > TranslationalLiftSpeed)
+	float PlayerLateralSpeed = FMath::Abs(OwningPlayer->GetVelocity().X) + FMath::Abs(OwningPlayer->GetVelocity().Y);
+	UE_LOG(LogTemp, Warning, TEXT("PlayerLaterSpeed: %f"), PlayerLateralSpeed)
+		
+	// TODO: Finish this. Interpolate tranlational lift benefit between MaxEndurance, minimum and maximum TL airspeeds
+	if (PlayerLateralSpeed > TranslationalLiftSpeed - TranslationalLiftFalloff && PlayerLateralSpeed < TranslationalLiftSpeed + TranslationalLiftFalloff)
 	{
-		ThrusterOutput *= TranslationalLiftMultiplier;
+
+		// UE_LOG(LogTemp, Warning, TEXT("Benefit: %f"), Benefit) LOG HOW MUCH TL BENEFIT IS BEING GIVEN
 	}
 
 	// Apply Thrust
