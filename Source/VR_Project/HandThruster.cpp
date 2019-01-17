@@ -70,8 +70,8 @@ void AHandThruster::TopPushed()
 {
 	Super::TopPushed();
 
-	bThrottleLocked = true;
 	LockedThrottleValue = AutoHoverThrottle;
+	bThrottleLocked = true;
 }
 void AHandThruster::TopReleased()
 {
@@ -112,30 +112,40 @@ void AHandThruster::ApplyThrust(float ThrustAmount)
 		float HeightAboveTerrain = (GetActorLocation() - TraceHit.Location).Size();
 
 		// Interoplate over a distance where ground effect is applied between max benefit and none
-		float BotInterp, TopInterp, GEInterp;
-		BotInterp = GroundEffectDistance * GEBeginFalloff;
-		TopInterp = GroundEffectDistance;
+		// TODO: Change interpolation to be exponential instead of linear
+		float BotInterp = GroundEffectDistance * GEBeginFalloff;
+		float TopInterp = GroundEffectDistance;
 		 
 		if (HeightAboveTerrain < BotInterp)
 		{
-			ThrusterOutput *= (GroundEffectMultiplier);
+			ThrusterOutput *= (GroundEffectMultiplier + 1.f);
+			UE_LOG(LogTemp, Warning, TEXT("Ground Effect: %f"), GroundEffectMultiplier + 1.f);
 		}
 		else if (HeightAboveTerrain > BotInterp && HeightAboveTerrain < TopInterp)
 		{
-			GEInterp = (HeightAboveTerrain - TopInterp) / (BotInterp - TopInterp);
-			ThrusterOutput *= (GroundEffectMultiplier * GEInterp);
+			float GEInterp = (HeightAboveTerrain - TopInterp) / (BotInterp - TopInterp);
+			GEInterp *= GroundEffectMultiplier;
+			GEInterp += 1.f;
+			ThrusterOutput *= GEInterp;
+			UE_LOG(LogTemp, Warning, TEXT("Partial Ground Effect: %f"), GEInterp);
 		}
 	}
 
 	// Translational Lift
-	float PlayerLateralSpeed = FMath::Abs(OwningPlayer->GetVelocity().X) + FMath::Abs(OwningPlayer->GetVelocity().Y);
-	UE_LOG(LogTemp, Warning, TEXT("PlayerLaterSpeed: %f"), PlayerLateralSpeed)
-		
-	// TODO: Finish this. Interpolate tranlational lift benefit between MaxEndurance, minimum and maximum TL airspeeds
-	if (PlayerLateralSpeed > TranslationalLiftSpeed - TranslationalLiftFalloff && PlayerLateralSpeed < TranslationalLiftSpeed + TranslationalLiftFalloff)
-	{
+	
+	auto PlayerLatSpd = OwningPlayer->GetVelocity();
+	PlayerLatSpd.Z = 0.f;
 
-		// UE_LOG(LogTemp, Warning, TEXT("Benefit: %f"), Benefit) LOG HOW MUCH TL BENEFIT IS BEING GIVEN
+	LateralSpeed = PlayerLatSpd.Size();
+
+	// TODO: Finish this. Interpolate tranlational lift benefit between MaxEndurance, minimum and maximum TL airspeeds
+	if (LateralSpeed > TranslationalLiftSpeed - TranslationalLiftFalloff && LateralSpeed < TranslationalLiftSpeed + TranslationalLiftFalloff)
+	{
+		float BenefitPercent = ((TranslationalLiftSpeed - TranslationalLiftFalloff) - FMath::Abs(TranslationalLiftSpeed - LateralSpeed)) / (TranslationalLiftSpeed - TranslationalLiftFalloff);
+		BenefitPercent *= TranslationalLiftMultiplier;
+		BenefitPercent += 1.f;
+		ThrusterOutput *= BenefitPercent;
+		UE_LOG(LogTemp, Warning, TEXT("Translational Lift: %f"), BenefitPercent);
 	}
 
 	// Apply Thrust
