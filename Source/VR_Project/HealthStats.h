@@ -18,9 +18,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Default Values")
-	float MaximumHealth = 100.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default Values")
+	float MaximumHealth = 100.f;
+	UPROPERTY(BlueprintReadOnly, Category = "Default Values")
 	float CurrentHealth;
 
 public:	

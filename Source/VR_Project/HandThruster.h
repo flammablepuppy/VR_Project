@@ -54,7 +54,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bThrottleLocked = false;
 	UPROPERTY(BlueprintReadOnly)
-	float LockedThrottleValue;
+	float LockedThrottleValue = 0.45f;
 	UPROPERTY(BlueprintReadOnly)
 	bool bSetLockedThrottle = false;
 	UPROPERTY(BlueprintReadOnly)

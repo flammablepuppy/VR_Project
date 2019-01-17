@@ -10,6 +10,9 @@
 #include "HealthStats.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "EngineGlobals.h"
+#include <Runtime/Engine/Classes/Engine/Engine.h>
+#include "GameFramework/CharacterMovementComponent.h"
 
 AvrPlayer::AvrPlayer()
 {
@@ -83,6 +86,7 @@ void AvrPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	OffsetRoot();
+	MotionInputScan();
 }
  
 // VR Functions
@@ -154,6 +158,63 @@ void AvrPlayer::SnapTurn(float Value)
 	{
 		bSnapTurnReady = true;
 	}
+}
+void AvrPlayer::MotionInputScan()
+{
+	// Set variables for scanning
+	FVector HeadRelative = HeadsetCamera->GetComponentTransform().InverseTransformPosition(GetActorLocation());
+	FVector LeftRelative = LeftController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
+	FVector RightRelative = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
+
+	FVector HeadRelVel = HeadLastRelPos - HeadRelative;
+	FVector LeftRelVel = LeftLastRelPos - LeftRelative;
+	FVector RightRelVel = RightLastRelPos - RightRelative;
+
+	// TODO: Check for abrubt velocity change damage. Set a velocity change that causes 1 damage that gets exponentially greater as you get higher above that value
+	FVector VelocityChangeThisTick = VelocityLastTick - GetVelocity();
+	
+	if (VelocityChangeThisTick.Size() > VelocityChangeDamageSpeed)
+	{
+		float AppliedDamage = VelocityChangeThisTick.Size() - VelocityChangeDamageSpeed;
+		AppliedDamage *= AppliedDamage;
+		UGameplayStatics::ApplyDamage(this, AppliedDamage, this->GetController(), this, MotionDamage);
+	}
+
+	// Debug Logging:
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+
+		GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("____________________H: %s"), *HeadRelVel.ToString()));
+		GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("____________________L: %s"), *LeftRelVel.ToString()));
+		GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("____________________R: %s"), *RightRelVel.ToString()));
+	}
+
+	HeadLastRelPos = HeadsetCamera->GetComponentTransform().InverseTransformPosition(GetActorLocation());
+	LeftLastRelPos = LeftController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
+	RightLastRelPos = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
+
+	VelocityLastTick = GetMovementComponent()->Velocity;
+
 }
 
 // Interaction Calls

@@ -40,7 +40,7 @@ protected:
 	USphereComponent* LeftVolume;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* RightVolume;
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UHealthStats* HealthStatsComp;
 
 	// Basic Locomotion Functions
@@ -51,22 +51,40 @@ protected:
 	UFUNCTION(Category = "Locomotion")
 	void MouseLookPitch(float Value);
 	UFUNCTION(Category = "Locomotion")
-	void MouseLookYaw(float Value); 
-	UFUNCTION(Category = "Locomotion")  
+	void MouseLookYaw(float Value);
+	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
+	bool bMouseEnabled = true;
+
+	// Snap Turn
+	UFUNCTION(Category = "Locomotion")
 	void SnapTurn(float Value);
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	float SnapTurnIncrement = 90.f;
 	UPROPERTY()
 	bool bSnapTurnReady = true;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
-	bool bMouseEnabled = true;
-
+	// VR Specific Movement
 	UFUNCTION(BlueprintCallable, Category = "vrFunction")
 	void OffsetRoot();
-
 	UPROPERTY(BlueprintReadWrite, Category = "vrParameters")
 	float PlayerHeight = 1.78f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector VelocityLastTick = FVector::ZeroVector;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Locomotion")
+	float VelocityChangeDamageSpeed = 1000.f;
+	UPROPERTY(EditDefaultsOnly, Category = "vrParameters")
+	TSubclassOf<UDamageType> MotionDamage;
+
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector HeadLastRelPos = FVector::ZeroVector;
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector LeftLastRelPos = FVector::ZeroVector;
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector RightLastRelPos = FVector::ZeroVector;
+
+	UFUNCTION(BlueprintCallable)
+	void MotionInputScan();
 
 	// Controller Function calls
 	UFUNCTION(Category = "Left Controller Functions")
@@ -120,12 +138,6 @@ protected:
 	AvrPickup* RightScanTarget;
 	UPROPERTY()
 	AvrPickup* RightHeldObject;
-
-	// Motion Input and abrupt velocity change damage
-	/*UFUNCTION()
-	void CheckForFIT();
-	UPROPERTY()
-	FVector VelocityLastFrame;*/
 
 public:	
 
