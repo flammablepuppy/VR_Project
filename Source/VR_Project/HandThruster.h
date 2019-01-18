@@ -22,35 +22,37 @@ protected:
 
 	// Fuel
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float MaxFuel = 8.f;
+	float MaxFuel = 10.f;
 	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")
 	float CurrentFuel;
 
 	// Thrust
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float ThrustPower = 17.5;
+	float ThrustPower = 16.5f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TerminalVelocitySpeed = 6900.f;
+	float TerminalVelocitySpeed = 7500.f;
 	
 	// Ground Effect
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectMultiplier = 0.45;
+	float GroundEffectMultiplier = 0.35;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectDistance = 750.f;
+	float GroundEffectLoss = 750.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GEBeginFalloff = 0.5f;
+	float GroundEffectFull = 300.f;
 
 	// Translational Lift
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftMultiplier = 0.6f;
+	float TranslationalLiftMultiplier = 0.62f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftSpeed = 3250.f;
+	float MaxBenefitSpeed = 3250.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftFalloff = 1250.f;
+	float BenefitDelta = 2750.f;
+	UPROPERTY() // Set in BeginPlay
+	float TranslationalLiftCurveBase = 0.f;
 
 	// Features
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float AutoHoverThrottle = 0.45f;
+	float AutoHoverThrottle = 0.75f;
 	UPROPERTY(BlueprintReadOnly)
 	bool bThrottleLocked = false;
 	UPROPERTY(BlueprintReadOnly)
@@ -61,7 +63,10 @@ protected:
 	float CurrentTriggerAxisValue;
 
 	UPROPERTY(BlueprintReadOnly)
-	float LateralSpeed;
+	float DisplayNumber1;
+	UPROPERTY(BlueprintReadOnly)
+	float DisplayNumber2;
+
 
 public:
 	virtual void Tick(float DeltaTime) override;

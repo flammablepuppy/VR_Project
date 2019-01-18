@@ -170,14 +170,30 @@ void AvrPlayer::MotionInputScan()
 	FVector LeftRelVel = LeftLastRelPos - LeftRelative;
 	FVector RightRelVel = RightLastRelPos - RightRelative;
 
-	// TODO: Check for abrubt velocity change damage. Set a velocity change that causes 1 damage that gets exponentially greater as you get higher above that value
+	// Check for abrubt velocity change. Apply damage exponentially when you collide with things
 	FVector VelocityChangeThisTick = VelocityLastTick - GetVelocity();
 	
 	if (VelocityChangeThisTick.Size() > VelocityChangeDamageSpeed)
 	{
 		float AppliedDamage = VelocityChangeThisTick.Size() - VelocityChangeDamageSpeed;
-		AppliedDamage *= AppliedDamage;
+		AppliedDamage *= 0.012f; // This seems like a good value, though it may be a good idea to create a variable that can be exposed to the editor
+		AppliedDamage *= AppliedDamage; // Having the damage be exponential makes it feel much more fair. Big falls hurt a lot, little ones not so much
+		AppliedDamage += 15.f; // Set a minimum impact damage
+
+		if (AppliedDamage > 65.f) // Hard impacts cause player to drop anything they're holding
+		{
+			if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
+			{
+				ExecuteDrop(LeftHeldObject);
+			}
+			if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
+			{
+				ExecuteDrop(RightHeldObject);
+			}
+		}
+
 		UGameplayStatics::ApplyDamage(this, AppliedDamage, this->GetController(), this, MotionDamage);
+		UE_LOG(LogTemp, Warning, TEXT("Velocity DAMAGE: %f"), AppliedDamage)
 	}
 
 	// Debug Logging:
@@ -204,11 +220,12 @@ void AvrPlayer::MotionInputScan()
 		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
 		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
 
-		GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("____________________H: %s"), *HeadRelVel.ToString()));
-		GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("____________________L: %s"), *LeftRelVel.ToString()));
-		GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("____________________R: %s"), *RightRelVel.ToString()));
+		GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________H: %s"), *HeadRelVel.ToString()));
+		GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________L: %s"), *LeftRelVel.ToString()));
+		GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________R: %s"), *RightRelVel.ToString()));
 	}
 
+	// Set variables for reference next tick
 	HeadLastRelPos = HeadsetCamera->GetComponentTransform().InverseTransformPosition(GetActorLocation());
 	LeftLastRelPos = LeftController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
 	RightLastRelPos = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());

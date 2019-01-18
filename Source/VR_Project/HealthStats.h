@@ -23,11 +23,20 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Default Values")
 	float CurrentHealth;
 
+	UFUNCTION()
+	void PlayerDeath();
+
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION()
 	void OwnerTakesDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void DamageFloatingNumber(float Damage);
+		
+	UPROPERTY(BlueprintReadOnly)
+	bool bShowDeathMessage = false;
 
 	UFUNCTION()
 	FORCEINLINE float GetCurrentHealth() { return CurrentHealth; }

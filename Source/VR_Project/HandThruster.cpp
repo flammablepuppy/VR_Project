@@ -18,6 +18,7 @@ void AHandThruster::BeginPlay()
 	Super::BeginPlay();
 
 	CurrentFuel = MaxFuel;
+	TranslationalLiftCurveBase = -1 / (BenefitDelta * BenefitDelta);
 }
 void AHandThruster::Tick(float DeltaTime)
 {
@@ -107,42 +108,40 @@ void AHandThruster::ApplyThrust(float ThrustAmount)
 
 	// Ground Effect
 	FHitResult TraceHit;
-	if (GetWorld()->LineTraceSingleByChannel(TraceHit, PickupMesh->GetComponentLocation(), PickupMesh->GetComponentLocation() + -PickupMesh->GetUpVector() * GroundEffectDistance, ECC_Visibility))
+	if (GetWorld()->LineTraceSingleByChannel(TraceHit, PickupMesh->GetComponentLocation(), PickupMesh->GetComponentLocation() + -PickupMesh->GetUpVector() * GroundEffectFull, ECC_WorldStatic))
 	{
 		float HeightAboveTerrain = (GetActorLocation() - TraceHit.Location).Size();
 
 		// Interoplate over a distance where ground effect is applied between max benefit and none
 		// TODO: Change interpolation to be exponential instead of linear
-		float BotInterp = GroundEffectDistance * GEBeginFalloff;
-		float TopInterp = GroundEffectDistance;
-		 
-		if (HeightAboveTerrain < BotInterp)
+		if (HeightAboveTerrain < GroundEffectFull)
 		{
-			ThrusterOutput *= (GroundEffectMultiplier + 1.f);
+			ThrusterOutput *= (1.f + GroundEffectMultiplier);
 		}
-		else if (HeightAboveTerrain > BotInterp && HeightAboveTerrain < TopInterp)
+		else if (HeightAboveTerrain > GroundEffectFull && HeightAboveTerrain < GroundEffectLoss)
 		{
-			float GEInterp = (HeightAboveTerrain - TopInterp) / (BotInterp - TopInterp);
-			GEInterp *= GroundEffectMultiplier;
-			GEInterp += 1.f;
-			ThrusterOutput *= GEInterp;
+			float Advantage = (HeightAboveTerrain - GroundEffectLoss) / (GroundEffectFull - GroundEffectLoss);
+			Advantage *= GroundEffectMultiplier;
+			ThrusterOutput *= (1.f + Advantage);
 		}
 	}
 
 	// Translational Lift
-	
-	auto PlayerLatSpd = OwningPlayer->GetVelocity();
-	PlayerLatSpd.Z = 0.f;
+	float PlayerLateralSpeed = FVector(OwningPlayer->GetVelocity().X, OwningPlayer->GetVelocity().Y, 0.f).Size();
+	DisplayNumber1 = PlayerLateralSpeed / 100.f;
 
-	LateralSpeed = PlayerLatSpd.Size();
-
-	// Interpolate tranlational lift benefit between MaxEndurance, minimum and maximum TL airspeeds
-	if (LateralSpeed > TranslationalLiftSpeed - TranslationalLiftFalloff && LateralSpeed < TranslationalLiftSpeed + TranslationalLiftFalloff)
+	if (PlayerLateralSpeed > MaxBenefitSpeed - BenefitDelta && PlayerLateralSpeed < MaxBenefitSpeed + BenefitDelta)
 	{
-		float BenefitPercent = ((TranslationalLiftSpeed - TranslationalLiftFalloff) - FMath::Abs(TranslationalLiftSpeed - LateralSpeed)) / (TranslationalLiftSpeed - TranslationalLiftFalloff);
-		BenefitPercent *= TranslationalLiftMultiplier;
-		BenefitPercent += 1.f;
-		ThrusterOutput *= BenefitPercent;
+		float ForSquare = (PlayerLateralSpeed - MaxBenefitSpeed);
+		float Advantage = 1.f + TranslationalLiftCurveBase * FMath::Square(ForSquare + 1);
+		Advantage *= TranslationalLiftMultiplier;
+		ThrusterOutput *= (1.f + Advantage);
+		DisplayNumber2 = (1.f + Advantage);
+
+	}
+	else
+	{
+		DisplayNumber2 = 0.f;
 	}
 
 	// Apply Thrust
@@ -154,6 +153,8 @@ void AHandThruster::ApplyThrust(float ThrustAmount)
 	{
 		OwningPlayer->GetMovementComponent()->Velocity += ThrusterOutput;
 		OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
+
+		// Reduce velocity if over terminal velocity
 		if (OwningPlayer->GetMovementComponent()->Velocity.Size() > TerminalVelocitySpeed)
 		{
 			OwningPlayer->GetMovementComponent()->Velocity *= 0.9f;
