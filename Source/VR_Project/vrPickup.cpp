@@ -33,6 +33,7 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 	if (!bPickupEnabled) { return; }
 
 	OwningMC = GrabbingController;
+	OwningMC->SetShowDeviceModel(false);
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
 	CurrentHomingSpeed = 0.f; 
@@ -42,7 +43,7 @@ void AvrPickup::Drop()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
-	//if (bReadyToUse) { SetActorLocation(OwningMC->GetComponentLocation() + OwningMC->GetForwardVector() * 10.f); }
+	if (bReadyToUse) { /*SetActorLocation(OwningMC->GetComponentLocation() + OwningMC->GetForwardVector() * 10.f)*/OwningMC->SetShowDeviceModel(false); }
 	OwningMC = nullptr;
 	bReadyToUse = false;
 	bPickupEnabled = true;
@@ -77,6 +78,7 @@ void AvrPickup::MoveToGrabbingMC()
 		bMoving = false;
 		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		bReadyToUse = true;
+		OwningMC->SetShowDeviceModel(true);
 	}
 }
 

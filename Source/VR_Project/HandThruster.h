@@ -34,7 +34,7 @@ protected:
 	
 	// Ground Effect
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectMultiplier = 0.35;
+	float GroundEffectMultiplier = 0.32;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float GroundEffectLoss = 750.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
@@ -42,7 +42,7 @@ protected:
 
 	// Translational Lift
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftMultiplier = 0.62f;
+	float TranslationalLiftMultiplier = 0.5f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float MaxBenefitSpeed = 3250.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
@@ -52,11 +52,11 @@ protected:
 
 	// Features
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float AutoHoverThrottle = 0.75f;
+	float AutoHoverThrottle = 0.54;
 	UPROPERTY(BlueprintReadOnly)
 	bool bThrottleLocked = false;
 	UPROPERTY(BlueprintReadOnly)
-	float LockedThrottleValue = 0.45f;
+	float LockedThrottleValue = 0.f;
 	UPROPERTY(BlueprintReadOnly)
 	bool bSetLockedThrottle = false;
 	UPROPERTY(BlueprintReadOnly)
@@ -79,7 +79,7 @@ public:
 	virtual void Drop() override;
 
 	UFUNCTION(BlueprintCallable)
-	void ApplyThrust(float ThrustAmount);
+	void ApplyThrust(float ThrustPercent);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetMaxFuel() { return MaxFuel; }

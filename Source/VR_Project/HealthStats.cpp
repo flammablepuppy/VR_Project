@@ -8,11 +8,9 @@
 
 UHealthStats::UHealthStats()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 }
-
-
 void UHealthStats::BeginPlay()
 {
 	Super::BeginPlay();
@@ -25,15 +23,16 @@ void UHealthStats::BeginPlay()
 		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthStats::OwnerTakesDamage);
 	}
 }
-
-void UHealthStats::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-}
+//void UHealthStats::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+//{
+//	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+//
+//}
 
 void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
+	if (bOwnerIsDead) { return; }
+
 	if (Damage > 0.f)
 	{
 		CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaximumHealth);
@@ -43,6 +42,7 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 		if (CurrentHealth <= 0.f)
 		{
 			PlayerDeath();
+			bOwnerIsDead = true;
 		}
 	}
 	if (Damage < 0.f)
@@ -52,7 +52,6 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 
 	}
 }
-
 void UHealthStats::PlayerDeath()
 {
 	AvrPlayer* OwningPlayer = Cast<AvrPlayer>(GetOwner());

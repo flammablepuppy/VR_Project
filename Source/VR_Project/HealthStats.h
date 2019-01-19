@@ -26,8 +26,11 @@ protected:
 	UFUNCTION()
 	void PlayerDeath();
 
+	UPROPERTY(BlueprintReadOnly)
+	bool bOwnerIsDead = false;
+
 public:	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION()
 	void OwnerTakesDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);

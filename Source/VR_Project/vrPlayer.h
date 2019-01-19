@@ -71,8 +71,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
 	FVector VelocityLastTick = FVector::ZeroVector;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Locomotion")
-	float VelocityChangeDamageSpeed = 1000.f;
 	UPROPERTY(EditDefaultsOnly, Category = "vrParameters")
 	TSubclassOf<UDamageType> MotionDamage;
 
@@ -83,8 +81,26 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
 	FVector RightLastRelPos = FVector::ZeroVector;
 
+	// Motion Input
 	UFUNCTION(BlueprintCallable)
 	void MotionInputScan();
+		// Impact Damage
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Locomotion")
+		float VelocityChangeDamageSpeed = 1000.f; // Velocity change threshold beyond which damage is applied to the player
+		UFUNCTION()
+		void ApplyImpactDamage(float VelocityChange);
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") // The minimum amount of damage that will be dealt to the player after an abrupt velocity change
+		float MinimumImpactDamage = 15.f;
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") // Damage delt per cm/s over velocity change threshold
+		float ExponentialImpactDamage = 0.012f;
+		// Jumping TODO: Finish jump implementation
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float HeadJumpRequiredZ = 1.5f;
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float LeftJumpRequiredZ = 2.5f;
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float RightJumpRequiredZ = 2.5f;
+
 
 	// Controller Function calls
 	UFUNCTION(Category = "Left Controller Functions")

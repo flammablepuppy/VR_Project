@@ -171,30 +171,7 @@ void AvrPlayer::MotionInputScan()
 	FVector RightRelVel = RightLastRelPos - RightRelative;
 
 	// Check for abrubt velocity change. Apply damage exponentially when you collide with things
-	FVector VelocityChangeThisTick = VelocityLastTick - GetVelocity();
-	
-	if (VelocityChangeThisTick.Size() > VelocityChangeDamageSpeed)
-	{
-		float AppliedDamage = VelocityChangeThisTick.Size() - VelocityChangeDamageSpeed;
-		AppliedDamage *= 0.012f; // This seems like a good value, though it may be a good idea to create a variable that can be exposed to the editor
-		AppliedDamage *= AppliedDamage; // Having the damage be exponential makes it feel much more fair. Big falls hurt a lot, little ones not so much
-		AppliedDamage += 15.f; // Set a minimum impact damage
-
-		if (AppliedDamage > 65.f) // Hard impacts cause player to drop anything they're holding
-		{
-			if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
-			{
-				ExecuteDrop(LeftHeldObject);
-			}
-			if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
-			{
-				ExecuteDrop(RightHeldObject);
-			}
-		}
-
-		UGameplayStatics::ApplyDamage(this, AppliedDamage, this->GetController(), this, MotionDamage);
-		UE_LOG(LogTemp, Warning, TEXT("Velocity DAMAGE: %f"), AppliedDamage)
-	}
+	ApplyImpactDamage((VelocityLastTick - GetVelocity()).Size());
 
 	// Debug Logging:
 	if (GEngine)
@@ -232,6 +209,33 @@ void AvrPlayer::MotionInputScan()
 
 	VelocityLastTick = GetMovementComponent()->Velocity;
 
+}
+void AvrPlayer::ApplyImpactDamage(float VelocityChange)
+{
+	if (VelocityChange > VelocityChangeDamageSpeed)
+	{
+		float AppliedDamage = VelocityChange - VelocityChangeDamageSpeed;
+		AppliedDamage *= ExponentialImpactDamage; // This seems like a good value, though it may be a good idea to create a variable that can be exposed to the editor
+		AppliedDamage *= AppliedDamage; // Having the damage be exponential makes it feel much more fair. Big falls hurt a lot, little ones not so much
+		if (AppliedDamage < MinimumImpactDamage)
+		{
+			AppliedDamage = MinimumImpactDamage;
+		}
+
+		if (AppliedDamage > 65.f) // Hard impacts cause player to drop anything they're holding
+		{
+			if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
+			{
+				ExecuteDrop(LeftHeldObject);
+			}
+			if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
+			{
+				ExecuteDrop(RightHeldObject);
+			}
+		}
+
+		UGameplayStatics::ApplyDamage(this, AppliedDamage, this->GetController(), this, MotionDamage);
+	}
 }
 
 // Interaction Calls

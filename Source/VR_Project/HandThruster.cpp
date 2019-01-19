@@ -93,7 +93,7 @@ void AHandThruster::BottomReleased()
 
 }
 
-void AHandThruster::ApplyThrust(float ThrustAmount)
+void AHandThruster::ApplyThrust(float ThrustPercent)
 {
 	if (CurrentFuel <= 0.f) { return; }
 
@@ -101,10 +101,10 @@ void AHandThruster::ApplyThrust(float ThrustAmount)
 	AvrPlayer* OwningPlayer = Cast<AvrPlayer>(GetOwningMC()->GetOwner());
 
 	// Initialize Thrust Velocity
-	FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * ThrustAmount;
+	FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * ThrustPercent;
 
 	// Reduce Fuel
-	CurrentFuel -= ThrustAmount * DeltaSeconds;
+	CurrentFuel -= ThrustPercent * DeltaSeconds;
 
 	// Ground Effect
 	FHitResult TraceHit;
@@ -128,7 +128,6 @@ void AHandThruster::ApplyThrust(float ThrustAmount)
 
 	// Translational Lift
 	float PlayerLateralSpeed = FVector(OwningPlayer->GetVelocity().X, OwningPlayer->GetVelocity().Y, 0.f).Size();
-	DisplayNumber1 = PlayerLateralSpeed / 100.f;
 
 	if (PlayerLateralSpeed > MaxBenefitSpeed - BenefitDelta && PlayerLateralSpeed < MaxBenefitSpeed + BenefitDelta)
 	{
@@ -136,8 +135,6 @@ void AHandThruster::ApplyThrust(float ThrustAmount)
 		float Advantage = 1.f + TranslationalLiftCurveBase * FMath::Square(ForSquare + 1);
 		Advantage *= TranslationalLiftMultiplier;
 		ThrusterOutput *= (1.f + Advantage);
-		DisplayNumber2 = (1.f + Advantage);
-
 	}
 	else
 	{
