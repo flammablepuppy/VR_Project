@@ -31,7 +31,9 @@ protected:
 	float ThrustPower = 16.5f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float TerminalVelocitySpeed = 7500.f;
-	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	float AccelerationLimit = 22.5f;
+
 	// Ground Effect
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float GroundEffectMultiplier = 0.32;

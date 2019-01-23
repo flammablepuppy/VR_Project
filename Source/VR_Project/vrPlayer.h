@@ -169,4 +169,6 @@ public:
 	FORCEINLINE UMotionControllerComponent* GetRightMC() { return RightController; }
 	UFUNCTION(BlueprintCallable)
 	void SetMouseEnabled(bool NewState);
+	UFUNCTION()
+	FORCEINLINE FVector GetVelocityLastTick() { return VelocityLastTick; };
 };

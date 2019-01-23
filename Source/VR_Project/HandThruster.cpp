@@ -113,7 +113,7 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 		float HeightAboveTerrain = (GetActorLocation() - TraceHit.Location).Size();
 
 		// Interoplate over a distance where ground effect is applied between max benefit and none
-		// TODO: Change interpolation to be exponential instead of linear
+		// TODO: Change interpolation to be exponential instead of linear, that`ll make the cusioning effect feel better
 		if (HeightAboveTerrain < GroundEffectFull)
 		{
 			ThrusterOutput *= (1.f + GroundEffectMultiplier);
@@ -146,16 +146,21 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 	{
 		OwningPlayer->LaunchCharacter(ThrusterOutput, false, false);
 	}
+	if (OwningPlayer->GetMovementComponent()->Velocity.Size() - OwningPlayer->GetVelocityLastTick().Size() > AccelerationLimit) // Limit max acceleration, having two thrusters gets stupid
+	{
+		float SetMaxAccel = AccelerationLimit / (OwningPlayer->GetMovementComponent()->Velocity + ThrusterOutput).Size(); // TODO: Inspect this further, should I be applying this to velocity instead?
+		ThrusterOutput *= SetMaxAccel;
+	}
 	if (OwningPlayer->GetMovementComponent()->IsFalling())
 	{
 		OwningPlayer->GetMovementComponent()->Velocity += ThrusterOutput;
-		OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
 
 		// Reduce velocity if over terminal velocity
 		if (OwningPlayer->GetMovementComponent()->Velocity.Size() > TerminalVelocitySpeed)
 		{
 			OwningPlayer->GetMovementComponent()->Velocity *= 0.9f;
-			OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
 		}
 	}
+
+	OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
 }
