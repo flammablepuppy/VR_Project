@@ -25,6 +25,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UMotionControllerComponent* OwningMC;
+	UPROPERTY(VisibleAnywhere)
+	AvrPlayer* OwningPlayer;		
 
 	UPROPERTY()
 	bool bPickupEnabled= true;
@@ -86,5 +88,7 @@ public:
 	void SetPickupEnabled(bool NewState); 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UMotionControllerComponent* GetOwningMC() { return OwningMC; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE AvrPlayer* GetOwningPlayer() { return OwningPlayer; }
 
 };

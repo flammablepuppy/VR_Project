@@ -173,34 +173,34 @@ void AvrPlayer::MotionInputScan()
 	// Check for abrubt velocity change. Apply damage exponentially when you collide with things
 	ApplyImpactDamage((VelocityLastTick - GetVelocity()).Size());
 
-	// Debug Logging:
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//// Debug Logging:
+	//if (GEngine)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
 
-		GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________H: %s"), *HeadRelVel.ToString()));
-		GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________L: %s"), *LeftRelVel.ToString()));
-		GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________R: %s"), *RightRelVel.ToString()));
-	}
+	//	GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________H: %s"), *HeadRelVel.ToString()));
+	//	GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________L: %s"), *LeftRelVel.ToString()));
+	//	GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________R: %s"), *RightRelVel.ToString()));
+	//}
 
 	// Set variables for reference next tick
 	HeadLastRelPos = HeadsetCamera->GetComponentTransform().InverseTransformPosition(GetActorLocation());

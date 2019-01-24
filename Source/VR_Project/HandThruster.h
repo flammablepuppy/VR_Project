@@ -27,12 +27,10 @@ protected:
 	float CurrentFuel;
 
 	// Thrust
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Thruster Properties")
+	float ThrustPowerSetter = 16.5f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float ThrustPower = 16.5f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TerminalVelocitySpeed = 7500.f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float AccelerationLimit = 22.5f;
+	float TerminalVelocitySpeed = 6100.f;
 
 	// Ground Effect
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
@@ -49,18 +47,22 @@ protected:
 	float MaxBenefitSpeed = 3250.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float BenefitDelta = 2750.f;
-	UPROPERTY() // Set in BeginPlay
+	UPROPERTY() // Set in BeginPlay, calculates the appropriate float for use in expo onset curve
 	float TranslationalLiftCurveBase = 0.f;
 
 	// Features
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float AutoHoverThrottle = 0.54;
+	float AutoHoverSlow = 0.54;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	float AutoHoverFast = 0.45;
 	UPROPERTY(BlueprintReadOnly)
 	bool bThrottleLocked = false;
 	UPROPERTY(BlueprintReadOnly)
 	float LockedThrottleValue = 0.f;
 	UPROPERTY(BlueprintReadOnly)
 	bool bSetLockedThrottle = false;
+	UPROPERTY(BlueprintReadOnly)
+	bool bSetAutoHoverThrottle = false;
 	UPROPERTY(BlueprintReadOnly)
 	float CurrentTriggerAxisValue;
 

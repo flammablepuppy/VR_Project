@@ -24,6 +24,22 @@ void AHandThruster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bSetAutoHoverThrottle)
+	{
+		FVector PlayerLatAccel = OwningPlayer->GetMovementComponent()->Velocity;
+		PlayerLatAccel.Z = 0.f;
+		if (PlayerLatAccel.Size() > MaxBenefitSpeed - BenefitDelta)
+		{
+			LockedThrottleValue = AutoHoverFast;
+		}
+		else
+		{
+			LockedThrottleValue = 0.54f;
+		}
+		bSetAutoHoverThrottle = false;
+		CurrentTriggerAxisValue = AutoHoverSlow;
+		bThrottleLocked = true;
+	}
 	if (bThrottleLocked)
 	{
 		ApplyThrust(CurrentTriggerAxisValue);
@@ -71,8 +87,8 @@ void AHandThruster::TopPushed()
 {
 	Super::TopPushed();
 
-	LockedThrottleValue = AutoHoverThrottle;
-	bThrottleLocked = true;
+	bSetAutoHoverThrottle = true;
+
 }
 void AHandThruster::TopReleased()
 {
@@ -83,73 +99,65 @@ void AHandThruster::BottomPushed()
 {
 	Super::BottomPushed();
 
-	CurrentTriggerAxisValue = 0.f;
-	bThrottleLocked ? bThrottleLocked = false : bThrottleLocked = true;
-	bSetLockedThrottle = true; // This bool is only used in TriggerPulled
 }
 void AHandThruster::BottomReleased()
 {
 	Super::BottomReleased();
 
+	CurrentTriggerAxisValue = 0.f;
+	bThrottleLocked ? bThrottleLocked = false : bThrottleLocked = true;
+	bSetLockedThrottle = true; // This bool is only used in TriggerPulled
 }
 
 void AHandThruster::ApplyThrust(float ThrustPercent)
 {
 	if (CurrentFuel <= 0.f) { return; }
 
-	float DeltaSeconds = GetWorld()->GetDeltaSeconds();
-	AvrPlayer* OwningPlayer = Cast<AvrPlayer>(GetOwningMC()->GetOwner());
-
-	// Initialize Thrust Velocity
-	FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * ThrustPercent;
+	// Initialize ThrustPower
+	float ThrustPower = ThrustPowerSetter;
 
 	// Reduce Fuel
-	CurrentFuel -= ThrustPercent * DeltaSeconds;
+	CurrentFuel -= ThrustPercent * GetWorld()->GetDeltaSeconds();
 
 	// Ground Effect
 	FHitResult TraceHit;
-	if (GetWorld()->LineTraceSingleByChannel(TraceHit, PickupMesh->GetComponentLocation(), PickupMesh->GetComponentLocation() + -PickupMesh->GetUpVector() * GroundEffectFull, ECC_WorldStatic))
+	if (GetWorld()->LineTraceSingleByChannel(TraceHit, PickupMesh->GetComponentLocation(), PickupMesh->GetComponentLocation() + -PickupMesh->GetUpVector() * GroundEffectLoss, ECC_WorldStatic))
 	{
 		float HeightAboveTerrain = (GetActorLocation() - TraceHit.Location).Size();
 
 		// Interoplate over a distance where ground effect is applied between max benefit and none
-		// TODO: Change interpolation to be exponential instead of linear, that`ll make the cusioning effect feel better
+		// Should switch this to an expo curve to make the cushioning come on more appropriately
 		if (HeightAboveTerrain < GroundEffectFull)
 		{
-			ThrusterOutput *= (1.f + GroundEffectMultiplier);
+			ThrustPower *= (1.f + GroundEffectMultiplier);
 		}
-		else if (HeightAboveTerrain > GroundEffectFull && HeightAboveTerrain < GroundEffectLoss)
+		else if (HeightAboveTerrain > GroundEffectFull)
 		{
-			float Advantage = (HeightAboveTerrain - GroundEffectLoss) / (GroundEffectFull - GroundEffectLoss);
+			float Advantage = (GroundEffectLoss - HeightAboveTerrain) / (GroundEffectLoss - GroundEffectFull);
 			Advantage *= GroundEffectMultiplier;
-			ThrusterOutput *= (1.f + Advantage);
+			ThrustPower *= (1.f + Advantage);
+			DisplayNumber2 = Advantage;
 		}
 	}
 
 	// Translational Lift
 	float PlayerLateralSpeed = FVector(OwningPlayer->GetVelocity().X, OwningPlayer->GetVelocity().Y, 0.f).Size();
-
 	if (PlayerLateralSpeed > MaxBenefitSpeed - BenefitDelta && PlayerLateralSpeed < MaxBenefitSpeed + BenefitDelta)
 	{
 		float ForSquare = (PlayerLateralSpeed - MaxBenefitSpeed);
 		float Advantage = 1.f + TranslationalLiftCurveBase * FMath::Square(ForSquare + 1);
 		Advantage *= TranslationalLiftMultiplier;
-		ThrusterOutput *= (1.f + Advantage);
+		ThrustPower *= (1.f + Advantage);
 	}
-	else
-	{
-		DisplayNumber2 = 0.f;
-	}
+
+	// Initialize ThrusterOutput Vector with adjust power
+	FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * ThrustPercent;
+	DisplayNumber1 = ThrusterOutput.Size();
 
 	// Apply Thrust
 	if (!OwningPlayer->GetMovementComponent()->IsFalling())
 	{
-		OwningPlayer->LaunchCharacter(ThrusterOutput, false, false);
-	}
-	if (OwningPlayer->GetMovementComponent()->Velocity.Size() - OwningPlayer->GetVelocityLastTick().Size() > AccelerationLimit) // Limit max acceleration, having two thrusters gets stupid
-	{
-		float SetMaxAccel = AccelerationLimit / (OwningPlayer->GetMovementComponent()->Velocity + ThrusterOutput).Size(); // TODO: Inspect this further, should I be applying this to velocity instead?
-		ThrusterOutput *= SetMaxAccel;
+		OwningPlayer->LaunchCharacter(FVector(0.f, 0.f, ThrustPower * 2.f), false, false);
 	}
 	if (OwningPlayer->GetMovementComponent()->IsFalling())
 	{

@@ -34,6 +34,7 @@ void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
 
 	OwningMC = GrabbingController;
 	OwningMC->SetShowDeviceModel(false);
+	OwningPlayer = Cast<AvrPlayer>(OwningMC->GetOwner());
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
 	CurrentHomingSpeed = 0.f; 
@@ -45,6 +46,7 @@ void AvrPickup::Drop()
 	PickupMesh->SetSimulatePhysics(true);
 	if (bReadyToUse) { /*SetActorLocation(OwningMC->GetComponentLocation() + OwningMC->GetForwardVector() * 10.f)*/OwningMC->SetShowDeviceModel(false); }
 	OwningMC = nullptr;
+	OwningPlayer = nullptr;
 	bReadyToUse = false;
 	bPickupEnabled = true;
 	BPDrop();
