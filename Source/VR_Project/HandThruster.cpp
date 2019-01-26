@@ -125,8 +125,10 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 	{
 		float HeightAboveTerrain = (GetActorLocation() - TraceHit.Location).Size();
 
+		// TODO: This linetrace can hit your own capsule, offering ground effect anywhere you want it if you tip your controller over far enough
+
 		// Interoplate over a distance where ground effect is applied between max benefit and none
-		// Should switch this to an expo curve to make the cushioning come on more appropriately
+		// Should switch this to an expo curve to make the cushioning come on more appropriately, though it feels pretty good now
 		if (HeightAboveTerrain < GroundEffectFull)
 		{
 			ThrustPower *= (1.f + GroundEffectMultiplier);

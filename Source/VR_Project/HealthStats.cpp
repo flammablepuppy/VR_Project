@@ -51,8 +51,8 @@ void UHealthStats::PlayerDeath()
 	if (OwningPlayer)
 	{
 		//OwningPlayer->DisableInput(Cast<APlayerController>(OwningPlayer->GetController()));
-		OwningPlayer->GetLeftHeldObject()->Drop();
-		OwningPlayer->GetRightHeldObject()->Drop();
+		if (OwningPlayer->GetLeftHeldObject()) { OwningPlayer->GetLeftHeldObject()->Drop();	}
+		if (OwningPlayer->GetRightHeldObject()) { OwningPlayer->GetRightHeldObject()->Drop(); }
 		OwningPlayer->GetMovementComponent()->StopActiveMovement();
 		bShowDeathMessage = true;
 	}
