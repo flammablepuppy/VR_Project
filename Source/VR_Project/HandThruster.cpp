@@ -166,7 +166,7 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 		// Reduce velocity if over terminal velocity
 		if (OwningPlayer->GetMovementComponent()->Velocity.Size() > TerminalVelocitySpeed)
 		{
-			OwningPlayer->GetMovementComponent()->Velocity *= 0.9f;
+			OwningPlayer->GetMovementComponent()->Velocity *= TerminalVelocitySpeed / OwningPlayer->GetMovementComponent()->Velocity.Size();
 		}
 	}
 

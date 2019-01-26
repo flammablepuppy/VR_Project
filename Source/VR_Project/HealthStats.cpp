@@ -5,6 +5,7 @@
 #include "vrPlayer.h"
 #include "MotionControllerComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "vrPickup.h"
 
 UHealthStats::UHealthStats()
 {
@@ -20,6 +21,7 @@ void UHealthStats::BeginPlay()
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("HealthStats attached and working for: %s"), *GetOwner()->GetName())
 		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthStats::OwnerTakesDamage);
 	}
 }
@@ -31,13 +33,10 @@ void UHealthStats::BeginPlay()
 
 void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
-	if (bOwnerIsDead) { return; }
-
-	if (Damage > 0.f)
+	if (Damage > 0.f || Damage < 0.f )
 	{
+		DamageTaken.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser);
 		CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaximumHealth);
-		DamageFloatingNumber(Damage);
-		UE_LOG(LogTemp, Log, TEXT("Current health: %f after DAMAGE"), CurrentHealth)
 
 		if (CurrentHealth <= 0.f)
 		{
@@ -45,21 +44,15 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 			bOwnerIsDead = true;
 		}
 	}
-	if (Damage < 0.f)
-	{
-		CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaximumHealth);
-		UE_LOG(LogTemp, Log, TEXT("Current health: %f after HEALING"), CurrentHealth)
-
-	}
 }
 void UHealthStats::PlayerDeath()
 {
 	AvrPlayer* OwningPlayer = Cast<AvrPlayer>(GetOwner());
 	if (OwningPlayer)
 	{
-		OwningPlayer->GetLeftMC()->SetSimulatePhysics(true);
-		OwningPlayer->GetRightMC()->SetSimulatePhysics(true);
 		//OwningPlayer->DisableInput(Cast<APlayerController>(OwningPlayer->GetController()));
+		OwningPlayer->GetLeftHeldObject()->Drop();
+		OwningPlayer->GetRightHeldObject()->Drop();
 		OwningPlayer->GetMovementComponent()->StopActiveMovement();
 		bShowDeathMessage = true;
 	}

@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "HealthStats.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FDamageTakenSignature, UHealthStats*, HealthStatsComp, float, Health, float, Damage, 
+const class UDamageType*, DamageType, class AController*, InstigatedBy, AActor*, DamageCauser);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VR_PROJECT_API UHealthStats : public UActorComponent
@@ -35,8 +37,8 @@ public:
 	UFUNCTION()
 	void OwnerTakesDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void DamageFloatingNumber(float Damage);
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FDamageTakenSignature DamageTaken;
 		
 	UPROPERTY(BlueprintReadOnly)
 	bool bShowDeathMessage = false;
