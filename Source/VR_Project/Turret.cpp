@@ -122,26 +122,28 @@ void ATurret::ScanForPawns()
 }
 void ATurret::AimAzimuth(FVector AimPoint)
 {
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
 	FVector AimDirection = AimPoint - Turret->GetComponentLocation();
-	AimDirection.Z = 0.f;
-	AimDirection.GetSafeNormal();
 
-	FRotator StartRot = Turret->GetForwardVector().Rotation();
-	FRotator TargetRotation = AimDirection.Rotation();
-	FRotator DeltaRot = TargetRotation - StartRot;
-
-	Turret->SetRelativeRotation(StartRot + DeltaRot);
+	float StartYaw = Turret->GetForwardVector().Rotation().Yaw;
+	float TargetYaw = AimDirection.Rotation().Yaw;
+	float DeltaYaw = TargetYaw - StartYaw;
+	float ClampedDeltaYaw = FMath::Clamp(DeltaYaw, -TurretYawSpeed * DeltaTime, TurretYawSpeed * DeltaTime);
+	float NewYaw = StartYaw + ClampedDeltaYaw;
+	Turret->SetRelativeRotation(FRotator(0.f, NewYaw, 0.f));
 	
 }
 void ATurret::AimPitch(FVector AimPoint)
 {
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
 	FVector AimDirection = AimPoint - BarrelPitchPoint->GetComponentLocation();
 
 	float StartPitch = BarrelPitchPoint->GetForwardVector().Rotation().Pitch;
 	float TargetPitch = AimDirection.Rotation().Pitch;
 	float DeltaPitch = TargetPitch - StartPitch;
-
-	BarrelPitchPoint->SetRelativeRotation(FRotator(StartPitch + DeltaPitch, 0.f, 0.f));
+	float ClampedDeltaPitch = FMath::Clamp(DeltaPitch, -BarrelPitchSpeed * DeltaTime, BarrelPitchSpeed * DeltaTime);
+	float NewPitch = StartPitch + ClampedDeltaPitch;
+	BarrelPitchPoint->SetRelativeRotation(FRotator(NewPitch, 0.f, 0.f));
 
 }
 void ATurret::OpenFire()
