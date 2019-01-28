@@ -8,6 +8,8 @@
 #include "HealthStats.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 
 ATurret::ATurret()
 {
@@ -39,7 +41,13 @@ void ATurret::BeginPlay()
 
 	RadarZone->OnComponentBeginOverlap.AddDynamic(this, &ATurret::ScanTripWire);
 	ScanForPawns();
-	
+
+	UProjectileMovementComponent* ProjComp = Cast<UProjectileMovementComponent>(Ammunition->GetDefaultSubobjectByName(FName("ProjectileMovement")));
+	if (ProjComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Projectile speed found!"))
+		AmmoSpeed = ProjComp->InitialSpeed;
+	}
 }
 void ATurret::Tick(float DeltaTime)
 {
@@ -47,8 +55,23 @@ void ATurret::Tick(float DeltaTime)
 
 	if (bTargetDetectedInLOS)
 	{
-		AimAzimuth(ClosestPawn->GetActorLocation());
-		AimPitch(ClosestPawn->GetActorLocation());
+		PredictedPlayerPosition = 
+			ClosestPawn->GetActorLocation() + 
+			ClosestPawn->GetVelocity() * 
+			(ClosestPawn->GetVelocity().Normalize() * ((ClosestPawn->GetActorLocation() - GetActorLocation()).Size() / 20000.0f)); // Shoot where the player will be in the time it takes for the bullet to get there
+
+		// This doesn't take into account the rotation of the barrel, only applies gravity compensation for a perfectly level shot... need to rethink this.
+		//PredictedPlayerPosition += (FVector(0.f, 0.f, 1.f) * 490.f * ((ClosestPawn->GetActorLocation() - Barrel->GetSocketLocation("Muzzle")).Size() / 20000.0f)); // Compensate for gravity
+
+		// Don't quite understand how to use this yet...
+		//FVector SuggestedVelocity;
+		//UGameplayStatics::SuggestProjectileVelocity(GetWorld(), SuggestedVelocity, Barrel->GetSocketLocation("Muzzle"), ClosestPawn->GetActorLocation(), 20000.f);
+
+		AimAzimuth(PredictedPlayerPosition);
+		AimPitch(PredictedPlayerPosition);
+
+		// TODO: Put firing in an if statment that checks if the forward point vector of the barrel is nearly equal to the point vector required for the projectile to hit the players predicted position
+		// ie. only shoot if you have a decent chance of hitting
 		OpenFire();
 	}
 }
@@ -56,7 +79,6 @@ void ATurret::Tick(float DeltaTime)
 // Turret Aiming Functions
 void ATurret::ScanTripWire(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Scan TripWire fires"))
 	GetWorldTimerManager().SetTimer(ScanInterval_Timer, this, &ATurret::ScanForPawns, ScanSpeed, true);
 }
 void ATurret::ScanForPawns()
@@ -70,7 +92,6 @@ void ATurret::ScanForPawns()
 		APawn* FoundPawn = Cast<APawn>(Pawn);
 		if (FoundPawn)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Pawn detected by scan"))
 			if (!ClosestPawn)
 			{
 				ClosestPawn = FoundPawn;
@@ -98,12 +119,10 @@ void ATurret::ScanForPawns()
 			APawn* HitPawn = Cast<APawn>(HitObject.Actor);
 			if (HitPawn)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Detected pawn in LOS"))
 				bTargetDetectedInLOS = true;
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("No pawn in LOS"))
 				bTargetDetectedInLOS = false;
 			}
 
@@ -113,11 +132,11 @@ void ATurret::ScanForPawns()
 			}
 		}
 	}
+	// If there are no pawns in the radar zone, stop scanning
 	if (FoundActors.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Scanning ceased"))
 		bTargetDetectedInLOS = false;
-		GetWorldTimerManager().ClearTimer(ScanInterval_Timer); // If a player isn't in the RadarScanZone, shouldn't need to keep scanning... right?
+		GetWorldTimerManager().ClearTimer(ScanInterval_Timer);
 	}
 }
 void ATurret::AimAzimuth(FVector AimPoint)
@@ -150,6 +169,7 @@ void ATurret::OpenFire()
 {
 	if (!GetWorldTimerManager().IsTimerActive(FireRate_Timer))
 	{
+		BP_PlayFireFX();
 		GetWorld()->SpawnActor<AActor>(Ammunition, Barrel->GetSocketTransform("Muzzle"));
 		GetWorldTimerManager().SetTimer(FireRate_Timer, FireRate, false);
 	}

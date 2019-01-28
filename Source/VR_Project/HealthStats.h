@@ -28,9 +28,6 @@ protected:
 	UFUNCTION()
 	void PlayerDeath();
 
-	UPROPERTY(BlueprintReadOnly)
-	bool bOwnerIsDead = false;
-
 public:	
 	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -39,9 +36,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FDamageTakenSignature DamageTaken;
-		
+
 	UPROPERTY(BlueprintReadOnly)
-	bool bShowDeathMessage = false;
+	bool bOwnerIsDead = false;
 
 	UFUNCTION()
 	FORCEINLINE float GetCurrentHealth() { return CurrentHealth; }

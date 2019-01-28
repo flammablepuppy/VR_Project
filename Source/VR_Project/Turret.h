@@ -59,6 +59,7 @@ protected:
 	float ScanSpeed = 1.f;
 
 	FTimerHandle FireRate_Timer;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ammo")
 	float FireRate = 0.35;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aiming Speed") // Degrees per second
@@ -68,6 +69,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
 	TSubclassOf<AActor> Ammunition;
+
+	float AmmoSpeed;
+
+	UPROPERTY(BlueprintReadOnly)
+	FVector PredictedPlayerPosition;
+
+	// BP Specific
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_PlayFireFX();
 
 
 public:	

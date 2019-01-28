@@ -21,7 +21,6 @@ void UHealthStats::BeginPlay()
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HealthStats attached and working for: %s"), *GetOwner()->GetName())
 		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthStats::OwnerTakesDamage);
 	}
 }
@@ -54,6 +53,5 @@ void UHealthStats::PlayerDeath()
 		if (OwningPlayer->GetLeftHeldObject()) { OwningPlayer->GetLeftHeldObject()->Drop();	}
 		if (OwningPlayer->GetRightHeldObject()) { OwningPlayer->GetRightHeldObject()->Drop(); }
 		OwningPlayer->GetMovementComponent()->StopActiveMovement();
-		bShowDeathMessage = true;
 	}
 }
