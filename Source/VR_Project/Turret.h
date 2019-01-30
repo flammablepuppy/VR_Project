@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Turret.generated.h"
 
+class AvrProjectile;
+
 UCLASS()
 class VR_PROJECT_API ATurret : public AActor
 {
@@ -44,6 +46,8 @@ protected:
 	void OpenFire();
 	UFUNCTION()
 	FVector FindFiringSolution();
+	UFUNCTION()
+	bool LineTraceForPawn(APawn* TargetPawn);
 
 	// Variables
 	UPROPERTY(BlueprintReadOnly)
@@ -68,8 +72,8 @@ protected:
 	float BarrelPitchSpeed = 30.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
-	TSubclassOf<AActor> Ammunition;
-
+	TSubclassOf<AvrProjectile> Ammunition;
+	UPROPERTY()
 	float AmmoSpeed;
 
 	UPROPERTY(BlueprintReadOnly)
