@@ -121,11 +121,12 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 
 	// Ground Effect
 	FHitResult TraceHit;
-	if (GetWorld()->LineTraceSingleByChannel(TraceHit, PickupMesh->GetComponentLocation(), PickupMesh->GetComponentLocation() + -PickupMesh->GetUpVector() * GroundEffectLoss, ECC_WorldStatic))
+	FCollisionResponseParams Params;
+	Params.CollisionResponse.Pawn = ECR_Ignore; // This prevents player from hitting themselves with the trace and getting GE benefit from it
+	if (GetWorld()->LineTraceSingleByChannel(TraceHit, PickupMesh->GetComponentLocation(), PickupMesh->GetComponentLocation() + -PickupMesh->GetUpVector() * GroundEffectLoss, 
+		ECC_WorldStatic, FCollisionQueryParams::DefaultQueryParam, Params))
 	{
 		float HeightAboveTerrain = (GetActorLocation() - TraceHit.Location).Size();
-
-		// TODO: This linetrace can hit your own capsule, offering ground effect anywhere you want it if you tip your controller over far enough
 
 		// Interoplate over a distance where ground effect is applied between max benefit and none
 		// Should switch this to an expo curve to make the cushioning come on more appropriately, though it feels pretty good now

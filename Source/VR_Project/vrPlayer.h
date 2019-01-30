@@ -167,6 +167,8 @@ public:
 	FORCEINLINE UMotionControllerComponent* GetLeftMC() { return LeftController; }
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UMotionControllerComponent* GetRightMC() { return RightController; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE UCameraComponent* GetHeadsetCam() { return HeadsetCamera; }
 	UFUNCTION(BlueprintCallable)
 	void SetMouseEnabled(bool NewState);
 	UFUNCTION()

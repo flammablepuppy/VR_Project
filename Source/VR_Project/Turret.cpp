@@ -10,6 +10,8 @@
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "vrPlayer.h"
+#include "Camera/CameraComponent.h"
 
 ATurret::ATurret()
 {
@@ -42,12 +44,7 @@ void ATurret::BeginPlay()
 	RadarZone->OnComponentBeginOverlap.AddDynamic(this, &ATurret::ScanTripWire);
 	ScanForPawns();
 
-	UProjectileMovementComponent* ProjComp = Cast<UProjectileMovementComponent>(Ammunition->GetDefaultSubobjectByName(FName("ProjectileMovement")));
-	if (ProjComp)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Projectile speed found!"))
-		AmmoSpeed = ProjComp->InitialSpeed;
-	}
+	// TODO: Figure out the best way to get the projectile initial speed so I don't have to hardcode values
 }
 void ATurret::Tick(float DeltaTime)
 {
@@ -55,24 +52,7 @@ void ATurret::Tick(float DeltaTime)
 
 	if (bTargetDetectedInLOS)
 	{
-		PredictedPlayerPosition = 
-			ClosestPawn->GetActorLocation() + 
-			ClosestPawn->GetVelocity() * 
-			(ClosestPawn->GetVelocity().Normalize() * ((ClosestPawn->GetActorLocation() - GetActorLocation()).Size() / 20000.0f)); // Shoot where the player will be in the time it takes for the bullet to get there
-
-		// This doesn't take into account the rotation of the barrel, only applies gravity compensation for a perfectly level shot... need to rethink this.
-		//PredictedPlayerPosition += (FVector(0.f, 0.f, 1.f) * 490.f * ((ClosestPawn->GetActorLocation() - Barrel->GetSocketLocation("Muzzle")).Size() / 20000.0f)); // Compensate for gravity
-
-		// Don't quite understand how to use this yet...
-		//FVector SuggestedVelocity;
-		//UGameplayStatics::SuggestProjectileVelocity(GetWorld(), SuggestedVelocity, Barrel->GetSocketLocation("Muzzle"), ClosestPawn->GetActorLocation(), 20000.f);
-
-		AimAzimuth(PredictedPlayerPosition);
-		AimPitch(PredictedPlayerPosition);
-
-		// TODO: Put firing in an if statment that checks if the forward point vector of the barrel is nearly equal to the point vector required for the projectile to hit the players predicted position
-		// ie. only shoot if you have a decent chance of hitting
-		OpenFire();
+		TakeAim(FindFiringSolution());
 	}
 }
 
@@ -108,8 +88,7 @@ void ATurret::ScanForPawns()
 			
 			// Check if we have LOS
 			FHitResult HitObject;
-
-			// This trace is bad
+			// Extend the trace to 5m beyong target location to ensure that it hits the pawn
 			FVector TraceExtention = Barrel->GetSocketLocation("RadarScan") - ClosestPawn->GetActorLocation();
 			TraceExtention.GetSafeNormal();
 			TraceExtention *= 500.f;
@@ -139,31 +118,28 @@ void ATurret::ScanForPawns()
 		GetWorldTimerManager().ClearTimer(ScanInterval_Timer);
 	}
 }
-void ATurret::AimAzimuth(FVector AimPoint)
+void ATurret::TakeAim(FVector Aimpoint)
 {
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
-	FVector AimDirection = AimPoint - Turret->GetComponentLocation();
-
-	float StartYaw = Turret->GetForwardVector().Rotation().Yaw;
-	float TargetYaw = AimDirection.Rotation().Yaw;
-	float DeltaYaw = TargetYaw - StartYaw;
-	float ClampedDeltaYaw = FMath::Clamp(DeltaYaw, -TurretYawSpeed * DeltaTime, TurretYawSpeed * DeltaTime);
-	float NewYaw = StartYaw + ClampedDeltaYaw;
-	Turret->SetRelativeRotation(FRotator(0.f, NewYaw, 0.f));
 	
-}
-void ATurret::AimPitch(FVector AimPoint)
-{
-	float DeltaTime = GetWorld()->GetDeltaSeconds();
-	FVector AimDirection = AimPoint - BarrelPitchPoint->GetComponentLocation();
+	FRotator StartRotation = BarrelPitchPoint->GetForwardVector().Rotation();
+	FRotator RotationToHit = Aimpoint.Rotation();
+	FRotator PreNormalDelta = RotationToHit - StartRotation;
+	FRotator DeltaRotation = PreNormalDelta.GetNormalized(); // Normalizing makes it so it will freely cross the 0 degree local rotation
 
-	float StartPitch = BarrelPitchPoint->GetForwardVector().Rotation().Pitch;
-	float TargetPitch = AimDirection.Rotation().Pitch;
-	float DeltaPitch = TargetPitch - StartPitch;
-	float ClampedDeltaPitch = FMath::Clamp(DeltaPitch, -BarrelPitchSpeed * DeltaTime, BarrelPitchSpeed * DeltaTime);
-	float NewPitch = StartPitch + ClampedDeltaPitch;
+	float ClampedYaw = FMath::Clamp(DeltaRotation.Yaw, -TurretYawSpeed * DeltaTime, TurretYawSpeed * DeltaTime);
+	float ClampedPitch = FMath::Clamp(DeltaRotation.Pitch, -BarrelPitchSpeed * DeltaTime, BarrelPitchSpeed * DeltaTime);
+
+	float NewYaw = StartRotation.Yaw + ClampedYaw;
+	float NewPitch = StartRotation.Pitch + ClampedPitch;
+
+	Turret->SetWorldRotation(FRotator(0.f, NewYaw, 0.f));
 	BarrelPitchPoint->SetRelativeRotation(FRotator(NewPitch, 0.f, 0.f));
 
+	if ((RotationToHit - StartRotation).IsNearlyZero(0.5f))
+	{
+		OpenFire();
+	}
 }
 void ATurret::OpenFire()
 {
@@ -172,5 +148,59 @@ void ATurret::OpenFire()
 		BP_PlayFireFX();
 		GetWorld()->SpawnActor<AActor>(Ammunition, Barrel->GetSocketTransform("Muzzle"));
 		GetWorldTimerManager().SetTimer(FireRate_Timer, FireRate, false);
+	}
+}
+FVector ATurret::FindFiringSolution()
+{
+	// Find where the player will be based on it's velocity in the time a shell takes to get to it, this will be used as an aim point if the SuggestVelocity fails
+	PredictedPlayerPosition =
+		ClosestPawn->GetActorLocation() +
+		ClosestPawn->GetVelocity() *
+		(ClosestPawn->GetVelocity().Normalize() *
+		((ClosestPawn->GetActorLocation() - GetActorLocation()).Size() / 20000.0f));
+
+	// TODO: figure out a good way of getting this from the projectile assigned in BP
+	double ProjectileInitialSpeed = 20000.f;
+
+	AvrPlayer* vrPawn = Cast<AvrPlayer>(ClosestPawn);
+	if (vrPawn)
+	{
+		FVector PlayerHead = vrPawn->GetHeadsetCam()->GetComponentLocation();
+		FVector SuggestedVelocity = FVector::ZeroVector;
+		if (UGameplayStatics::SuggestProjectileVelocity(this, SuggestedVelocity, Barrel->GetSocketLocation("Muzzle"), PlayerHead, ProjectileInitialSpeed))
+		{
+			// For some reason this function will often return true with an absurd value that causes it to point straight up, do a simple check for this error and negate using it
+			if (SuggestedVelocity.Z > 9900.f)
+			{
+				return PredictedPlayerPosition - Barrel->GetSocketLocation("Muzzle");
+			}
+			else
+			{
+				return SuggestedVelocity;
+			}
+		}
+		else
+		{
+			return PredictedPlayerPosition - Barrel->GetSocketLocation("Muzzle");
+		}
+	}
+
+	// Use engine parabola calculator
+	FVector SuggestedVelocity = FVector::ZeroVector;
+	if (UGameplayStatics::SuggestProjectileVelocity(this, SuggestedVelocity, Barrel->GetSocketLocation("Muzzle"), ClosestPawn->GetActorLocation(), ProjectileInitialSpeed))
+	{
+		// For some reason this function will often return true with an absurd value that causes it to point straight up, do a simple check for this error and negate using it
+		if (SuggestedVelocity.Z > 9900.f)
+		{
+			return PredictedPlayerPosition - Barrel->GetSocketLocation("Muzzle");
+		}
+		else
+		{
+			return SuggestedVelocity;
+		}
+	}
+	else
+	{
+		return PredictedPlayerPosition - Barrel->GetSocketLocation("Muzzle");
 	}
 }

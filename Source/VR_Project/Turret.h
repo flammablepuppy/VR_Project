@@ -26,13 +26,10 @@ protected:
 	UStaticMeshComponent* Turret;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UStaticMeshComponent* Barrel;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	class USceneComponent* BarrelPitchPoint;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	class USphereComponent* RadarZone;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	class UHealthStats* TurretHealth;
 
@@ -42,11 +39,11 @@ protected:
 	UFUNCTION()
 	void ScanForPawns();
 	UFUNCTION()
-	void AimAzimuth(FVector AimPoint);
-	UFUNCTION()
-	void AimPitch(FVector AimPoint);
+	void TakeAim(FVector AimPoint);
 	UFUNCTION()
 	void OpenFire();
+	UFUNCTION()
+	FVector FindFiringSolution();
 
 	// Variables
 	UPROPERTY(BlueprintReadOnly)
@@ -58,14 +55,17 @@ protected:
 	FTimerHandle ScanInterval_Timer;
 	float ScanSpeed = 1.f;
 
+	FTimerHandle FireSolutionInterval_Timer;
+	float FireSolutionInterval = 0.08f;
+
 	FTimerHandle FireRate_Timer;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ammo")
-	float FireRate = 0.35;
+	float FireRate = 0.25;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aiming Speed") // Degrees per second
-	float TurretYawSpeed = 30.f;
+	float TurretYawSpeed = 60.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aiming Speed") // Degrees per second
-	float BarrelPitchSpeed = 15.f;
+	float BarrelPitchSpeed = 30.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
 	TSubclassOf<AActor> Ammunition;

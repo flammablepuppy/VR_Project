@@ -44,7 +44,7 @@ void AvrPickup::Drop()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
-	if (bReadyToUse) { /*SetActorLocation(OwningMC->GetComponentLocation() + OwningMC->GetForwardVector() * 10.f)*/OwningMC->SetShowDeviceModel(false); }
+	if (bReadyToUse) { OwningMC->SetShowDeviceModel(false); }
 	OwningMC = nullptr;
 	OwningPlayer = nullptr;
 	bReadyToUse = false;
