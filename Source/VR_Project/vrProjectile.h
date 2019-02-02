@@ -29,7 +29,7 @@ protected:
 	UFUNCTION()
 	void ResolveHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile Properties")
 	float ProjectileDamage = 20.f;
 
 public:	

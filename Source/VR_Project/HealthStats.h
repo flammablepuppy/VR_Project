@@ -44,5 +44,7 @@ public:
 	FORCEINLINE float GetCurrentHealth() { return CurrentHealth; }
 	UFUNCTION()
 	FORCEINLINE float GetMaxHealth() { return MaximumHealth; }
+	UFUNCTION()
+	FORCEINLINE bool CheckIsDead() { return bOwnerIsDead; }
 
 };

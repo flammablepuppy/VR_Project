@@ -75,19 +75,23 @@ void ATurret::ScanForPawns()
 		APawn* FoundPawn = Cast<APawn>(Pawn);
 		if (FoundPawn)
 		{
-			if (!ClosestPawn && LineTraceForPawn(FoundPawn)) // ClosestPawn only gets assigned if the FoundPawn is also in LOS
+			UHealthStats* PawnHealth = Cast<UHealthStats>(FoundPawn->GetComponentByClass(UHealthStats::StaticClass()));  
+			if (PawnHealth && !PawnHealth->CheckIsDead() && LineTraceForPawn(FoundPawn))  // Check to see if tested pawn is dead and if in LOS
 			{
-				ClosestPawn = FoundPawn;
-				bTargetDetectedInLOS = true;
-			}
-			else if (LineTraceForPawn(FoundPawn)) // If multiple pawns are in LOS, the closer one is chosen
-			{
-				float FoundPawnDistance = (Base->GetComponentLocation() - FoundPawn->GetActorLocation()).Size();
-				float ClosestPawnDistance = (Base->GetComponentLocation() - ClosestPawn->GetActorLocation()).Size();
-				if (FoundPawnDistance < ClosestPawnDistance)
+				if (!ClosestPawn) // ClosestPawn only gets assigned if the FoundPawn is also in LOS
 				{
 					ClosestPawn = FoundPawn;
 					bTargetDetectedInLOS = true;
+				}
+				else // If multiple pawns are in LOS, the closer one is chosen
+				{
+					float FoundPawnDistance = (Base->GetComponentLocation() - FoundPawn->GetActorLocation()).Size();
+					float ClosestPawnDistance = (Base->GetComponentLocation() - ClosestPawn->GetActorLocation()).Size();
+					if (FoundPawnDistance < ClosestPawnDistance)
+					{
+						ClosestPawn = FoundPawn;
+						bTargetDetectedInLOS = true;
+					}
 				}
 			}
 			else
@@ -106,12 +110,14 @@ void ATurret::ScanForPawns()
 	// If there are no pawns in the radar zone, stop scanning
 	if (FoundActors.Num() == 0)
 	{
+		ClosestPawn = nullptr;
 		bTargetDetectedInLOS = false;
 		GetWorldTimerManager().ClearTimer(ScanInterval_Timer);
 	}
 }
 void ATurret::TakeAim(FVector Aimpoint)
 {
+	if (!bTargetDetectedInLOS) { return; }
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 	
 	FRotator StartRotation = BarrelPitchPoint->GetForwardVector().Rotation();
@@ -122,8 +128,8 @@ void ATurret::TakeAim(FVector Aimpoint)
 	float ClampedYaw = FMath::Clamp(DeltaRotation.Yaw, -TurretYawSpeed * DeltaTime, TurretYawSpeed * DeltaTime);
 	float ClampedPitch = FMath::Clamp(DeltaRotation.Pitch, -BarrelPitchSpeed * DeltaTime, BarrelPitchSpeed * DeltaTime);
 
-	float NewYaw = StartRotation.Yaw + ClampedYaw;
-	float NewPitch = StartRotation.Pitch + ClampedPitch;
+	float NewYaw = StartRotation.Yaw + ClampedYaw; 
+	float NewPitch = FMath::Clamp(StartRotation.Pitch + ClampedPitch, -10.f, 70.f); // Set min/max barrel pitch angle.
 
 	Turret->SetWorldRotation(FRotator(0.f, NewYaw, 0.f));
 	BarrelPitchPoint->SetRelativeRotation(FRotator(NewPitch, 0.f, 0.f));
@@ -135,15 +141,18 @@ void ATurret::TakeAim(FVector Aimpoint)
 }
 void ATurret::OpenFire()
 {
-	if (!GetWorldTimerManager().IsTimerActive(FireRate_Timer))
+	if (!GetWorldTimerManager().IsTimerActive(FireRate_Timer) && ClosestPawn)
 	{
 		BP_PlayFireFX();
 		GetWorld()->SpawnActor<AvrProjectile>(Ammunition, Barrel->GetSocketTransform("Muzzle"));
 		GetWorldTimerManager().SetTimer(FireRate_Timer, FireRate, false);
+		ScanForPawns();
 	}
 }
 FVector ATurret::FindFiringSolution()
 {
+	if (!ClosestPawn) { return Barrel->GetForwardVector(); }
+
 	// Find where the player will be based on it's velocity in the time a shell takes to get to it, this will be used as an aim point if the SuggestVelocity fails
 	AvrPlayer* ClosestvrPawn = Cast<AvrPlayer>(ClosestPawn);
 	if (ClosestvrPawn)
@@ -161,6 +170,8 @@ FVector ATurret::FindFiringSolution()
 			ClosestPawn->GetVelocity() *
 			(ClosestPawn->GetVelocity().Normalize() *
 			((ClosestPawn->GetActorLocation() - GetActorLocation()).Size() / AmmoSpeed));
+
+		PredictedPlayerPosition += FVector(0.f, 0.f, (ClosestPawn->GetActorLocation() - GetActorLocation()).Size() / AmmoSpeed) * 490.f;
 	}
 
 	// Use engine parabola calculator
@@ -171,15 +182,26 @@ FVector ATurret::FindFiringSolution()
 		if (SuggestedVelocity.Z > 9900.f)
 		{
 			return PredictedPlayerPosition - Barrel->GetSocketLocation("Muzzle");
+			UE_LOG(LogTemp, Warning, TEXT("SuggestedVelocity: %s"), *SuggestedVelocity.ToString())
+
+		}
+		else if (SuggestedVelocity != FVector::ZeroVector)
+		{
+			return SuggestedVelocity;
+			UE_LOG(LogTemp, Warning, TEXT("SuggestedVelocity: %s"), *SuggestedVelocity.ToString())
 		}
 		else
 		{
-			return SuggestedVelocity;
+			return PredictedPlayerPosition - Barrel->GetSocketLocation("Muzzle");
+			UE_LOG(LogTemp, Warning, TEXT("SuggestedVelocity: %s"), *SuggestedVelocity.ToString())
+
 		}
 	}
 	else
 	{
-		return Barrel->GetForwardVector();
+		//return Barrel->GetForwardVector();
+		return PredictedPlayerPosition - Barrel->GetSocketLocation("Muzzle");
+		UE_LOG(LogTemp, Warning, TEXT("Suggestion is bad"))
 	}
 }
 bool ATurret::LineTraceForPawn(APawn * TargetPawn)
@@ -190,7 +212,7 @@ bool ATurret::LineTraceForPawn(APawn * TargetPawn)
 	TraceExtention *= 500.f;
 
 	FHitResult HitObject;
-	GetWorld()->LineTraceSingleByChannel(HitObject, Barrel->GetSocketLocation("RadarScan"), TargetPawn->GetActorLocation() - TraceExtention, ECC_WorldStatic);
+	GetWorld()->LineTraceSingleByChannel(HitObject, Barrel->GetSocketLocation("RadarScan"), TargetPawn->GetActorLocation() - TraceExtention, ECC_Camera);
 
 	APawn* HitPawn = Cast<APawn>(HitObject.Actor);
 	if (HitPawn)
