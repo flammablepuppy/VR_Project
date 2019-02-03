@@ -158,19 +158,12 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 	DisplayNumber1 = ThrusterOutput.Size();
 
 	// Apply Thrust
-	if (!OwningPlayer->GetMovementComponent()->IsFalling())
-	{
-		OwningPlayer->LaunchCharacter(FVector(0.f, 0.f, ThrustPower * 2.f), false, false);
-	}
-	if (OwningPlayer->GetMovementComponent()->IsFalling())
-	{
-		OwningPlayer->GetMovementComponent()->Velocity += ThrusterOutput;
+	OwningPlayer->LaunchCharacter(/*FVector(0.f, 0.f, ThrustPower * 2.f)*/ThrusterOutput, false, false);
 
-		// Reduce velocity if over terminal velocity
-		if (OwningPlayer->GetMovementComponent()->Velocity.Size() > TerminalVelocitySpeed)
-		{
-			OwningPlayer->GetMovementComponent()->Velocity *= TerminalVelocitySpeed / OwningPlayer->GetMovementComponent()->Velocity.Size();
-		}
+	// Reduce velocity if over terminal velocity
+	if (OwningPlayer->GetMovementComponent()->Velocity.Size() > TerminalVelocitySpeed)
+	{
+		OwningPlayer->GetMovementComponent()->Velocity *= TerminalVelocitySpeed / OwningPlayer->GetMovementComponent()->Velocity.Size();
 	}
 
 	OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();

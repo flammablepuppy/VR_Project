@@ -13,6 +13,7 @@
 #include "EngineGlobals.h"
 #include <Runtime/Engine/Classes/Engine/Engine.h>
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/StaticMeshComponent.h"
 
 AvrPlayer::AvrPlayer()
 {
@@ -215,7 +216,7 @@ void AvrPlayer::ApplyImpactDamage(float VelocityChange)
 	if (VelocityChange > VelocityChangeDamageSpeed)
 	{
 		float AppliedDamage = VelocityChange - VelocityChangeDamageSpeed;
-		AppliedDamage *= ExponentialImpactDamage; // This seems like a good value, though it may be a good idea to create a variable that can be exposed to the editor
+		AppliedDamage *= ExponentialImpactDamage;
 		AppliedDamage *= AppliedDamage; // Having the damage be exponential makes it feel much more fair. Big falls hurt a lot, little ones not so much
 		if (AppliedDamage < MinimumImpactDamage)
 		{
