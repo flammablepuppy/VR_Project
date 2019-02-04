@@ -82,7 +82,7 @@ void AHandThruster::TriggerPulled(float Value)
 		CurrentTriggerAxisValue = LockedThrottleValue;
 	}
 
-}
+} 
 void AHandThruster::TopPushed()
 {
 	Super::TopPushed();
@@ -157,7 +157,7 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 	FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * ThrustPercent;
 	DisplayNumber1 = ThrusterOutput.Size();
 
-	// Apply Thrust
+	// Apply Thrust - Doing everything with LaunchCharacter seems to be more consistent than changing velocity directly
 	OwningPlayer->LaunchCharacter(/*FVector(0.f, 0.f, ThrustPower * 2.f)*/ThrusterOutput, false, false);
 
 	// Reduce velocity if over terminal velocity

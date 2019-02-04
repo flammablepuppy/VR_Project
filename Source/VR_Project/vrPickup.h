@@ -36,8 +36,6 @@ protected:
 	bool bReadyToUse = false;
 	UFUNCTION()
 	void MoveToGrabbingMC();
-	UPROPERTY()
-	bool bCanBeGrabbed = true;
 
 	// Rate grabbed objets accelerate to grabbing hand
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
@@ -66,9 +64,9 @@ public:
 
 	UFUNCTION()
 	void SnapTo(UMotionControllerComponent* GrabbingController);
+
 	UFUNCTION()
 	virtual void Drop();
-
 	UFUNCTION()
 	virtual void TriggerPulled(float Value);
 	UFUNCTION()
