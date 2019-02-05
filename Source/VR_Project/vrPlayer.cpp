@@ -81,6 +81,8 @@ void AvrPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	BaseCharacterSpeed = GetCharacterMovement()->MaxWalkSpeed;
+
 }
 void AvrPlayer::Tick(float DeltaTime)
 {
@@ -110,6 +112,11 @@ void AvrPlayer::MoveForward(float Value)
 		FVector HeadForward = HeadForwardRot.Vector();
 
 		AddMovementInput(HeadForward, Value);
+		bHasForwardMovementInput = true;
+	}
+	else
+	{
+		bHasForwardMovementInput = false;
 	}
 }
 void AvrPlayer::MoveRight(float Value)
@@ -167,41 +174,88 @@ void AvrPlayer::MotionInputScan()
 	FVector LeftRelative = LeftController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
 	FVector RightRelative = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
 
-	FVector HeadRelVel = HeadLastRelPos - HeadRelative;
-	FVector LeftRelVel = LeftLastRelPos - LeftRelative;
-	FVector RightRelVel = RightLastRelPos - RightRelative;
+	FVector HeadRelVel = -(HeadLastRelPos - HeadRelative);
+	FVector LeftRelVel = -(LeftLastRelPos - LeftRelative);
+	FVector RightRelVel = -(RightLastRelPos - RightRelative);
 
 	// Check for abrubt velocity change. Apply damage exponentially when you collide with things
 	ApplyImpactDamage((VelocityLastTick - GetVelocity()).Size());
 
-	//// Debug Logging:
-	//if (GEngine)
-	//{
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	// Check for sprint
+	UMotionControllerComponent* ForwardController;
+	FVector ForwardControllerVel;
+	FVector RearControllerVel;
+	if (LeftRelative.X > RightRelative.X)
+	{
+		ForwardController = LeftController;
+		ForwardControllerVel = LeftRelVel;
+		RearControllerVel = RightRelVel;
+	}
+	else
+	{
+		ForwardController = RightController;
+		ForwardControllerVel = RightRelVel;
+		RearControllerVel = LeftRelVel;
+	}
 
-	//	GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________H: %s"), *HeadRelVel.ToString()));
-	//	GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________L: %s"), *LeftRelVel.ToString()));
-	//	GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________R: %s"), *RightRelVel.ToString()));
-	//}
+	if (ForwardControllerVel.X + ForwardControllerVel.Z > SprintArmSwingReq && 
+		RearControllerVel.X + RearControllerVel.Z < -0.5f &&
+		!GetCharacterMovement()->IsFalling() &&
+		bHasForwardMovementInput)
+	{
+		float SprintBonus = FMath::Clamp(GetCharacterMovement()->MaxWalkSpeed + ForwardControllerVel.Size() * 15.f, BaseCharacterSpeed, MaxSprintSpeed);
+		GetCharacterMovement()->MaxWalkSpeed = SprintBonus;
+
+		// This makes for a pretty fun bounding mechanic
+		FVector SprintImpulse = ForwardController->GetForwardVector();
+		SprintImpulse.Z = 0.f;
+		SprintImpulse *= 650.f;
+		SprintImpulse.Z = 155.f;
+		LaunchCharacter(SprintImpulse, false, false);
+
+		// TODO: Make a limit to top sprint bounding speed, right now you can keep going forever -- this doesn't work
+		if (GetCharacterMovement()->Velocity.Size() > MaxSprintSpeed * 1.5)
+		{
+			GetCharacterMovement()->Velocity *= (MaxSprintSpeed / GetCharacterMovement()->Velocity.Size());
+			GetCharacterMovement()->UpdateComponentVelocity();
+		}
+
+		GetWorldTimerManager().SetTimer(SprintSpeedReturn_Handle, this, &AvrPlayer::AdjustMaxWalkSpeed, SprintReturnTime, false);
+	}
+
+	// Check for jump
+	if (!GetMovementComponent()->IsFalling() && HeadRelVel.Z > JumpHeadReqZ && LeftRelVel.Z > JumpHandReqZ && RightRelVel.Z > JumpHandReqZ)
+	{
+		MotionJump();
+	}
+
+	// Debug Logging:
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+		GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerSpeed: %f"), GetCharacterMovement()->MaxWalkSpeed));
+		GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerVelocity: %s"), *GetCharacterMovement()->Velocity.ToString()));
+		GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________R: %s"), *RightRelVel.ToString()));
+	}
 
 	// Set variables for reference next tick
 	HeadLastRelPos = HeadsetCamera->GetComponentTransform().InverseTransformPosition(GetActorLocation());
@@ -237,6 +291,27 @@ void AvrPlayer::ApplyImpactDamage(float VelocityChange)
 
 		UGameplayStatics::ApplyDamage(this, AppliedDamage, this->GetController(), this, MotionDamage);
 	}
+}
+void AvrPlayer::MotionJump()
+{
+	Jump();
+
+	// Give a slight forward boost to forward movement when jumping
+	if (bHasForwardMovementInput)
+	{
+		if (GetCharacterMovement()->Velocity.X * 1.3 > GetCharacterMovement()->MaxWalkSpeed)
+		{
+			GetCharacterMovement()->Velocity.X = GetCharacterMovement()->MaxWalkSpeed;
+		}
+		else
+		{
+			GetCharacterMovement()->Velocity *= FVector(1.3f, 1.f, 1.f);
+		}
+	}
+}
+void AvrPlayer::AdjustMaxWalkSpeed()
+{
+	GetCharacterMovement()->MaxWalkSpeed = BaseCharacterSpeed;
 }
 
 // Interaction Calls

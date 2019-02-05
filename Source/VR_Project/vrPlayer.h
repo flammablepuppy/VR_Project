@@ -84,6 +84,7 @@ protected:
 	// Motion Input
 	UFUNCTION(BlueprintCallable)
 	void MotionInputScan();
+
 		// Impact Damage
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Locomotion")
 		float VelocityChangeDamageSpeed = 1000.f; // Velocity change threshold beyond which damage is applied to the player
@@ -93,14 +94,30 @@ protected:
 		float MinimumImpactDamage = 15.f;
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") // Damage delt per cm/s over velocity change threshold
 		float ExponentialImpactDamage = 0.012f;
-		// Jumping TODO: Finish jump implementation
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float HeadJumpRequiredZ = 1.5f;
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float LeftJumpRequiredZ = 2.5f;
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float RightJumpRequiredZ = 2.5f;
 
+		// Jump
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float JumpHeadReqZ = 1.5f;
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float JumpHandReqZ = 1.8;
+		UFUNCTION()
+		void MotionJump();
+		UPROPERTY()
+		bool bHasForwardMovementInput = false;
+
+		// Sprint
+		UPROPERTY()
+		float BaseCharacterSpeed = 0.f; // Set in BeginPlay
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float SprintHeadLateralReq = 0.1f;
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float SprintArmSwingReq = 5.f;
+		UFUNCTION()
+		void AdjustMaxWalkSpeed();
+		FTimerHandle SprintSpeedReturn_Handle;
+		float SprintReturnTime = 1.2f;
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float MaxSprintSpeed = 720.f;
 
 	// Controller Function calls
 	UFUNCTION(Category = "Left Controller Functions")
