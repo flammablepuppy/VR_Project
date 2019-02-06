@@ -157,10 +157,17 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 	FVector ThrusterOutput = GetPickupMesh()->GetUpVector() * ThrustPower * ThrustPercent;
 	DisplayNumber1 = ThrusterOutput.Size();
 
-	// Apply Thrust - Doing everything with LaunchCharacter seems to be more consistent than changing velocity directly
-	OwningPlayer->LaunchCharacter(/*FVector(0.f, 0.f, ThrustPower * 2.f)*/ThrusterOutput, false, false);
+	// Apply Thrust
+	if (!OwningPlayer->GetMovementComponent()->IsFalling())
+	{
+		OwningPlayer->LaunchCharacter(ThrusterOutput + FVector(0.f, 0.f, 10.f), false, false);
+	}
+	else
+	{
+		OwningPlayer->GetMovementComponent()->Velocity += ThrusterOutput;
+	}
 
-	// Reduce velocity if over terminal velocity
+	// Enforce TerminalVelocitySpeed
 	if (OwningPlayer->GetMovementComponent()->Velocity.Size() > TerminalVelocitySpeed)
 	{
 		OwningPlayer->GetMovementComponent()->Velocity *= TerminalVelocitySpeed / OwningPlayer->GetMovementComponent()->Velocity.Size();
@@ -168,3 +175,4 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 
 	OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
 }
+

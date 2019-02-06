@@ -69,10 +69,26 @@ protected:
 	UPROPERTY(BlueprintReadWrite, Category = "vrParameters")
 	float PlayerHeight = 1.78f;
 
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
-	FVector VelocityLastTick = FVector::ZeroVector;
 	UPROPERTY(EditDefaultsOnly, Category = "vrParameters")
 	TSubclassOf<UDamageType> MotionDamage;
+
+	// Motion Input
+	UFUNCTION(BlueprintCallable)
+	void MotionInputScan();
+
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector HeadRelative;
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector LeftRelative;
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector RightRelative;
+
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector HeadRelVel = HeadLastRelPos - HeadRelative;
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector LeftRelVel = -(LeftLastRelPos - LeftRelative);
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector RightRelVel = -(RightLastRelPos - RightRelative);
 
 	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
 	FVector HeadLastRelPos = FVector::ZeroVector;
@@ -81,9 +97,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
 	FVector RightLastRelPos = FVector::ZeroVector;
 
-	// Motion Input
-	UFUNCTION(BlueprintCallable)
-	void MotionInputScan();
+	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	FVector VelocityLastTick = FVector::ZeroVector;
 
 		// Impact Damage
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Locomotion")
@@ -96,28 +111,34 @@ protected:
 		float ExponentialImpactDamage = 0.012f;
 
 		// Jump
+		UFUNCTION()
+		void MotionJump();
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float JumpHeadReqZ = 1.5f;
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float JumpHandReqZ = 1.8;
-		UFUNCTION()
-		void MotionJump();
 		UPROPERTY()
 		bool bHasForwardMovementInput = false;
 
 		// Sprint
-		UPROPERTY()
-		float BaseCharacterSpeed = 0.f; // Set in BeginPlay
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float SprintHeadLateralReq = 0.1f;
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float SprintArmSwingReq = 5.f;
+		UFUNCTION()
+		void MotionSprint();
 		UFUNCTION()
 		void AdjustMaxWalkSpeed();
 		FTimerHandle SprintSpeedReturn_Handle;
-		float SprintReturnTime = 1.2f;
+		float SprintReturnTime = 0.9f;
+		UPROPERTY()
+		float BaseCharacterSpeed = 0.f; // Set in BeginPlay
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float SprintArmSwingReq = 6.f;
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float MaxSprintSpeed = 720.f;
+
+		// Bounding
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		float SprintBoundHeight = 155.f;
+		FTimerHandle SprintBoundCharged_Timer;
+		float SprintBoundChargedDuration = 0.45f;
 
 	// Controller Function calls
 	UFUNCTION(Category = "Left Controller Functions")
