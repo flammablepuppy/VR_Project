@@ -82,7 +82,7 @@ void AvrPlayer::BeginPlay()
 	Super::BeginPlay();
 
 	BaseCharacterSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	GetCharacterMovement()->BrakingDecelerationWalking = BaseCharacterSpeed * 2.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = BaseCharacterSpeed * 1.5f;
 
 }
 void AvrPlayer::Tick(float DeltaTime)
@@ -91,6 +91,7 @@ void AvrPlayer::Tick(float DeltaTime)
 
 	OffsetRoot();
 	MotionInputScan();
+
 }
  
 // VR Functions
@@ -182,9 +183,29 @@ void AvrPlayer::MotionInputScan()
 	LeftRelVel = -(LeftLastRelPos - LeftRelative);
 	RightRelVel = -(RightLastRelPos - RightRelative);
 
-	ApplyImpactDamage((VelocityLastTick - GetVelocity()).Size());
-	MotionJump();
-	MotionSprint();
+	// Damage character for abruput velocity changes
+	if ((VelocityLastTick - GetVelocity()).Size() > VelocityChangeDamageSpeed)
+	{
+		ApplyImpactDamage();
+	}
+
+	// Check for jump
+	if (HeadRelVel.Z > JumpHeadReqZ && LeftRelVel.Z > JumpHandReqZ && RightRelVel.Z > JumpHandReqZ)
+	{
+		Jump();
+	}
+
+	// Check for sprint
+	if (LeftRelVel.X + LeftRelVel.Z > SprintArmSwingReq && RightRelVel.X + RightRelVel.Z < SprintArmSwingReq * -0.1f && bHasForwardMovementInput ||
+		RightRelVel.X + RightRelVel.Z > SprintArmSwingReq && LeftRelVel.X + LeftRelVel.Z < SprintArmSwingReq * -0.1f && bHasForwardMovementInput)
+	{
+		MotionSprint();
+	}
+	if (!GetCharacterMovement()->IsFalling() && GetCharacterMovement()->Velocity.Size() > MaxSprintSpeed * 0.9f)
+	{
+		LaunchCharacter(FVector(0.f, 0.f, 150.f), false, false);
+	}
+
 
 	// Debug Logging:
 	if (GEngine)
@@ -221,119 +242,69 @@ void AvrPlayer::MotionInputScan()
 	HeadLastRelPos = HeadsetCamera->GetComponentTransform().InverseTransformPosition(GetActorLocation());
 	LeftLastRelPos = LeftController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
 	RightLastRelPos = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
-
 	VelocityLastTick = GetMovementComponent()->Velocity;
 
 }
-void AvrPlayer::ApplyImpactDamage(float VelocityChange)
+void AvrPlayer::ApplyImpactDamage()
 {
-	if (VelocityChange > VelocityChangeDamageSpeed)
-	{
-		float AppliedDamage = VelocityChange - VelocityChangeDamageSpeed;
-		AppliedDamage *= ExponentialImpactDamage;
-		AppliedDamage *= AppliedDamage; // Having the damage be exponential makes it feel much more fair. Big falls hurt a lot, little ones not so much
-		if (AppliedDamage < MinimumImpactDamage)
-		{
-			AppliedDamage = MinimumImpactDamage;
-		}
+	float AppliedDamage = (VelocityLastTick - GetVelocity()).Size() - VelocityChangeDamageSpeed;
+	AppliedDamage *= ExponentialImpactDamage;
+	AppliedDamage *= AppliedDamage; // Having the damage be exponential makes it feel much more fair. Big falls hurt a lot, little ones not so much
 
-		if (AppliedDamage > 65.f) // Hard impacts cause player to drop anything they're holding
+	// Damage is always at least this amount
+	if (AppliedDamage < MinimumImpactDamage)
+	{
+		AppliedDamage = MinimumImpactDamage;
+	}
+
+	// Hard impacts cause player to drop anything they're holding
+	if (AppliedDamage > 65.f) 
+	{
+		if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
 		{
-			if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
-			{
-				ExecuteDrop(LeftHeldObject);
-			}
-			if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
-			{
-				ExecuteDrop(RightHeldObject);
-			}
+			ExecuteDrop(LeftHeldObject);
+		}
+		if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
+		{
+			ExecuteDrop(RightHeldObject);
 		}
 
 		UGameplayStatics::ApplyDamage(this, AppliedDamage, this->GetController(), this, MotionDamage);
 	}
 }
-void AvrPlayer::MotionJump()
-{
-	if (HeadRelVel.Z > JumpHeadReqZ && LeftRelVel.Z > JumpHandReqZ && RightRelVel.Z > JumpHandReqZ)
-	{
-		Jump();
-
-		// Give a slight forward boost to forward movement when jumping
-		if (bHasForwardMovementInput)
-		{
-			float BoostAmount = FMath::Clamp(GetVelocity().Size() * 1.2f, 0.f, MaxSprintSpeed * 1.5f);
-			FVector ForwardBoost = HeadsetCamera->GetForwardVector().GetSafeNormal2D() * BoostAmount;
-			LaunchCharacter(ForwardBoost, false, false);
-		}
-	}
-}
 void AvrPlayer::MotionSprint()
 {
-	// Determine forward and rear controllers 
-	UMotionControllerComponent* ForwardController;
-	FVector ForwardControllerVel;
-	FVector RearControllerVel;
+	float OneThird = (MaxSprintSpeed - BaseCharacterSpeed) / 3.f;
+	float SprintingSpeed = FMath::Clamp(GetCharacterMovement()->MaxWalkSpeed + OneThird, BaseCharacterSpeed, MaxSprintSpeed);
+	GetCharacterMovement()->MaxWalkSpeed = SprintingSpeed;
+
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		FVector Impulse = GetForwardController()->GetForwardVector();
+		Impulse.Z = 0.f;
+		float OneThird = (MaxSprintSpeed - BaseCharacterSpeed) / 3.f;
+		FVector ImpulseToApply = Impulse.GetSafeNormal() * OneThird;
+
+		LaunchCharacter(ImpulseToApply, false, false);
+		
+	}
+
+	GetWorldTimerManager().SetTimer(SprintSpeedReturn_Handle, this, &AvrPlayer::ResetMaxWalkSpeed, SprintReturnTime, false);
+}
+void AvrPlayer::ResetMaxWalkSpeed()
+{
+	GetCharacterMovement()->MaxWalkSpeed = BaseCharacterSpeed;
+}
+UMotionControllerComponent * AvrPlayer::GetForwardController()
+{
 	if (LeftRelative.X > RightRelative.X)
 	{
-		ForwardController = LeftController;
-		ForwardControllerVel = LeftRelVel;
-		RearControllerVel = RightRelVel;
+		return LeftController;
 	}
 	else
 	{
-		ForwardController = RightController;
-		ForwardControllerVel = RightRelVel;
-		RearControllerVel = LeftRelVel;
+		return RightController;
 	}
-
-	// Check if they're swinging their arms properly, increase speed
-	if (ForwardControllerVel.X + ForwardControllerVel.Z > SprintArmSwingReq &&
-		RearControllerVel.X + RearControllerVel.Z < -0.1f &&
-		bHasForwardMovementInput)
-	{
-		// Increase speed, adjust friction and decel
-		float SprintBonus = FMath::Clamp(GetCharacterMovement()->MaxWalkSpeed + ForwardControllerVel.Size() * 15.f, BaseCharacterSpeed, MaxSprintSpeed);
-		GetCharacterMovement()->MaxWalkSpeed = SprintBonus;
-		GetCharacterMovement()->BrakingDecelerationWalking = 0.f;
-		GetCharacterMovement()->GroundFriction = 4.f;
-
-		GetWorldTimerManager().SetTimer(SprintBoundCharged_Timer, SprintBoundChargedDuration, false);
-		GetWorldTimerManager().SetTimer(SprintSpeedReturn_Handle, this, &AvrPlayer::AdjustMaxWalkSpeed, SprintReturnTime, false);
-	}
-
-	// Take a bounding leap if not falling or crouching
-	if (GetWorldTimerManager().IsTimerActive(SprintBoundCharged_Timer) &&!GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsCrouching())
-	{
-		GetWorldTimerManager().SetTimer(SprintBoundCharged_Timer, 0.f, false);
-
-		FVector SprintImpulse = ForwardController->GetForwardVector();
-		SprintImpulse.Z = 0.f;
-		FRotator SprintForwardRot = SprintImpulse.Rotation();
-		SprintForwardRot.Yaw += FMath::Clamp(HeadsetCamera->GetForwardVector().Rotation().Yaw - SprintForwardRot.Yaw, -30.f, 30.f);
-		SprintImpulse = SprintForwardRot.Vector();
-
-		if (GetCharacterMovement()->Velocity.Size()  + MaxSprintSpeed * 0.6f > MaxSprintSpeed * 1.1)
-		{
-			SprintImpulse.Z = SprintBoundHeight;
-			LaunchCharacter(SprintImpulse, false, false);
-			SprintImpulse *= GetMovementComponent()->Velocity.Size() * MaxSprintSpeed / GetMovementComponent()->Velocity.Size();
-			SprintImpulse.Z = 0.f;
-			GetMovementComponent()->Velocity = SprintImpulse * 1.1f;
-			GetMovementComponent()->UpdateComponentVelocity();
-		}
-		else
-		{
-			SprintImpulse *= MaxSprintSpeed * 0.6f;
-			SprintImpulse.Z = SprintBoundHeight;
-			LaunchCharacter(SprintImpulse, false, false);
-		}
-	}
-}
-void AvrPlayer::AdjustMaxWalkSpeed()
-{
-	GetCharacterMovement()->MaxWalkSpeed = BaseCharacterSpeed;
-	GetCharacterMovement()->BrakingDecelerationWalking = BaseCharacterSpeed;
-	GetCharacterMovement()->GroundFriction = 0.5f;
 }
 
 // Interaction Calls

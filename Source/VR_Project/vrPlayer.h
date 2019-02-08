@@ -104,19 +104,17 @@ protected:
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Locomotion")
 		float VelocityChangeDamageSpeed = 1000.f; // Velocity change threshold beyond which damage is applied to the player
 		UFUNCTION()
-		void ApplyImpactDamage(float VelocityChange);
+		void ApplyImpactDamage();
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") // The minimum amount of damage that will be dealt to the player after an abrupt velocity change
 		float MinimumImpactDamage = 15.f;
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") // Damage delt per cm/s over velocity change threshold
 		float ExponentialImpactDamage = 0.012f;
 
 		// Jump
-		UFUNCTION()
-		void MotionJump();
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float JumpHeadReqZ = 1.5f;
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float JumpHandReqZ = 1.8;
+		float JumpHandReqZ = 2.8;
 		UPROPERTY()
 		bool bHasForwardMovementInput = false;
 
@@ -124,7 +122,7 @@ protected:
 		UFUNCTION()
 		void MotionSprint();
 		UFUNCTION()
-		void AdjustMaxWalkSpeed();
+		void ResetMaxWalkSpeed();
 		FTimerHandle SprintSpeedReturn_Handle;
 		float SprintReturnTime = 0.9f;
 		UPROPERTY()
@@ -134,11 +132,9 @@ protected:
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float MaxSprintSpeed = 720.f;
 
-		// Bounding
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float SprintBoundHeight = 155.f;
-		FTimerHandle SprintBoundCharged_Timer;
-		float SprintBoundChargedDuration = 0.45f;
+		// Helper Functions
+		UFUNCTION()
+		UMotionControllerComponent* GetForwardController();
 
 	// Controller Function calls
 	UFUNCTION(Category = "Left Controller Functions")
