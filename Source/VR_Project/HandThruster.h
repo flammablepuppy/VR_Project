@@ -21,40 +21,51 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Fuel
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float MaxFuel = 10.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Seconds of full power thrust on a full fuel tank
+	float MaxFuel = 7.f;
 	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")
 	float CurrentFuel;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Properties")
+	bool bFuelRecharges = true;
+	FTimerHandle FuelRecharge_Handle;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Seconds without thrust input before fuel begins recharging
+	float FuelRechargeDelay = 2.5;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // How many seconds to go from empty to full
+	float FuelRechargeRate = 12.f;
+	UPROPERTY()
+	bool bFuelRechargeTick = false;
+	UFUNCTION()
+	void FuelRechargeToggle();
 
 	// Thrust
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Thruster Properties")
-	float ThrustPowerSetter = 16.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Thruster Properties") // Power provided by a full trigger pull
+	float ThrustPowerSetter = 11.5f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float TerminalVelocitySpeed = 6100.f;
 
 	// Ground Effect
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectMultiplier = 0.32;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectLoss = 750.f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float GroundEffectFull = 300.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Percent increase in thruster power when in ground effect
+	float GroundEffectMultiplier = 0.85;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Max height at which ground effect fully tapers off
+	float GroundEffectLoss = 550.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Height below which ground effect is fully applied
+	float GroundEffectFull = 200.f;
 
 	// Translational Lift
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftMultiplier = 0.5f;
+	float TranslationalLiftMultiplier = 1.15f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float MaxBenefitSpeed = 3250.f;
+	float MaxBenefitSpeed = 4750.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float BenefitDelta = 2750.f;
+	float BenefitDelta = 4250.f;
 	UPROPERTY() // Set in BeginPlay, calculates the appropriate float for use in expo onset curve
 	float TranslationalLiftCurveBase = 0.f;
+	UPROPERTY()
+	float TranlationalLiftAdvantage = 0.f;
 
 	// Features
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float AutoHoverSlow = 0.54;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float AutoHoverFast = 0.45;
+	UPROPERTY() // Automatically gets set in Tick to a value that will allow for HIGE
+	float AutoHoverThrust = 0.f;
 	UPROPERTY(BlueprintReadOnly)
 	bool bThrottleLocked = false;
 	UPROPERTY(BlueprintReadOnly)

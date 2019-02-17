@@ -124,13 +124,16 @@ protected:
 		UFUNCTION()
 		void ResetMaxWalkSpeed();
 		FTimerHandle SprintSpeedReturn_Handle;
+		UPROPERTY()
 		float SprintReturnTime = 0.9f;
 		UPROPERTY()
 		float BaseCharacterSpeed = 0.f; // Set in BeginPlay
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float SprintArmSwingReq = 6.f;
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float MaxSprintSpeed = 720.f;
+		float MaxSprintSpeed = 1200.f;
+		UPROPERTY()
+		bool bSprintSwingHasRegistered = false;
 
 		// Helper Functions
 		UFUNCTION()

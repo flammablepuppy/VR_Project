@@ -180,8 +180,8 @@ void AvrPlayer::MotionInputScan()
 	RightRelative = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
 
 	HeadRelVel = HeadLastRelPos - HeadRelative;
-	LeftRelVel = -(LeftLastRelPos - LeftRelative);
-	RightRelVel = -(RightLastRelPos - RightRelative);
+	LeftRelVel = LeftLastRelPos - LeftRelative;
+	RightRelVel = RightLastRelPos - RightRelative;
 
 	// Damage character for abruput velocity changes
 	if ((VelocityLastTick - GetVelocity()).Size() > VelocityChangeDamageSpeed)
@@ -193,6 +193,12 @@ void AvrPlayer::MotionInputScan()
 	if (HeadRelVel.Z > JumpHeadReqZ && LeftRelVel.Z > JumpHandReqZ && RightRelVel.Z > JumpHandReqZ)
 	{
 		Jump();
+		if (bHasForwardMovementInput)
+		{
+			FVector PlayerVelocity = GetCharacterMovement()->Velocity;
+			PlayerVelocity.X *= 1.2f;
+			PlayerVelocity.Y *= 1.2f;
+		}
 	}
 
 	// Check for sprint
@@ -201,11 +207,10 @@ void AvrPlayer::MotionInputScan()
 	{
 		MotionSprint();
 	}
-	if (!GetCharacterMovement()->IsFalling() && GetCharacterMovement()->Velocity.Size() > MaxSprintSpeed * 0.9f)
+	else // Reset the boolean that prevents multiple stacks per swing when the forwards swining arm changes
 	{
-		LaunchCharacter(FVector(0.f, 0.f, 150.f), false, false);
+		bSprintSwingHasRegistered = false;
 	}
-
 
 	// Debug Logging:
 	if (GEngine)
@@ -274,10 +279,13 @@ void AvrPlayer::ApplyImpactDamage()
 }
 void AvrPlayer::MotionSprint()
 {
-	float OneThird = (MaxSprintSpeed - BaseCharacterSpeed) / 3.f;
-	float SprintingSpeed = FMath::Clamp(GetCharacterMovement()->MaxWalkSpeed + OneThird, BaseCharacterSpeed, MaxSprintSpeed);
-	GetCharacterMovement()->MaxWalkSpeed = SprintingSpeed;
+	if (bSprintSwingHasRegistered) { return; }
 
+	float CharacterSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	float NewSpeed = FMath::Clamp(CharacterSpeed + (MaxSprintSpeed - BaseCharacterSpeed) / 3.f, 0.f, MaxSprintSpeed);
+	GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+
+	// Apply 2D impulse in direction of forward controller
 	if (!GetCharacterMovement()->IsFalling())
 	{
 		FVector Impulse = GetForwardController()->GetForwardVector();
@@ -289,6 +297,7 @@ void AvrPlayer::MotionSprint()
 		
 	}
 
+	bSprintSwingHasRegistered = true;
 	GetWorldTimerManager().SetTimer(SprintSpeedReturn_Handle, this, &AvrPlayer::ResetMaxWalkSpeed, SprintReturnTime, false);
 }
 void AvrPlayer::ResetMaxWalkSpeed()

@@ -8,10 +8,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "TimerManager.h"
 
 AHandThruster::AHandThruster()
 {
-
+	
 }
 void AHandThruster::BeginPlay()
 {
@@ -20,29 +21,44 @@ void AHandThruster::BeginPlay()
 	CurrentFuel = MaxFuel;
 	TranslationalLiftCurveBase = -1 / (BenefitDelta * BenefitDelta);
 }
+void AHandThruster::FuelRechargeToggle()
+{
+	bFuelRechargeTick = true;
+}
 void AHandThruster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	if (bSetAutoHoverThrottle)
 	{
-		FVector PlayerLatAccel = OwningPlayer->GetMovementComponent()->Velocity;
-		PlayerLatAccel.Z = 0.f;
-		if (PlayerLatAccel.Size() > MaxBenefitSpeed - BenefitDelta)
+		FVector OwnerVelocity = OwningPlayer->GetCharacterMovement()->Velocity;
+		OwnerVelocity.Z = 0.f;
+		if (OwnerVelocity.Size() > (MaxBenefitSpeed - BenefitDelta) &&
+			OwnerVelocity.Size() < (MaxBenefitSpeed + BenefitDelta))
 		{
-			LockedThrottleValue = AutoHoverFast;
+			AutoHoverThrust = 11.25f / (ThrustPowerSetter * (1.f + TranlationalLiftAdvantage));
 		}
 		else
 		{
-			LockedThrottleValue = 0.54f;
+			AutoHoverThrust = 10.95f / (ThrustPowerSetter * (1.f + GroundEffectMultiplier));
 		}
+
+		LockedThrottleValue = AutoHoverThrust;
+		CurrentTriggerAxisValue = AutoHoverThrust;
 		bSetAutoHoverThrottle = false;
-		CurrentTriggerAxisValue = AutoHoverSlow;
 		bThrottleLocked = true;
 	}
 	if (bThrottleLocked)
 	{
 		ApplyThrust(CurrentTriggerAxisValue);
+	}
+	if (bFuelRechargeTick)
+	{
+		CurrentFuel = FMath::Clamp(CurrentFuel + (MaxFuel / FuelRechargeRate) * DeltaTime, 0.f, MaxFuel);
+		if (CurrentFuel == MaxFuel)
+		{
+			bFuelRechargeTick = false;
+		}
 	}
 }
 
@@ -52,6 +68,7 @@ void AHandThruster::Drop()
 	Super::Drop();
 
 	bThrottleLocked = false;
+	CurrentTriggerAxisValue = 0.f;
 }
 void AHandThruster::TriggerPulled(float Value)
 {
@@ -67,18 +84,28 @@ void AHandThruster::TriggerPulled(float Value)
 	if (!bThrottleLocked && Value < 0.1f)
 	{
 		CurrentTriggerAxisValue = 0.f;
+		if (!GetWorldTimerManager().IsTimerActive(FuelRecharge_Handle)) { GetWorldTimerManager().SetTimer(FuelRecharge_Handle, this, &AHandThruster::FuelRechargeToggle, FuelRechargeDelay); }
 	}
 	if (!bThrottleLocked && Value > 0.1f)
 	{
+		if (GetWorldTimerManager().IsTimerActive(FuelRecharge_Handle)) { GetWorldTimerManager().ClearTimer(FuelRecharge_Handle); }
+
+		bFuelRechargeTick = false;
 		CurrentTriggerAxisValue = Value;
 		ApplyThrust(Value);
 	}
 	else if (bThrottleLocked && Value > LockedThrottleValue)
 	{
+		if (GetWorldTimerManager().IsTimerActive(FuelRecharge_Handle)) { GetWorldTimerManager().ClearTimer(FuelRecharge_Handle); }
+
+		bFuelRechargeTick = false;
 		CurrentTriggerAxisValue = Value;
 	}
 	else if (bThrottleLocked && Value <= LockedThrottleValue)
 	{
+		if (GetWorldTimerManager().IsTimerActive(FuelRecharge_Handle)) { GetWorldTimerManager().ClearTimer(FuelRecharge_Handle); }
+
+		bFuelRechargeTick = false;
 		CurrentTriggerAxisValue = LockedThrottleValue;
 	}
 
@@ -111,7 +138,16 @@ void AHandThruster::BottomReleased()
 
 void AHandThruster::ApplyThrust(float ThrustPercent)
 {
-	if (CurrentFuel <= 0.f) { return; }
+	// If fuel runs out, turn everything off
+	if (CurrentFuel <= 0.f) 
+	{ 
+		if (bThrottleLocked)
+		{
+			bThrottleLocked = false;
+			CurrentTriggerAxisValue = 0.f;
+		}
+		return; 
+	}
 
 	// Initialize ThrustPower
 	float ThrustPower = ThrustPowerSetter;
@@ -151,6 +187,8 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 		float Advantage = 1.f + TranslationalLiftCurveBase * FMath::Square(ForSquare + 1);
 		Advantage *= TranslationalLiftMultiplier;
 		ThrustPower *= (1.f + Advantage);
+
+		TranlationalLiftAdvantage = Advantage;
 	}
 
 	// Initialize ThrusterOutput Vector with adjust power
