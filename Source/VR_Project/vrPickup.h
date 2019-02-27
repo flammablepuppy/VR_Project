@@ -8,6 +8,8 @@
 
 class UStaticMeshComponent;
 class UMotionControllerComponent;
+class USceneComponent;
+class USkeletalMesh;
 
 UCLASS()
 class VR_PROJECT_API AvrPickup : public AActor
@@ -23,9 +25,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", Meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PickupMesh;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(BlueprintReadOnly)
 	UMotionControllerComponent* OwningMC;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(BlueprintReadOnly)
 	AvrPlayer* OwningPlayer;		
 
 	UPROPERTY()
@@ -37,12 +39,12 @@ protected:
 	UFUNCTION()
 	void MoveToGrabbingMC();
 
-	// Rate grabbed objets accelerate to grabbing hand
+	/** Rate grabbed objets accelerate to grabbing hand */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float HomingAcceleration = 20.f;
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
 	float CurrentHomingSpeed = 0.f;
-	// Time it takes for grabbed object to match the rotation of the grabbing hand
+	/** Time it takes for grabbed object to match the rotation of the grabbing hand */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float TimeToRotate = 0.15f;
 

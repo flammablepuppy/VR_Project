@@ -34,7 +34,8 @@ void AHandThruster::Tick(float DeltaTime)
 		FVector OwnerVelocity = OwningPlayer->GetCharacterMovement()->Velocity;
 		OwnerVelocity.Z = 0.f;
 		if (OwnerVelocity.Size() > (MaxBenefitSpeed - BenefitDelta) &&
-			OwnerVelocity.Size() < (MaxBenefitSpeed + BenefitDelta))
+			OwnerVelocity.Size() < (MaxBenefitSpeed + BenefitDelta) &&
+			bExperiencesTranslationalLift)
 		{
 			AutoHoverThrust = 11.25f / (ThrustPowerSetter * (1.f + TranlationalLiftAdvantage));
 		}
@@ -52,7 +53,7 @@ void AHandThruster::Tick(float DeltaTime)
 	{
 		ApplyThrust(CurrentTriggerAxisValue);
 	}
-	if (bFuelRechargeTick)
+	if (bFuelRechargeTick && bFuelRecharges)
 	{
 		CurrentFuel = FMath::Clamp(CurrentFuel + (MaxFuel / FuelRechargeRate) * DeltaTime, 0.f, MaxFuel);
 		if (CurrentFuel == MaxFuel)
@@ -180,15 +181,18 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 	}
 
 	// Translational Lift
-	float PlayerLateralSpeed = FVector(OwningPlayer->GetVelocity().X, OwningPlayer->GetVelocity().Y, 0.f).Size();
-	if (PlayerLateralSpeed > MaxBenefitSpeed - BenefitDelta && PlayerLateralSpeed < MaxBenefitSpeed + BenefitDelta)
+	if (bExperiencesTranslationalLift)
 	{
-		float ForSquare = (PlayerLateralSpeed - MaxBenefitSpeed);
-		float Advantage = 1.f + TranslationalLiftCurveBase * FMath::Square(ForSquare + 1);
-		Advantage *= TranslationalLiftMultiplier;
-		ThrustPower *= (1.f + Advantage);
+		float PlayerLateralSpeed = FVector(OwningPlayer->GetVelocity().X, OwningPlayer->GetVelocity().Y, 0.f).Size();
+		if (PlayerLateralSpeed > MaxBenefitSpeed - BenefitDelta && PlayerLateralSpeed < MaxBenefitSpeed + BenefitDelta)
+		{
+			float ForSquare = (PlayerLateralSpeed - MaxBenefitSpeed);
+			float Advantage = 1.f + TranslationalLiftCurveBase * FMath::Square(ForSquare + 1);
+			Advantage *= TranslationalLiftMultiplier;
+			ThrustPower *= (1.f + Advantage);
 
-		TranlationalLiftAdvantage = Advantage;
+			TranlationalLiftAdvantage = Advantage; // Variable used in determining auto hover thrust
+		}
 	}
 
 	// Initialize ThrusterOutput Vector with adjust power
@@ -213,4 +217,3 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 
 	OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
 }
-

@@ -35,6 +35,7 @@ protected:
 public:
 	virtual void Drop() override;
 	virtual void TriggerPulled(float Value) override;
+	bool bTriggerPulled = false;
 	virtual void TopPushed() override;
 	virtual void TopReleased() override;
 	virtual void BottomPushed() override;

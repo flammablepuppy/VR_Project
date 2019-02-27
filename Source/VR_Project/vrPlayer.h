@@ -64,8 +64,9 @@ protected:
 	bool bSnapTurnReady = true;
 
 	// VR Specific Movement
-	UFUNCTION(BlueprintCallable, Category = "vrFunction")
+	UFUNCTION()
 	void OffsetRoot();
+	/** Height of player based on HMD position */
 	UPROPERTY(BlueprintReadWrite, Category = "vrParameters")
 	float PlayerHeight = 1.78f;
 
@@ -76,43 +77,48 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void MotionInputScan();
 
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector HeadRelative;
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector LeftRelative;
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector RightRelative;
 
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector HeadRelVel = HeadLastRelPos - HeadRelative;
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector LeftRelVel = -(LeftLastRelPos - LeftRelative);
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector RightRelVel = -(RightLastRelPos - RightRelative);
 
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector HeadLastRelPos = FVector::ZeroVector;
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector LeftLastRelPos = FVector::ZeroVector;
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector RightLastRelPos = FVector::ZeroVector;
 
-	UPROPERTY(BlueprintReadOnly, Category = "vrParameters")
+	UPROPERTY(BlueprintReadOnly)
 	FVector VelocityLastTick = FVector::ZeroVector;
 
 		// Impact Damage
+		/** Velocity change threshold beyond which damage is applied to the player */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Locomotion")
-		float VelocityChangeDamageSpeed = 1000.f; // Velocity change threshold beyond which damage is applied to the player
+		float VelocityChangeDamageSpeed = 1000.f; 
 		UFUNCTION()
 		void ApplyImpactDamage();
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") // The minimum amount of damage that will be dealt to the player after an abrupt velocity change
+		/** The minimum amount of damage that will be dealt to the player after an abrupt velocity change */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") 
 		float MinimumImpactDamage = 15.f;
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") // Damage delt per cm/s over velocity change threshold
+		/** Damage delt per cm/s over velocity change threshold */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") 
 		float ExponentialImpactDamage = 0.012f;
 
 		// Jump
+		/** The amount of vertical acceleration the HMD must hit to trigger a jump */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float JumpHeadReqZ = 1.5f;
+		/** The amount of vertical acceleration both the controllers must hit to trigger a jump */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float JumpHandReqZ = 2.8;
 		UPROPERTY()
@@ -124,12 +130,15 @@ protected:
 		UFUNCTION()
 		void ResetMaxWalkSpeed();
 		FTimerHandle SprintSpeedReturn_Handle;
-		UPROPERTY()
+		/** Time after the last sprint action detected until walk speed returns to BaseCharacterSpeed */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float SprintReturnTime = 0.9f;
 		UPROPERTY()
 		float BaseCharacterSpeed = 0.f; // Set in BeginPlay
+		/** The forward acceleration the lead controller must achieve to trigger sprint */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float SprintArmSwingReq = 6.f;
+		/** The max player speed achievable by swinging arms */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float MaxSprintSpeed = 1200.f;
 		UPROPERTY()

@@ -4,6 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "MotionControllerComponent.h"
 #include "vrPlayer.h"
+#include "Components/SceneComponent.h"
 
 AvrPickup::AvrPickup()
 {
@@ -14,6 +15,7 @@ AvrPickup::AvrPickup()
 	PickupMesh->SetSimulatePhysics(true);
 	PickupMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	RootComponent = PickupMesh;
+
 }
 void AvrPickup::BeginPlay()
 {

@@ -24,7 +24,17 @@ void ASigPistol::Drop()
 }
 void ASigPistol::TriggerPulled(float Value)
 {
-	DischargeRound();
+	if (Value > 0.3f && !bTriggerPulled)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Trigger pull recognized."))
+
+		bTriggerPulled = true;
+		DischargeRound();
+	}
+	else if (Value < 0.3f)
+	{
+		bTriggerPulled = false;
+	}
 }
 void ASigPistol::TopPushed()
 {
@@ -42,14 +52,17 @@ void ASigPistol::BottomReleased()
 // Functionality
 void ASigPistol::DischargeRound()
 {
+	UE_LOG(LogTemp, Warning, TEXT("DischargeRound called."))
+
 	if (!bSlideBack && bRoundChambered)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Conditions met to spawn projectile and play FX."))
+
 		GetWorld()->SpawnActor<AvrProjectile>(PistolMesh->GetSocketLocation("Muzzle"), PistolMesh->GetSocketRotation("Muzzle"));
-		// Play slide snap back animation
+		PlayFireFX(); // Has VFX and slide snap back montage
 		bSlideBack = true;
 		bRoundChambered = false;
 
-		// If magazine still has ammo in it
 		AttemptCharge();
 	}
 	else
@@ -60,9 +73,15 @@ void ASigPistol::DischargeRound()
 
 void ASigPistol::AttemptCharge()
 {
-	if (bSlideBack)
+	if (bSlideBack && LoadedMagazine)
 	{
-		// -1 ammo from mag then
+		//if (LoadedMagazine->RemainingRounds > 0)
+		//{
+		//	// -1 ammo
+		//	// play slide snap forward
+		//	// bRoundChambered = true;
+		//	// bSlideForward = true;
+		//}
 
 	}
 }

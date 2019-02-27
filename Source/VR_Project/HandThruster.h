@@ -21,44 +21,61 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Fuel
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Seconds of full power thrust on a full fuel tank
-	float MaxFuel = 7.f;
-	UPROPERTY(BlueprintReadOnly, Category = "Thruster Properties")
-	float CurrentFuel;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Properties")
+	/** Seconds of full power thrust on a full fuel tank */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel") 
+	float MaxFuel = 12.f;
+	/** Whether or not the fuel automatically begins recharging, like Halo shields */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel") 
 	bool bFuelRecharges = true;
-	FTimerHandle FuelRecharge_Handle;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Seconds without thrust input before fuel begins recharging
+	/** Seconds without thrust input before fuel begins recharging */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Fuel") 
 	float FuelRechargeDelay = 2.5;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // How many seconds to go from empty to full
+	/** How many seconds to go from empty to full */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Fuel")
 	float FuelRechargeRate = 12.f;
+
+	FTimerHandle FuelRecharge_Handle;
+	UPROPERTY(BlueprintReadOnly)
+	float CurrentFuel;
 	UPROPERTY()
 	bool bFuelRechargeTick = false;
 	UFUNCTION()
 	void FuelRechargeToggle();
 
 	// Thrust
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Thruster Properties") // Power provided by a full trigger pull
+	/** Power provided by a full trigger pull */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Thruster Properties") 
 	float ThrustPowerSetter = 11.5f;
+	/** Max acheivable speed from thruster */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
 	float TerminalVelocitySpeed = 6100.f;
 
-	// Ground Effect
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Percent increase in thruster power when in ground effect
-	float GroundEffectMultiplier = 0.85;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Max height at which ground effect fully tapers off
-	float GroundEffectLoss = 550.f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties") // Height below which ground effect is fully applied
-	float GroundEffectFull = 200.f;
+	// Ground Effect -- This behaves pretty unrealistically right now
+	/** Percent increase in thruster power when in ground effect */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Ground Effect") 
+	float GroundEffectMultiplier = 0.32;
+	/** Max height at which ground effect fully tapers off */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Ground Effect") 
+	float GroundEffectLoss = 600.f;
+	/** Height below which ground effect is fully applied */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Ground Effect")
+	float GroundEffectFull = 300.f;
 
 	// Translational Lift
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
-	float TranslationalLiftMultiplier = 1.15f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	/** When enabled, simulates a rotor which produces additional lift as relative wind (lateral velocity) increases */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Translational Lift") 
+	bool bExperiencesTranslationalLift = true;
+	/** Max additional lift percentage that can be gained by translational lift */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Translational Lift")
+	float TranslationalLiftMultiplier = 0.95f;
+	/** Speed at which TL advantage is highest, ie. Max Endurance Airspeed */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Translational Lift")
 	float MaxBenefitSpeed = 4750.f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	/** TL benefit begins at MaxBenefitSpeed +/- this amount */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Translational Lift")
 	float BenefitDelta = 4250.f;
-	UPROPERTY() // Set in BeginPlay, calculates the appropriate float for use in expo onset curve
+
+	UPROPERTY()
 	float TranslationalLiftCurveBase = 0.f;
 	UPROPERTY()
 	float TranlationalLiftAdvantage = 0.f;

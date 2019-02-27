@@ -207,7 +207,7 @@ void AvrPlayer::MotionInputScan()
 	{
 		MotionSprint();
 	}
-	else // Reset the boolean that prevents multiple stacks per swing when the forwards swining arm changes
+	else // Reset the boolean that prevents multiple stacks per swing when the forward swinging arm changes
 	{
 		bSprintSwingHasRegistered = false;
 	}
