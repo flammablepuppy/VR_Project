@@ -44,10 +44,10 @@ protected:
 
 	// Thrust
 	/** Power provided by a full trigger pull */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Thruster Properties") 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Thruster Power") 
 	float ThrustPowerSetter = 11.5f;
 	/** Max acheivable speed from thruster */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Properties")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Power")
 	float TerminalVelocitySpeed = 6100.f;
 
 	// Ground Effect -- This behaves pretty unrealistically right now
@@ -93,6 +93,11 @@ protected:
 	bool bSetAutoHoverThrottle = false;
 	UPROPERTY(BlueprintReadOnly)
 	float CurrentTriggerAxisValue;
+
+	/** Target thrust value auto-hover calculates for taking into account GE and TL */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Features")
+	float AutoHoverTargetThrust = 11.2f;
+
 
 	UPROPERTY(BlueprintReadOnly)
 	float DisplayNumber1;

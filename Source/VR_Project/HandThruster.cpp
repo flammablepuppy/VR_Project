@@ -37,11 +37,11 @@ void AHandThruster::Tick(float DeltaTime)
 			OwnerVelocity.Size() < (MaxBenefitSpeed + BenefitDelta) &&
 			bExperiencesTranslationalLift)
 		{
-			AutoHoverThrust = 11.25f / (ThrustPowerSetter * (1.f + TranlationalLiftAdvantage));
+			AutoHoverThrust = AutoHoverTargetThrust / (ThrustPowerSetter * (1.f + TranlationalLiftAdvantage));
 		}
 		else
 		{
-			AutoHoverThrust = 10.95f / (ThrustPowerSetter * (1.f + GroundEffectMultiplier));
+			AutoHoverThrust = AutoHoverTargetThrust / (ThrustPowerSetter * (1.f + GroundEffectMultiplier));
 		}
 
 		LockedThrottleValue = AutoHoverThrust;
