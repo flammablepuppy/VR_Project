@@ -22,11 +22,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	/** The parent class static mesh is used for collision, this mesh has no collision but has all the sockets for effects an animations */
+	/** The parent class static mesh "PickupMesh" is used for collision, this mesh has no collision but has all the sockets for effects and animations */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USkeletalMeshComponent* PistolMesh;
 
-	/** When a compatible magazine is moved into this sphere, it be loaded into the weapon */
+	/** When a compatible magazine is moved into this sphere, it will be loaded into the weapon */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USphereComponent* MagazineLoadSphere;
 
@@ -37,9 +37,13 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
 	AWeaponMag* LoadedMagazine;
 
-	/** Set true when magazine is fully seated and ready for load rounds */
+	/** Set true when magazine has entered the MagazineLoadSphere and is animating to a seated position */
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
-	bool bMagazineSeated = false;
+	bool bMagInTransit = false;
+
+	/** Time it takes for the magazine to snap into the weapon after entering the MagazineLoadSphere */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pistol Properties")
+	float MagazineLoadTime = 0.15f;
 
 	/** Projectile currently in chamber, used to spawn projectile on trigger pull */
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
@@ -56,8 +60,6 @@ protected:
 	/** Capacity of spawned magazine, -1 defaults to MaxCapacity for the magazine */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pistol Properties")
 	int32 StarterCapacity = -1;
-
-
 
 	/** Function that handles the movement of a detected magazine into the magwell and setting it as the LoadedMagazine */
 	UFUNCTION()
@@ -88,8 +90,9 @@ protected:
 	void PlaySlideForward();
 
 	UFUNCTION()
+	void MoveMagToWell();
+	UFUNCTION()
 	void AttachMag();
-
 	UFUNCTION()
 	void DropMag();
 

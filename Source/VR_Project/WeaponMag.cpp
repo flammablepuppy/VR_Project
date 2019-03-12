@@ -30,5 +30,8 @@ void AWeaponMag::SetCapacity(int32 NewCurrentCapacity)
 
 void AWeaponMag::ExpendCartridge(int32 RoundsExpended)
 {
-	CurrentCapacity -= RoundsExpended;
+	if (CurrentCapacity > 0)
+	{
+		CurrentCapacity -= RoundsExpended;
+	}
 }

@@ -9,12 +9,14 @@
 
 ASigPistol::ASigPistol()
 {
+	PickupMesh->SetVisibility(false);
+
 	PistolMesh = CreateDefaultSubobject<USkeletalMeshComponent>("Pistol Skeletal Mesh");
 	PistolMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 	PistolMesh->SetupAttachment(RootComponent);
 
 	MagazineLoadSphere = CreateDefaultSubobject<USphereComponent>("Magazine Load Sphere");
-	MagazineLoadSphere->SetupAttachment(RootComponent); // Would be nice to automatically set this to a predetermined socket by
+	MagazineLoadSphere->SetupAttachment(PistolMesh);
 	
 }
 void ASigPistol::BeginPlay()
@@ -40,17 +42,30 @@ void ASigPistol::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bMagInTransit)
+	{
+		MoveMagToWell();
+	}
+
 }
 void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (LoadedMagazine) { return; }
 
+	// Check for a valid magazine, and that the magazine is currently being held
 	AWeaponMag* Magazine = Cast<AWeaponMag>(OtherActor);
-	if (Magazine)
+	if (Magazine && Magazine->GetOwningMC())
 	{
 		Magazine->Drop();
 		LoadedMagazine = Magazine;
-		AttachMag();
+
+		LoadedMagazine->GetPickupMesh()->SetSimulatePhysics(false);
+		LoadedMagazine->GetPickupMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		LoadedMagazine->SetPickupEnabled(false);
+		LoadedMagazine->AttachToComponent(PistolMesh, FAttachmentTransformRules::KeepWorldTransform);
+
+		bMagInTransit = true;
+
 	}
 
 }
@@ -63,7 +78,7 @@ void ASigPistol::Drop()
 }
 void ASigPistol::TriggerPulled(float Value)
 {
-	if (Value > 0.3f && !bTriggerPulled)
+	if (Value > 0.3f && !bTriggerPulled && !bMagInTransit)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Trigger pull recognized."))
 
@@ -136,6 +151,28 @@ void ASigPistol::AttemptCharge()
 
 	}
 
+}
+void ASigPistol::MoveMagToWell()
+{
+	if (!LoadedMagazine) { return; }
+
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+	FTransform MagTransform = LoadedMagazine->GetTransform();
+	FTransform WellTransform = PistolMesh->GetSocketTransform("MagazineWell");
+	
+	FVector DeltaLocation = (WellTransform.GetLocation() - MagTransform.GetLocation()) * DeltaTime / MagazineLoadTime;
+	FQuat DeltaRotation = (WellTransform.GetRotation() - MagTransform.GetRotation()) * DeltaTime / MagazineLoadTime;
+
+	LoadedMagazine->SetActorLocation(MagTransform.GetLocation() + DeltaLocation);
+	LoadedMagazine->SetActorRotation(MagTransform.GetRotation() + DeltaRotation);
+
+	if (DeltaLocation.IsNearlyZero(0.1f))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AttachMag called."))
+		AttachMag();
+		bMagInTransit = false;
+	}
+	
 }
 void ASigPistol::AttachMag()
 {

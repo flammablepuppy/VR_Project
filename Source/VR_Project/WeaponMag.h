@@ -30,7 +30,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine")
 	int32 MaxCapacity = 15;
 
-	/** Initialized in BeginPlay if -1 */
+	/** Initialized in BeginPlay, -1 initializes as a full mag */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magazine")
 	int32 CurrentCapacity = -1;
 
