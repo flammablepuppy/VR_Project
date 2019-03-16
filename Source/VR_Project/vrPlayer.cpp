@@ -14,6 +14,7 @@
 #include <Runtime/Engine/Classes/Engine/Engine.h>
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AvrPlayer::AvrPlayer()
 {
@@ -497,4 +498,5 @@ void AvrPlayer::EndGrabHighlight(UPrimitiveComponent * OverlappedComponent, AAct
 void AvrPlayer::SetMouseEnabled(bool NewState)
 {
 	bMouseEnabled = NewState;
+
 }

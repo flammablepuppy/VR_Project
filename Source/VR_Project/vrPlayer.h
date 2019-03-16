@@ -28,6 +28,10 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	//
+	// Components
+	//
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USceneComponent* vrRoot;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -43,7 +47,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UHealthStats* HealthStatsComp;
 
+	//
 	// Basic Locomotion Functions
+	//
+
 	UFUNCTION(Category = "Locomotion")
 	void MoveForward(float Value);
 	UFUNCTION(Category = "Locomotion")
@@ -55,7 +62,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	bool bMouseEnabled = true;
 
+	//
 	// Snap Turn
+	//
+
 	UFUNCTION(Category = "Locomotion")
 	void SnapTurn(float Value);
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
@@ -63,7 +73,10 @@ protected:
 	UPROPERTY()
 	bool bSnapTurnReady = true;
 
+	//
 	// VR Specific Movement
+	//
+
 	UFUNCTION()
 	void OffsetRoot();
 	/** Height of player based on HMD position */
@@ -73,7 +86,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "vrParameters")
 	TSubclassOf<UDamageType> MotionDamage;
 
+	//
 	// Motion Input
+	//
+
 	UFUNCTION(BlueprintCallable)
 	void MotionInputScan();
 
@@ -219,4 +235,5 @@ public:
 	void SetMouseEnabled(bool NewState);
 	UFUNCTION()
 	FORCEINLINE FVector GetVelocityLastTick() { return VelocityLastTick; };
+
 };

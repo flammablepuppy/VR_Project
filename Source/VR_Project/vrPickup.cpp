@@ -16,6 +16,8 @@ AvrPickup::AvrPickup()
 	PickupMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	RootComponent = PickupMesh;
 
+	SetReplicates(true);
+
 }
 void AvrPickup::BeginPlay()
 {
@@ -58,7 +60,6 @@ void AvrPickup::MoveToGrabbingMC()
 	if (!OwningMC) { bMoving = false; return; }
 
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
-
 	FVector CurrentLocation = GetActorLocation();
 	FVector TargetLocation = OwningMC->GetComponentLocation();
 	FVector LocationDelta = TargetLocation - CurrentLocation;
@@ -66,14 +67,12 @@ void AvrPickup::MoveToGrabbingMC()
 	FVector Direction = LocationDelta.GetSafeNormal();
 	CurrentHomingSpeed += HomingAcceleration;
 	FVector NewLocation = CurrentLocation + Direction * CurrentHomingSpeed * DeltaTime;
-
-	SetActorLocation(NewLocation);
-
+	
 	FQuat StartRot = GetActorRotation().Quaternion();
 	FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
 	FQuat DeltaRot = TargetRot - StartRot;
-	DeltaRot *= DeltaTime / TimeToRotate;
-	SetActorRotation(StartRot + DeltaRot);
+
+	FQuat NewRotation = StartRot + DeltaRot * DeltaTime / TimeToRotate;
 
 	if (LocationDelta.Size() < (TargetLocation - NewLocation).Size())
 	{
@@ -84,6 +83,11 @@ void AvrPickup::MoveToGrabbingMC()
 		bReadyToUse = true;
 		OwningMC->SetShowDeviceModel(true);
 	}
+	else
+	{
+		SetActorLocation(NewLocation);
+		SetActorRotation(NewRotation);
+	}
 }
 
 // Object Functions
@@ -92,6 +96,17 @@ void AvrPickup::TriggerPulled(float Value)
 	if (!OwningMC || !bReadyToUse) { return; }
 
 	BPTriggerPull(Value);
+
+	// Bools for when functionality is press/release
+	if (Value > 0.3f)
+	{
+		bTriggerPulled = true;
+	}
+	else
+	{
+		bTriggerPulled = false;
+	}
+
 }
 void AvrPickup::TopPushed()
 {

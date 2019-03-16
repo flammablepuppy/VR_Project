@@ -54,7 +54,7 @@ void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 
 	// Check for a valid magazine, and that the magazine is currently being held
 	AWeaponMag* Magazine = Cast<AWeaponMag>(OtherActor);
-	if (Magazine && Magazine->GetOwningMC())
+	if (Magazine && Magazine->GetOwningMC() && OwningMC)
 	{
 		Magazine->Drop();
 		LoadedMagazine = Magazine;
@@ -80,8 +80,6 @@ void ASigPistol::TriggerPulled(float Value)
 {
 	if (Value > 0.3f && !bTriggerPulled && !bMagInTransit)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Trigger pull recognized."))
-
 		bTriggerPulled = true;
 		DischargeRound();
 	}
@@ -168,7 +166,6 @@ void ASigPistol::MoveMagToWell()
 
 	if (DeltaLocation.IsNearlyZero(0.1f))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AttachMag called."))
 		AttachMag();
 		bMagInTransit = false;
 	}

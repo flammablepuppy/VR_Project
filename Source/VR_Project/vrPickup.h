@@ -25,9 +25,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", Meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PickupMesh;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	UMotionControllerComponent* OwningMC;
-	UPROPERTY(BlueprintReadOnly)
+
+	UPROPERTY()
 	AvrPlayer* OwningPlayer;		
 
 	UPROPERTY()
@@ -91,4 +92,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE AvrPlayer* GetOwningPlayer() { return OwningPlayer; }
 
+	UPROPERTY(BlueprintReadOnly)
+	bool bTriggerPulled = false;
 };
