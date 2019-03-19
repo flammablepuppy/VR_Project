@@ -22,8 +22,24 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
+	virtual void Tick(float DeltaTime) override;
+
+protected:
+	//		COMPONENTS
+	//
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", Meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PickupMesh;
+
+	//		MOVING AND ATTACHING VARIABLES
+	//
+
+	UPROPERTY(BlueprintReadOnly)
+	USceneComponent* SnapTarget;
+
+	UPROPERTY()
+	FName SnapSocket;
 
 	UPROPERTY()
 	UMotionControllerComponent* OwningMC;
@@ -31,26 +47,59 @@ protected:
 	UPROPERTY()
 	AvrPlayer* OwningPlayer;		
 
-	UPROPERTY()
-	bool bPickupEnabled= true;
-	UPROPERTY()
-	bool bMoving = false;
-	UPROPERTY()
-	bool bReadyToUse = false;
-	UFUNCTION()
-	void MoveToGrabbingMC();
-
 	/** Rate grabbed objets accelerate to grabbing hand */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float HomingAcceleration = 20.f;
-	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
+	float HomingAcceleration = 5.f;
+
+	UPROPERTY(BlueprintReadOnly)
 	float CurrentHomingSpeed = 0.f;
+
 	/** Time it takes for grabbed object to match the rotation of the grabbing hand */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float TimeToRotate = 0.15f;
+	float TimeToRotate = 0.1f;
+
+	//		VARIABLES
+	//
+
+	/** Allows use of public snapping functions when true */
+	UPROPERTY()
+	bool bPickupEnabled = true;
+
+	/** Activates movement through tick when true */
+	UPROPERTY()
+	bool bMoving = false;
+
+	/** Allows input functions to fire when true */
+	UPROPERTY()
+	bool bReadyToUse = false;
+	
+	//		FUNCTIONS
+	//
+
+	UFUNCTION()
+	void MoveTo(USceneComponent * TargetComponent, FName TargetSocket);
 
 public:	
-	virtual void Tick(float DeltaTime) override;
+	//		PUBLIC FUNCTIONS
+	//
+
+	UFUNCTION()
+	virtual void SnapInitiate(USceneComponent* NewParentComponent, FName SocketName = NAME_None);
+
+	UFUNCTION()
+	virtual	void SnapOn();
+
+	UFUNCTION()
+	virtual void Drop();
+
+	//		PUBLIC VARIABLES -- TODO: Get rid of this, make it protected and make a getter.
+	//
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bTriggerPulled = false;
+
+	//		BP INPUT CALLS
+	//
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPTriggerPull(float Value);
@@ -65,11 +114,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPDrop();
 
-	UFUNCTION()
-	void SnapTo(UMotionControllerComponent* GrabbingController);
+	//		INPUT CALLS
+	//
 
-	UFUNCTION()
-	virtual void Drop();
 	UFUNCTION()
 	virtual void TriggerPulled(float Value);
 	UFUNCTION()
@@ -81,17 +128,24 @@ public:
 	UFUNCTION()
 	virtual void BottomReleased();
 
+	//		GET
+	//
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UStaticMeshComponent* GetPickupMesh() { return PickupMesh; }
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE bool GetPickupEnabled() { return bPickupEnabled; }
-	UFUNCTION(BlueprintCallable)
-	void SetPickupEnabled(bool NewState); 
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UMotionControllerComponent* GetOwningMC() { return OwningMC; }
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE AvrPlayer* GetOwningPlayer() { return OwningPlayer; }
 
-	UPROPERTY(BlueprintReadOnly)
-	bool bTriggerPulled = false;
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetPickupEnabled() { return bPickupEnabled; }
+
+	//		SET
+	//
+
+	UFUNCTION(BlueprintCallable)
+	void SetPickupEnabled(bool NewState); 
 };

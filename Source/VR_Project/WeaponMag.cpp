@@ -4,6 +4,7 @@
 #include "Components/SphereComponent.h"
 #include "vrProjectile.h"
 #include "MagCartridge.h"
+#include "Components/StaticMeshComponent.h"
 
 AWeaponMag::AWeaponMag()
 {
@@ -36,7 +37,7 @@ void AWeaponMag::LoadCompatibleCartridge(UPrimitiveComponent * OverlappedCompone
 		CurrentCapacity < MaxCapacity)			// Make sure the mag isn't already full
 	{
 		AMagCartridge* Cartridge = Cast<AMagCartridge>(OtherActor);
-		if (Cartridge && Cartridge->GetOwningMC())
+		if (Cartridge && Cartridge->GetOwningMC() && OwningMC)
 		{
 			Cartridge->SetTargetMag(this);
 			Cartridge->LoadCartridge();
@@ -52,4 +53,18 @@ void AWeaponMag::SetCapacity(int32 NewCurrentCapacity)
 void AWeaponMag::ExpendCartridge(int32 RoundsExpended)
 {
 	FMath::Clamp(CurrentCapacity -= RoundsExpended, 0, MaxCapacity);
+}
+
+void AWeaponMag::SnapOn()
+{
+	Super::SnapOn();
+
+	PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AWeaponMag::Drop()
+{
+	Super::Drop();
+
+	PickupMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }

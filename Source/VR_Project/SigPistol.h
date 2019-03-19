@@ -55,7 +55,7 @@ protected:
 
 	/** Magazine that spawns with weapon when bSpawnsLoaded is true */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pistol Properties")
-	TSubclassOf<AWeaponMag> StarterMagazine;
+	TSubclassOf<AWeaponMag> CompatibleMagazine;
 
 	/** Capacity of spawned magazine, -1 defaults to MaxCapacity for the magazine */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pistol Properties")
@@ -68,13 +68,12 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void Drop() override;
 	virtual void TriggerPulled(float Value) override;
 	bool bTriggerPulled = false;
 	virtual void TopPushed() override;
-	virtual void TopReleased() override;
+	//virtual void TopReleased() override; NOT IN USE
 	virtual void BottomPushed() override;
-	virtual void BottomReleased() override;
+	//virtual void BottomReleased() override; NOT IN USE
 
 protected:
 	UFUNCTION()
@@ -88,14 +87,5 @@ protected:
 	void PlaySlideBack();
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void PlaySlideForward();
-
-	UFUNCTION()
-	void MoveMagToWell();
-	UFUNCTION()
-	void AttachMag();
-	UFUNCTION()
-	void DropMag();
-
-		
-
+	
 };

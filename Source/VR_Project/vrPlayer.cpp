@@ -436,7 +436,7 @@ void AvrPlayer::ExecuteGrip(AvrPickup* &ScanObject, AvrPickup* &GrippedObjectPoi
 	if (ScanObject)
 	{
 		GrippedObjectPointer = ScanObject;
-		GrippedObjectPointer->SnapTo(GrabbingMC);
+		GrippedObjectPointer->SnapInitiate(GrabbingMC);
 		ScanObject = nullptr;
 	}
 }

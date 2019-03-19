@@ -28,65 +28,80 @@ void AvrPickup::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bMoving) { MoveToGrabbingMC(); }
+	if (bMoving && SnapTarget) { MoveTo(SnapTarget, SnapSocket); }
 }
 
 // Grabbing
-void AvrPickup::SnapTo(UMotionControllerComponent* GrabbingController)
+void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketName)
 {
 	if (!bPickupEnabled) { return; }
 
-	OwningMC = GrabbingController;
-	OwningMC->SetShowDeviceModel(false);
-	OwningPlayer = Cast<AvrPlayer>(OwningMC->GetOwner());
+	SnapTarget = NewParentComponent;
+	SnapSocket = SocketName;
+
+	UMotionControllerComponent* MC = Cast<UMotionControllerComponent>(NewParentComponent);
+	if (MC)
+	{
+		OwningMC = MC;
+		OwningMC->SetShowDeviceModel(false);
+		OwningPlayer = Cast<AvrPlayer>(OwningMC->GetOwner());
+	}
+
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
-	CurrentHomingSpeed = 0.f; 
-	AttachToComponent(OwningMC, FAttachmentTransformRules::KeepWorldTransform);
+	CurrentHomingSpeed = 0.f;
 }
+
+void AvrPickup::SnapOn()
+{
+	bPickupEnabled = false;
+	bMoving = false;
+	bReadyToUse = true;
+	AttachToComponent(SnapTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SnapSocket);
+	if (OwningMC) {	OwningMC->SetShowDeviceModel(true);	}
+}
+
 void AvrPickup::Drop()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
-	if (bReadyToUse) { OwningMC->SetShowDeviceModel(false); }
-	OwningMC = nullptr;
-	OwningPlayer = nullptr;
+	if (bReadyToUse && OwningMC) { OwningMC->SetShowDeviceModel(false); }
+	if (OwningMC) { OwningMC = nullptr; }
+	if (OwningPlayer) { OwningPlayer = nullptr; }
+	SnapTarget = nullptr;
+	SnapSocket = NAME_None;
 	bReadyToUse = false;
 	bPickupEnabled = true;
 	BPDrop();
 }
-void AvrPickup::MoveToGrabbingMC()
+
+void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
 {
-	if (!OwningMC) { bMoving = false; return; }
+	if (!TargetComponent) { bMoving = false; return; UE_LOG(LogTemp, Warning, TEXT("No SnapTarget, can't move or attach")) }
 
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 	FVector CurrentLocation = GetActorLocation();
-	FVector TargetLocation = OwningMC->GetComponentLocation();
-	FVector LocationDelta = TargetLocation - CurrentLocation;
-
-	FVector Direction = LocationDelta.GetSafeNormal();
+	FQuat CurrentRotation = GetActorRotation().Quaternion();
 	CurrentHomingSpeed += HomingAcceleration;
-	FVector NewLocation = CurrentLocation + Direction * CurrentHomingSpeed * DeltaTime;
-	
-	FQuat StartRot = GetActorRotation().Quaternion();
-	FQuat TargetRot = OwningMC->GetComponentRotation().Quaternion();
-	FQuat DeltaRot = TargetRot - StartRot;
 
-	FQuat NewRotation = StartRot + DeltaRot * DeltaTime / TimeToRotate;
+	FTransform TargetTransform;
+	if (TargetSocket != NAME_None) { TargetTransform = TargetComponent->GetSocketTransform(TargetSocket); }
+	else { TargetTransform = TargetComponent->GetComponentTransform();  }
 
-	if (LocationDelta.Size() < (TargetLocation - NewLocation).Size())
+	FVector DeltaLocation = TargetTransform.GetLocation() - CurrentLocation;
+	FQuat DeltaRotation = TargetTransform.GetRotation() - CurrentRotation;
+
+	FVector NewLocation = CurrentLocation + DeltaLocation * CurrentHomingSpeed * DeltaTime;
+	FQuat NewRotation = CurrentRotation + DeltaRotation * DeltaTime / TimeToRotate;
+
+	FVector NewDeltaLocation = NewLocation - CurrentLocation;
+
+	SetActorLocation(NewLocation);
+	SetActorRotation(NewRotation);
+
+	if (DeltaLocation.Size() < NewDeltaLocation.Size())
 	{
-		bPickupEnabled = false;
-		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		bMoving = false;
-		AttachToComponent(OwningMC, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-		bReadyToUse = true;
-		OwningMC->SetShowDeviceModel(true);
-	}
-	else
-	{
-		SetActorLocation(NewLocation);
-		SetActorRotation(NewRotation);
+		SnapOn();
 	}
 }
 

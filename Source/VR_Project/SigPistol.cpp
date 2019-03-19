@@ -25,10 +25,14 @@ void ASigPistol::BeginPlay()
 
 	MagazineLoadSphere->OnComponentBeginOverlap.AddDynamic(this, &ASigPistol::MagOverlap);
 
-	if (bSpawnsLoaded)
+	if (bSpawnsLoaded && CompatibleMagazine)
 	{
-		LoadedMagazine = GetWorld()->SpawnActor<AWeaponMag>(StarterMagazine);
-		AttachMag();
+		LoadedMagazine = GetWorld()->SpawnActor<AWeaponMag>(CompatibleMagazine);
+		LoadedMagazine->GetPickupMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		LoadedMagazine->SetActorLocation(PistolMesh->GetSocketLocation("MagazineWell"));
+		LoadedMagazine->SetActorRotation(PistolMesh->GetSocketRotation("MagazineWell"));
+		LoadedMagazine->SnapInitiate(PistolMesh, "MagazineWell");
+
 		ChamberedRound = LoadedMagazine->GetLoadedAmmunition();
 
 		if (StarterCapacity != -1)
@@ -42,40 +46,30 @@ void ASigPistol::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bMagInTransit)
-	{
-		MoveMagToWell();
-	}
-
 }
 void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (LoadedMagazine) { return; }
 
-	// Check for a valid magazine, and that the magazine is currently being held
-	AWeaponMag* Magazine = Cast<AWeaponMag>(OtherActor);
-	if (Magazine && Magazine->GetOwningMC() && OwningMC)
+	UE_LOG(LogTemp, Warning, TEXT("Pistol calls MagOverlap"))
+
+	if (OtherActor->IsA(CompatibleMagazine))
 	{
-		Magazine->Drop();
-		LoadedMagazine = Magazine;
+		UE_LOG(LogTemp, Warning, TEXT("Pistol detects CompatibleMagzine"))
 
-		LoadedMagazine->GetPickupMesh()->SetSimulatePhysics(false);
-		LoadedMagazine->GetPickupMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		LoadedMagazine->SetPickupEnabled(false);
-		LoadedMagazine->AttachToComponent(PistolMesh, FAttachmentTransformRules::KeepWorldTransform);
+		AWeaponMag* Magazine = Cast<AWeaponMag>(OtherActor);
+		if (Magazine && Magazine->GetOwningMC() && OwningMC) // Cast to access class functions, check if the mag is being held and this pistol is being held
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pistol casts Magzine successfully"))
 
-		bMagInTransit = true;
-
+			Magazine->Drop();
+			Magazine->SnapInitiate(PistolMesh, "MagazineWell");
+			LoadedMagazine = Magazine;
+		}
 	}
-
 }
 
 // Input Functions
-void ASigPistol::Drop()
-{
-	Super::Drop();
-
-}
 void ASigPistol::TriggerPulled(float Value)
 {
 	if (Value > 0.3f && !bTriggerPulled && !bMagInTransit)
@@ -105,19 +99,14 @@ void ASigPistol::TopPushed()
 		bSlideBack = true;
 	}
 }
-void ASigPistol::TopReleased()
-{
-}
 void ASigPistol::BottomPushed()
 {
 	if (LoadedMagazine)
 	{
-		DropMag();
+		LoadedMagazine->Drop();
+		LoadedMagazine = nullptr;
 	}
 
-}
-void ASigPistol::BottomReleased()
-{
 }
 
 // Functionality
@@ -148,43 +137,5 @@ void ASigPistol::AttemptCharge()
 		bSlideBack = false;
 
 	}
-
-}
-void ASigPistol::MoveMagToWell()
-{
-	if (!LoadedMagazine) { return; }
-
-	float DeltaTime = GetWorld()->GetDeltaSeconds();
-	FTransform MagTransform = LoadedMagazine->GetTransform();
-	FTransform WellTransform = PistolMesh->GetSocketTransform("MagazineWell");
-	
-	FVector DeltaLocation = (WellTransform.GetLocation() - MagTransform.GetLocation()) * DeltaTime / MagazineLoadTime;
-	FQuat DeltaRotation = (WellTransform.GetRotation() - MagTransform.GetRotation()) * DeltaTime / MagazineLoadTime;
-
-	LoadedMagazine->SetActorLocation(MagTransform.GetLocation() + DeltaLocation);
-	LoadedMagazine->SetActorRotation(MagTransform.GetRotation() + DeltaRotation);
-
-	if (DeltaLocation.IsNearlyZero(0.1f))
-	{
-		AttachMag();
-		bMagInTransit = false;
-	}
-	
-}
-void ASigPistol::AttachMag()
-{
-	LoadedMagazine->GetPickupMesh()->SetSimulatePhysics(false);
-	LoadedMagazine->GetPickupMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	LoadedMagazine->SetPickupEnabled(false);
-	LoadedMagazine->AttachToComponent(PistolMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "MagazineWell");
-
-}
-void ASigPistol::DropMag()
-{
-	LoadedMagazine->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	LoadedMagazine->GetPickupMesh()->SetSimulatePhysics(true);
-	LoadedMagazine->GetPickupMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	LoadedMagazine->SetPickupEnabled(true);
-	LoadedMagazine = nullptr;
 
 }

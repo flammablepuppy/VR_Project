@@ -56,6 +56,9 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void SnapOn() override;
+	virtual void Drop() override;
+
 	//		GET
 	//
 
