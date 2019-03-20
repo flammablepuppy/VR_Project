@@ -96,12 +96,14 @@ void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
 
 	FVector NewDeltaLocation = NewLocation - CurrentLocation;
 
-	SetActorLocation(NewLocation);
-	SetActorRotation(NewRotation);
-
 	if (DeltaLocation.Size() < NewDeltaLocation.Size())
 	{
 		SnapOn();
+	}
+	else
+	{
+		SetActorLocation(NewLocation);
+		SetActorRotation(NewRotation);
 	}
 }
 

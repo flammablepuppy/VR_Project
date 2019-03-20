@@ -5,6 +5,7 @@
 #include "vrProjectile.h"
 #include "MagCartridge.h"
 #include "Components/StaticMeshComponent.h"
+#include "SigPistol.h"
 
 AWeaponMag::AWeaponMag()
 {
@@ -39,8 +40,9 @@ void AWeaponMag::LoadCompatibleCartridge(UPrimitiveComponent * OverlappedCompone
 		AMagCartridge* Cartridge = Cast<AMagCartridge>(OtherActor);
 		if (Cartridge && Cartridge->GetOwningMC() && OwningMC)
 		{
+			Cartridge->Drop();
 			Cartridge->SetTargetMag(this);
-			Cartridge->LoadCartridge();
+			Cartridge->SnapInitiate(CartridgeLoadSphere);
 		}
 	}
 }
@@ -58,8 +60,9 @@ void AWeaponMag::ExpendCartridge(int32 RoundsExpended)
 void AWeaponMag::SnapOn()
 {
 	Super::SnapOn();
+	
+	if (!OwningMC) { PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
 
-	PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AWeaponMag::Drop()
@@ -67,4 +70,5 @@ void AWeaponMag::Drop()
 	Super::Drop();
 
 	PickupMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
 }

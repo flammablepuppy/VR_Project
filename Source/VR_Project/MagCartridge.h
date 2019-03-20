@@ -16,39 +16,29 @@ class VR_PROJECT_API AMagCartridge : public AvrPickup
 
 public:
 	AMagCartridge();
-
 protected:
 	virtual void BeginPlay();
+public:
+	virtual void Tick(float DeltaTime);
+
+protected:
 
 	//	VARIABLES
 	//
 
-	/** Seconds it takes cartrige to load into compatible magazine after entering the magazine'LoadSphere */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cartridge")
-	float LoadSpeed = 0.05f;
-
 	UPROPERTY()
 	AWeaponMag* TargetMagazine;
-
-	UPROPERTY()
-	bool bLoading = false;
 
 	//	FUNCTIONS
 	//
 
 	UFUNCTION()
-	void MoveToMag();
-
-	UFUNCTION()
 	void LoadMag();
 
 public:
-	virtual void Tick(float DeltaTime);
+
+	virtual void SnapOn() override;
 
 	UFUNCTION()
 	void SetTargetMag(AWeaponMag* NewTarget);
-
-	UFUNCTION()
-	void LoadCartridge();
-
 };

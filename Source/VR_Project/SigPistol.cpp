@@ -28,10 +28,10 @@ void ASigPistol::BeginPlay()
 	if (bSpawnsLoaded && CompatibleMagazine)
 	{
 		LoadedMagazine = GetWorld()->SpawnActor<AWeaponMag>(CompatibleMagazine);
-		LoadedMagazine->GetPickupMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		LoadedMagazine->SnapInitiate(PistolMesh, "MagazineWell");
+		LoadedMagazine->GetPickupMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Normally taken care of by the magazine in SnapOn
 		LoadedMagazine->SetActorLocation(PistolMesh->GetSocketLocation("MagazineWell"));
 		LoadedMagazine->SetActorRotation(PistolMesh->GetSocketRotation("MagazineWell"));
-		LoadedMagazine->SnapInitiate(PistolMesh, "MagazineWell");
 
 		ChamberedRound = LoadedMagazine->GetLoadedAmmunition();
 
@@ -51,17 +51,11 @@ void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 {
 	if (LoadedMagazine) { return; }
 
-	UE_LOG(LogTemp, Warning, TEXT("Pistol calls MagOverlap"))
-
 	if (OtherActor->IsA(CompatibleMagazine))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Pistol detects CompatibleMagzine"))
-
 		AWeaponMag* Magazine = Cast<AWeaponMag>(OtherActor);
 		if (Magazine && Magazine->GetOwningMC() && OwningMC) // Cast to access class functions, check if the mag is being held and this pistol is being held
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Pistol casts Magzine successfully"))
-
 			Magazine->Drop();
 			Magazine->SnapInitiate(PistolMesh, "MagazineWell");
 			LoadedMagazine = Magazine;
