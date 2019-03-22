@@ -39,8 +39,16 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 
 		if (CurrentHealth <= 0.f)
 		{
-			PlayerDeath();
-			bOwnerIsDead = true;
+			AvrPlayer* vrPlayerOwner = Cast<AvrPlayer>(GetOwner());
+			if (vrPlayerOwner)
+			{
+				PlayerDeath();
+				bOwnerIsDead = true;
+			}
+			else
+			{
+				GetOwner()->Destroy();
+			}
 		}
 	}
 }
