@@ -37,8 +37,10 @@ protected:
 
 public:
 
+	virtual void SnapInitiate(USceneComponent * NewParentComponent, FName SocketName = NAME_None) override;
 	virtual void SnapOn() override;
 
 	UFUNCTION()
 	void SetTargetMag(AWeaponMag* NewTarget);
+
 };

@@ -26,6 +26,7 @@ void AFloatingMine::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ScanRadius->OnComponentBeginOverlap.AddDynamic(this, &AFloatingMine::OverlapScan);
 	BlastRadius->OnComponentBeginOverlap.AddDynamic(this, &AFloatingMine::Explode);
 	ScanForTargets();
 	
@@ -43,6 +44,17 @@ void AFloatingMine::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 }
 
+//		PRIVATE FUNCTIONS
+//
+
+void AFloatingMine::OverlapScan(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	AvrPlayer* vrPlayer = Cast<AvrPlayer>(OtherActor);
+	if (vrPlayer)
+	{
+		ScanForTargets();
+	}
+}
 void AFloatingMine::ScanForTargets()
 {
 	TSet<AActor*> ActorsInRadius;
@@ -67,10 +79,6 @@ void AFloatingMine::ScanForTargets()
 			}
 		}
 	}
-
-	// If no player if found, keep scanning
-	if (!TargetPlayer) { GetWorldTimerManager().SetTimer(Scan_Handle, this, &AFloatingMine::ScanForTargets, ScanTimerDuration, false); }
-
 }
 void AFloatingMine::HomeTowardTarget()
 {

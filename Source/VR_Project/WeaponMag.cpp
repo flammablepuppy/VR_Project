@@ -6,6 +6,8 @@
 #include "MagCartridge.h"
 #include "Components/StaticMeshComponent.h"
 #include "SigPistol.h"
+#include "MotionControllerComponent.h"
+#include "vrPlayer.h"
 
 AWeaponMag::AWeaponMag()
 {
@@ -19,6 +21,7 @@ void AWeaponMag::BeginPlay()
 	Super::BeginPlay();
 
 	CartridgeLoadSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponMag::LoadCompatibleCartridge);
+	CartridgeLoadSphere->OnComponentEndOverlap.AddDynamic(this, &AWeaponMag::UnPrimeCartridge);
 
 	// Initialize CurrentCapacity to MaxCapacity
 	if (CurrentCapacity == -1) { CurrentCapacity = MaxCapacity;	}
@@ -44,6 +47,18 @@ void AWeaponMag::LoadCompatibleCartridge(UPrimitiveComponent * OverlappedCompone
 			Cartridge->SetTargetMag(this);
 			Cartridge->SnapInitiate(CartridgeLoadSphere);
 		}
+		else if (Cartridge)
+		{
+			Cartridge->SetTargetMag(this);
+		}
+	}
+}
+void AWeaponMag::UnPrimeCartridge(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
+{
+	AMagCartridge* Cartridge = Cast<AMagCartridge>(OtherActor);
+	if (Cartridge)
+	{
+		Cartridge->SetTargetMag(nullptr);
 	}
 }
 
@@ -51,7 +66,6 @@ void AWeaponMag::SetCapacity(int32 NewCurrentCapacity)
 {
 	CurrentCapacity = NewCurrentCapacity;
 }
-
 void AWeaponMag::ExpendCartridge(int32 RoundsExpended)
 {
 	FMath::Clamp(CurrentCapacity -= RoundsExpended, 0, MaxCapacity);
@@ -64,7 +78,6 @@ void AWeaponMag::SnapOn()
 	if (!OwningMC) { PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
 
 }
-
 void AWeaponMag::Drop()
 {
 	Super::Drop();

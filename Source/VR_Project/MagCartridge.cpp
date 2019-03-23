@@ -20,6 +20,19 @@ void AMagCartridge::Tick(float DeltaTime)
 
 }
 
+void AMagCartridge::SnapInitiate(USceneComponent * NewParentComponent, FName SocketName)
+{
+	if (TargetMagazine)
+	{
+		Super::SnapInitiate(TargetMagazine->GetCartridgeLoadSphere(), SocketName);
+	}
+	else
+	{
+		Super::SnapInitiate(NewParentComponent, SocketName);
+	}
+
+}
+
 void AMagCartridge::SnapOn()
 {
 	Super::SnapOn();
