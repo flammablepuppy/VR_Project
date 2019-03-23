@@ -50,7 +50,7 @@ protected:
 	TSubclassOf<AvrProjectile> ChamberedRound;
 
 	/** If true, the weapon will spawn with a full magazine on BeginPlay */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pistol Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pistol Properties")
 	bool bSpawnsLoaded = true;
 
 	/** Magazine that spawns with weapon when bSpawnsLoaded is true */

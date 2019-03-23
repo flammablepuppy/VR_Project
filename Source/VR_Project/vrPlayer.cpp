@@ -426,7 +426,7 @@ void AvrPlayer::RightBottomRelease()
 
 void AvrPlayer::ResetTestingMap()
 {
-	UGameplayStatics::OpenLevel(GetWorld(), "TestingMap");
+	UGameplayStatics::OpenLevel(GetWorld(), LevelToLoad);
 
 }
 

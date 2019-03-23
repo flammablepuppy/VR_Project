@@ -217,6 +217,9 @@ protected:
 	UPROPERTY()
 	AvrPickup* RightHeldObject;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Level Reset")
+	FName LevelToLoad = "TestingMap";
+
 public:	
 
 	UFUNCTION()
