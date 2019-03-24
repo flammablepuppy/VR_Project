@@ -6,6 +6,8 @@
 #include "vrProjectile.h"
 #include "Components/SphereComponent.h"
 #include "WeaponMag.h"
+#include "TimerManager.h"
+#include "MagCartridge.h"
 
 ASigPistol::ASigPistol()
 {
@@ -91,6 +93,17 @@ void ASigPistol::TopPushed()
 	{
 		PlaySlideBack();
 		bSlideBack = true;
+
+		if (ChamberedRound)
+		{
+			LoadedMagazine->ExpendCartridge();
+			AMagCartridge* DroppedCartridge =
+			GetWorld()->SpawnActor<AMagCartridge>(LoadedMagazine->GetCompatibleCartridge(), PistolMesh->GetSocketLocation("EjectionPort"), PistolMesh->GetSocketRotation("EjectionPort"));
+
+			FVector EjectDirection = PickupMesh->GetRightVector();
+			EjectDirection.Z += 0.5f;
+			DroppedCartridge->GetPickupMesh()->AddImpulse(EjectDirection * 2.f);
+		}
 	}
 }
 void ASigPistol::BottomPushed()
@@ -114,7 +127,16 @@ void ASigPistol::DischargeRound()
 		bSlideBack = true;
 		ChamberedRound = nullptr;
 
-		AttemptCharge();
+		AvrPickup* DroppedCasing =
+		GetWorld()->SpawnActor<AvrPickup>(LoadedMagazine->GetCasing(), PistolMesh->GetSocketLocation("EjectionPort"), PistolMesh->GetSocketRotation("EjectionPort"));
+
+		FVector EjectDirection = PickupMesh->GetRightVector();
+		EjectDirection.Z += 0.5f;
+		DroppedCasing->GetPickupMesh()->AddImpulse(EjectDirection * 5.f);
+
+		FTimerHandle Charge;
+		float DetlaSecond = GetWorld()->GetDeltaSeconds();
+		GetWorldTimerManager().SetTimer(Charge, this, &ASigPistol::AttemptCharge, DetlaSecond * 2.f);
 	}
 	else
 	{
