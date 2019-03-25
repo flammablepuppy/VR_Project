@@ -7,6 +7,7 @@
 #include "MagCartridge.generated.h"
 
 class AWeaponMag;
+class AvrProjectile;
 
 UCLASS()
 class VR_PROJECT_API AMagCartridge : public AvrPickup
@@ -29,6 +30,12 @@ protected:
 	UPROPERTY()
 	AWeaponMag* TargetMagazine;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cartridge Properties")
+	TSubclassOf<AvrProjectile> RoundProjectile;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cartridge Properties")
+	TSubclassOf<AvrPickup> RoundCasing;
+
 	//	FUNCTIONS
 	//
 
@@ -39,6 +46,12 @@ public:
 
 	virtual void SnapInitiate(USceneComponent * NewParentComponent, FName SocketName = NAME_None) override;
 	virtual void SnapOn() override;
+
+	UFUNCTION()
+	FORCEINLINE TSubclassOf<AvrProjectile> GetProjectile() { return RoundProjectile; }
+
+	UFUNCTION()
+	FORCEINLINE TSubclassOf<AvrPickup> GetCasing() { return RoundCasing; }
 
 	UFUNCTION()
 	void SetTargetMag(AWeaponMag* NewTarget);

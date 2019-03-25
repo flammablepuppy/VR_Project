@@ -8,6 +8,7 @@
 #include "WeaponMag.h"
 #include "TimerManager.h"
 #include "MagCartridge.h"
+#include "vrPlayer.h"
 
 ASigPistol::ASigPistol()
 {
@@ -35,7 +36,7 @@ void ASigPistol::BeginPlay()
 		LoadedMagazine->SetActorLocation(PistolMesh->GetSocketLocation("MagazineWell"));
 		LoadedMagazine->SetActorRotation(PistolMesh->GetSocketRotation("MagazineWell"));
 
-		ChamberedRound = LoadedMagazine->GetLoadedAmmunition();
+		ChamberedRound = LoadedMagazine->GetCompatibleCartridge();
 
 		if (StarterCapacity != -1)
 		{
@@ -96,9 +97,8 @@ void ASigPistol::TopPushed()
 
 		if (ChamberedRound)
 		{
-			LoadedMagazine->ExpendCartridge();
 			AMagCartridge* DroppedCartridge =
-			GetWorld()->SpawnActor<AMagCartridge>(LoadedMagazine->GetCompatibleCartridge(), PistolMesh->GetSocketLocation("EjectionPort"), PistolMesh->GetSocketRotation("EjectionPort"));
+			GetWorld()->SpawnActor<AMagCartridge>(ChamberedRound, PistolMesh->GetSocketLocation("EjectionPort"), PistolMesh->GetSocketRotation("EjectionPort"));
 
 			FVector EjectDirection = PickupMesh->GetRightVector();
 			EjectDirection.Z += 0.5f;
@@ -111,6 +111,7 @@ void ASigPistol::BottomPushed()
 	if (LoadedMagazine)
 	{
 		LoadedMagazine->Drop();
+		LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
 		LoadedMagazine = nullptr;
 	}
 
@@ -121,14 +122,25 @@ void ASigPistol::DischargeRound()
 {
 	if (!bSlideBack && ChamberedRound)
 	{
-		GetWorld()->SpawnActor<AvrProjectile>(ChamberedRound, PistolMesh->GetSocketLocation("Muzzle"), PistolMesh->GetSocketRotation("Muzzle"));
+		AMagCartridge* Cart = ChamberedRound->GetDefaultObject<AMagCartridge>();
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		SpawnParams.Owner = this;
+
+		GetWorld()->SpawnActor<AvrProjectile>(Cart->GetProjectile(), 
+			PistolMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetForwardVector() * (GetOwningPlayer()->GetVelocity().Size() * 0.05f)), 
+			PistolMesh->GetSocketRotation("Muzzle"), 
+			SpawnParams);
+
 		PlayFireFX();
 		PlaySlideBack();
 		bSlideBack = true;
-		ChamberedRound = nullptr;
 
 		AvrPickup* DroppedCasing =
-		GetWorld()->SpawnActor<AvrPickup>(LoadedMagazine->GetCasing(), PistolMesh->GetSocketLocation("EjectionPort"), PistolMesh->GetSocketRotation("EjectionPort"));
+		GetWorld()->SpawnActor<AvrPickup>(Cart->GetCasing(), PistolMesh->GetSocketLocation("EjectionPort"), PistolMesh->GetSocketRotation("EjectionPort"));
+
+		ChamberedRound = nullptr;
 
 		FVector EjectDirection = PickupMesh->GetRightVector();
 		EjectDirection.Z += 0.5f;
@@ -148,7 +160,7 @@ void ASigPistol::AttemptCharge()
 	if (bSlideBack && LoadedMagazine && LoadedMagazine->GetCurrentCapacity() > 0)
 	{
 		LoadedMagazine->ExpendCartridge();
-		ChamberedRound = LoadedMagazine->GetLoadedAmmunition();
+		ChamberedRound = LoadedMagazine->GetCompatibleCartridge();
 		PlaySlideForward();
 		bSlideBack = false;
 

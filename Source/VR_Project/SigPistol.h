@@ -10,6 +10,7 @@ class USkeletalMeshComponent;
 class AvrProjectile;
 class AWeaponMag;
 class USphereComponent;
+class AMagCartridge;
 
 UCLASS()
 class VR_PROJECT_API ASigPistol : public AvrPickup
@@ -47,7 +48,7 @@ protected:
 
 	/** Projectile currently in chamber, used to spawn projectile on trigger pull */
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
-	TSubclassOf<AvrProjectile> ChamberedRound;
+	TSubclassOf<AMagCartridge> ChamberedRound;
 
 	/** If true, the weapon will spawn with a full magazine on BeginPlay */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pistol Properties")

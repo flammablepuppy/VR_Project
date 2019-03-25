@@ -31,16 +31,9 @@ protected:
 	//		VARIABLES
 	//
 
-	/** Projectile class that is passed to the firing weapon for spawning */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine")
-	TSubclassOf<AvrProjectile> LoadedAmmunition;
-
 	/** Class that will load into the magazine when it enters the CartridgeLoadSphere */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine")
 	TSubclassOf<AMagCartridge> CompatibleCartidge;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine")
-	TSubclassOf<AvrPickup> ExpendedCartridgeCasing;
 
 	/** Maximum capacity of the magazine when fully loaded */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine")
@@ -69,9 +62,6 @@ public:
 	//
 
 	UFUNCTION(Category = "Getter")
-	FORCEINLINE TSubclassOf<AvrProjectile> GetLoadedAmmunition() { return LoadedAmmunition; }
-
-	UFUNCTION(Category = "Getter")
 	FORCEINLINE TSubclassOf<AMagCartridge> GetCompatibleCartridge() { return CompatibleCartidge; }
 
 	UFUNCTION(Category = "Getter")
@@ -82,9 +72,6 @@ public:
 
 	UFUNCTION(Category = "Getter")
 	FORCEINLINE int32 GetCurrentCapacity() { return CurrentCapacity; }
-
-	UFUNCTION(Category = "Getter")
-	FORCEINLINE TSubclassOf<AvrPickup> GetCasing() { return ExpendedCartridgeCasing; }
 
 	//		SET
 	//

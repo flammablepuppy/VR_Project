@@ -4,6 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "WeaponMag.h"
 #include "Components/SphereComponent.h"
+#include "vrProjectile.h"
 
 AMagCartridge::AMagCartridge()
 {
