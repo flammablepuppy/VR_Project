@@ -54,14 +54,16 @@ void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 {
 	if (LoadedMagazine) { return; }
 
-	if (OtherActor->IsA(CompatibleMagazine))
+	UStaticMeshComponent* OverlappedMesh = Cast<UStaticMeshComponent>(OtherComp);
+	if (OverlappedMesh)
 	{
-		AWeaponMag* Magazine = Cast<AWeaponMag>(OtherActor);
-		if (Magazine && Magazine->GetOwningMC() && OwningMC) // Cast to access class functions, check if the mag is being held and this pistol is being held
+
+		AWeaponMag* OverlappedMag = Cast<AWeaponMag>(OverlappedMesh->GetOwner());
+		if (OverlappedMag && OverlappedMag->GetOwningMC() && OwningMC)
 		{
-			Magazine->Drop();
-			Magazine->SnapInitiate(PistolMesh, "MagazineWell");
-			LoadedMagazine = Magazine;
+			OverlappedMag->Drop();
+			OverlappedMag->SnapInitiate(PistolMesh, "MagazineWell");
+			LoadedMagazine = OverlappedMag;
 		}
 	}
 }
@@ -103,6 +105,8 @@ void ASigPistol::TopPushed()
 			FVector EjectDirection = PickupMesh->GetRightVector();
 			EjectDirection.Z += 0.5f;
 			DroppedCartridge->GetPickupMesh()->AddImpulse(EjectDirection * 2.f);
+
+			ChamberedRound = nullptr;
 		}
 	}
 }
@@ -161,9 +165,10 @@ void ASigPistol::AttemptCharge()
 	{
 		LoadedMagazine->ExpendCartridge();
 		ChamberedRound = LoadedMagazine->GetCompatibleCartridge();
+	}
+	if (ChamberedRound)
+	{
 		PlaySlideForward();
 		bSlideBack = false;
-
 	}
-
 }

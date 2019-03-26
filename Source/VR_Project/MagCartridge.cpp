@@ -23,7 +23,7 @@ void AMagCartridge::Tick(float DeltaTime)
 
 void AMagCartridge::SnapInitiate(USceneComponent * NewParentComponent, FName SocketName)
 {
-	if (TargetMagazine)
+	if (TargetMagazine && TargetMagazine->GetOwningMC())
 	{
 		Super::SnapInitiate(TargetMagazine->GetCartridgeLoadSphere(), SocketName);
 	}
