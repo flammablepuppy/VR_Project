@@ -66,6 +66,7 @@ protected:
 	UFUNCTION()
 	void MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
@@ -75,6 +76,12 @@ public:
 	//virtual void TopReleased() override; NOT IN USE
 	virtual void BottomPushed() override;
 	//virtual void BottomReleased() override; NOT IN USE
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_PlayMagLoad();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_PlayHammer();
 
 protected:
 	UFUNCTION()

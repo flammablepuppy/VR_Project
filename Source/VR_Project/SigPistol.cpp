@@ -64,6 +64,7 @@ void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 			OverlappedMag->Drop();
 			OverlappedMag->SnapInitiate(PistolMesh, "MagazineWell");
 			LoadedMagazine = OverlappedMag;
+			BP_PlayMagLoad();
 		}
 	}
 }
@@ -116,6 +117,7 @@ void ASigPistol::BottomPushed()
 	{
 		LoadedMagazine->Drop();
 		LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
+		BPBottomPush();
 		LoadedMagazine = nullptr;
 	}
 
@@ -156,7 +158,7 @@ void ASigPistol::DischargeRound()
 	}
 	else
 	{
-		// Play SFX of hammer snapping, ie. failure to fire
+		BP_PlayHammer();
 	}
 }
 void ASigPistol::AttemptCharge()

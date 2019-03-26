@@ -56,4 +56,7 @@ public:
 	UFUNCTION()
 	void SetTargetMag(AWeaponMag* NewTarget);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_PlayCartridgeLoad();
+
 };

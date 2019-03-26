@@ -26,19 +26,20 @@ void AMagCartridge::SnapInitiate(USceneComponent * NewParentComponent, FName Soc
 	if (TargetMagazine && TargetMagazine->GetOwningMC())
 	{
 		Super::SnapInitiate(TargetMagazine->GetCartridgeLoadSphere(), SocketName);
+		BP_PlayCartridgeLoad();
+
 	}
 	else
 	{
 		Super::SnapInitiate(NewParentComponent, SocketName);
 	}
-
 }
 
 void AMagCartridge::SnapOn()
 {
 	Super::SnapOn();
 
-	if (TargetMagazine) { LoadMag(); }
+	if (TargetMagazine && TargetMagazine->GetOwningMC()) { LoadMag(); }
 }
 
 void AMagCartridge::SetTargetMag(AWeaponMag * NewTarget)
