@@ -26,12 +26,12 @@ void UvrBelt::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 
 	if (TrackedHeadset)
 	{
-		SetWorldRotation(TrackedHeadset->GetComponentRotation());
+		SetWorldRotation(FRotator(TrackedHeadset->GetComponentRotation().Pitch / 2.f, TrackedHeadset->GetComponentRotation().Yaw, 0.f));
 
 		SetWorldLocation(FVector(
 			OwningPlayer->GetRootComponent()->GetComponentLocation().X,
 			OwningPlayer->GetRootComponent()->GetComponentLocation().Y,
-			TrackedHeadset->GetComponentLocation().Z - 30.f));
+			TrackedHeadset->GetComponentLocation().Z - 50.f));
 	}
 }
 

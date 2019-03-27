@@ -69,6 +69,7 @@ void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 			OverlappedMag->OnDrop.Clear();
 			OverlappedMag->Drop();
 			OverlappedMag->SnapInitiate(PistolMesh, "MagazineWell");
+
 			LoadedMagazine = OverlappedMag;
 			BP_PlayMagLoad();
 		}

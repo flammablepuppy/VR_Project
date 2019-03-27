@@ -38,6 +38,8 @@ void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketN
 	if (!bPickupEnabled) { return; }
 	bPickupEnabled = false;
 
+	OnGrabbed.Broadcast(this);
+
 	SnapTarget = NewParentComponent;
 	SnapSocket = SocketName;
 

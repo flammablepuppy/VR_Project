@@ -29,6 +29,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	class USphereComponent* HolsterSphere;
 
+	//		VARIABLES
+	//
+
+	UPROPERTY(BlueprintReadOnly)
+	class AvrPickup* HolsteredItem;
+
 	//		FUNCTIONS
 	//
 
@@ -43,4 +49,7 @@ protected:
 
 	UFUNCTION()
 	void EnableHolsteredItem(AvrPickup* PickupToEnable);
+
+	UFUNCTION()
+	void ClearHolsteredItem(AvrPickup* DroppedPickup);
 };

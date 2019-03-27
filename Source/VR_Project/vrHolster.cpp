@@ -35,12 +35,12 @@ void AvrHolster::BeginPlay()
 void AvrHolster::SubscribeCatch(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
-	if (OverlappingPickup && OverlappingPickup->GetOwningMC())
+	if (OverlappingPickup && OverlappingPickup->GetOwningMC() && !HolsteredItem)
 	{
+		OverlappingPickup->OnDrop.Clear();
 		OverlappingPickup->OnDrop.AddUniqueDynamic(this, &AvrHolster::CatchDroppedPickup);
 	}
 }
-
 void AvrHolster::UnsubCatch(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
 {
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
@@ -52,44 +52,38 @@ void AvrHolster::UnsubCatch(UPrimitiveComponent * OverlappedComponent, AActor * 
 
 void AvrHolster::CatchDroppedPickup(AvrPickup* DroppedPickup)
 {
-
-	TSet<AActor*> ActorSet;
-	AvrPickup* ClosestPickup = nullptr;
-	HolsterSphere->GetOverlappingActors(ActorSet);
-	for (AActor* FoundActor : ActorSet)
+	if (HolsteredItem)
 	{
-		AvrPickup* FoundPickup = Cast<AvrPickup>(FoundActor);
-		if (FoundPickup)
-		{
-			FoundPickup->OnDrop.RemoveAll(this);
-
-			if (!ClosestPickup)
-			{
-				ClosestPickup = FoundPickup;
-			}
-			else
-			{
-				float NewDistance = (HolsterSphere->GetComponentLocation() - FoundPickup->GetActorLocation()).Size();
-				float OldDistance = (HolsterSphere->GetComponentLocation() - ClosestPickup->GetActorLocation()).Size();
-				if (NewDistance < OldDistance)
-				{
-					ClosestPickup = FoundPickup;
-				}
-			}
-		}
+		ClearHolsteredItem(DroppedPickup);
 	}
 
-	if (ClosestPickup) 
-	{ 
-		ClosestPickup->OnSnappedOn.AddUniqueDynamic(this, &AvrHolster::EnableHolsteredItem);
-		ClosestPickup->SnapInitiate(HolsterSphere); 
-	}
+	HolsteredItem = DroppedPickup;
+	HolsteredItem->OnSnappedOn.AddUniqueDynamic(this, &AvrHolster::EnableHolsteredItem);
+	HolsteredItem->SnapInitiate(HolsterSphere);
+
+	HolsterMesh->SetVisibility(false);
 }
 
 void AvrHolster::EnableHolsteredItem(AvrPickup* PickupToEnable)
 {
-	PickupToEnable->SetPickupEnabled(true);
-	PickupToEnable->SetActorEnableCollision(true);
-	PickupToEnable->OnSnappedOn.RemoveAll(this);
+	if (PickupToEnable == HolsteredItem)
+	{
+		HolsteredItem->SetPickupEnabled(true);
+		HolsteredItem->SetActorEnableCollision(true);
+		HolsteredItem->OnSnappedOn.Clear();
+
+		HolsteredItem->OnGrabbed.AddUniqueDynamic(this, &AvrHolster::ClearHolsteredItem);
+	}
+}
+
+void AvrHolster::ClearHolsteredItem(AvrPickup* DroppedPickup)
+{
+	if (HolsteredItem)
+	{
+		HolsteredItem->OnGrabbed.Clear();
+		HolsteredItem = nullptr;
+
+		HolsterMesh->SetVisibility(true);
+	}
 }
 

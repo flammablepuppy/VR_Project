@@ -13,6 +13,7 @@ class USkeletalMesh;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPickupDropped, AvrPickup*, DroppedPickup);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPickupSnappedOn, AvrPickup*, PickupToEnable);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPickupGrabbed, AvrPickup*, GrabbedPickup);
 
 UCLASS()
 class VR_PROJECT_API AvrPickup : public AActor
@@ -160,5 +161,8 @@ public:
 
 	UPROPERTY()
 	FPickupSnappedOn OnSnappedOn;
+
+	UPROPERTY()
+	FPickupGrabbed OnGrabbed;
 
 };
