@@ -9,6 +9,7 @@
 #include "TimerManager.h"
 #include "MagCartridge.h"
 #include "vrPlayer.h"
+#include "vrHolster.h"
 
 ASigPistol::ASigPistol()
 {
@@ -53,14 +54,19 @@ void ASigPistol::Tick(float DeltaTime)
 void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (LoadedMagazine) { return; }
+	//UE_LOG(LogTemp, Warning, TEXT("Component detected: %s"), *OtherComp->GetClass()->GetFName().ToString())
 
 	UStaticMeshComponent* OverlappedMesh = Cast<UStaticMeshComponent>(OtherComp);
 	if (OverlappedMesh)
 	{
+		//UE_LOG(LogTemp, Warning, TEXT("Mesh detected"))
 
 		AWeaponMag* OverlappedMag = Cast<AWeaponMag>(OverlappedMesh->GetOwner());
 		if (OverlappedMag && OverlappedMag->GetOwningMC() && OwningMC)
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("Magazine detected"))
+
+			OverlappedMag->OnDrop.Clear();
 			OverlappedMag->Drop();
 			OverlappedMag->SnapInitiate(PistolMesh, "MagazineWell");
 			LoadedMagazine = OverlappedMag;

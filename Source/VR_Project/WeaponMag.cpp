@@ -8,6 +8,7 @@
 #include "SigPistol.h"
 #include "MotionControllerComponent.h"
 #include "vrPlayer.h"
+#include "vrHolster.h"
 
 AWeaponMag::AWeaponMag()
 {
@@ -75,7 +76,8 @@ void AWeaponMag::SnapOn()
 {
 	Super::SnapOn();
 	
-	if (!OwningMC) { PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
+	AvrHolster* OwnedByHolster = Cast<AvrHolster>(SnapTarget->GetOwner());
+	if (!OwningMC && !OwnedByHolster) { PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
 
 }
 void AWeaponMag::Drop()

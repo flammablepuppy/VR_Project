@@ -218,35 +218,35 @@ void AvrPlayer::MotionInputScan()
 	}
 
 	// Debug Logging:
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerWalkSpeed: %f"), GetCharacterMovement()->MaxWalkSpeed));
-		GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerVelocitySize: %f"), GetCharacterMovement()->Velocity.Size()));
-		GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________R: %s"), *RightRelVel.ToString()));
-		GEngine->AddOnScreenDebugMessage(54, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________L: %s"), *LeftRelVel.ToString()));
-		GEngine->AddOnScreenDebugMessage(55, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________H: %s"), *HeadRelVel.ToString()));
+	//if (GEngine)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
+	//	GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerWalkSpeed: %f"), GetCharacterMovement()->MaxWalkSpeed));
+	//	GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerVelocitySize: %f"), GetCharacterMovement()->Velocity.Size()));
+	//	GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________R: %s"), *RightRelVel.ToString()));
+	//	GEngine->AddOnScreenDebugMessage(54, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________L: %s"), *LeftRelVel.ToString()));
+	//	GEngine->AddOnScreenDebugMessage(55, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________H: %s"), *HeadRelVel.ToString()));
 
-	}
+	//}
 
 	// Set variables for reference next tick
 	HeadLastRelPos = HeadsetCamera->GetComponentTransform().InverseTransformPosition(GetActorLocation());

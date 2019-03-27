@@ -138,6 +138,9 @@ public:
 	FORCEINLINE AvrPlayer* GetOwningPlayer() { return OwningPlayer; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE USceneComponent* GetSnapTarget() { return SnapTarget; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool GetPickupEnabled() { return bPickupEnabled; }
 
 	//		SET

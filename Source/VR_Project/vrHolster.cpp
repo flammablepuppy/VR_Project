@@ -4,6 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "vrPickup.h"
+#include "WeaponMag.h"
 
 AvrHolster::AvrHolster()
 {
@@ -36,8 +37,7 @@ void AvrHolster::SubscribeCatch(UPrimitiveComponent * OverlappedComponent, AActo
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
 	if (OverlappingPickup && OverlappingPickup->GetOwningMC())
 	{
-		OverlappingPickup->OnDrop.RemoveAll(OverlappingPickup);
-		OverlappingPickup->OnDrop.AddDynamic(this, &AvrHolster::CatchDroppedPickup);
+		OverlappingPickup->OnDrop.AddUniqueDynamic(this, &AvrHolster::CatchDroppedPickup);
 	}
 }
 
@@ -46,50 +46,50 @@ void AvrHolster::UnsubCatch(UPrimitiveComponent * OverlappedComponent, AActor * 
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
 	if (OverlappingPickup && OverlappingPickup->GetOwningMC())
 	{
-		OverlappingPickup->OnDrop.RemoveDynamic(this, &AvrHolster::CatchDroppedPickup);
+		OverlappingPickup->OnDrop.RemoveAll(this);
 	}
 }
 
 void AvrHolster::CatchDroppedPickup(AvrPickup* DroppedPickup)
 {
-	DroppedPickup->OnSnappedOn.AddDynamic(this, &AvrHolster::EnableHolsteredItem);
-	DroppedPickup->SnapInitiate(HolsterMesh);
 
-	//TSet<AActor*> ActorSet;
-	//AvrPickup* ClosestPickup = nullptr;
-	//HolsterSphere->GetOverlappingActors(ActorSet);
-	//for (AActor* FoundActor : ActorSet)
-	//{
-	//	AvrPickup* FoundPickup = Cast<AvrPickup>(FoundActor);
-	//	if (FoundPickup)
-	//	{
-	//		if (!ClosestPickup)
-	//		{
-	//			ClosestPickup = FoundPickup;
-	//		}
-	//		else
-	//		{
-	//			float NewDistance = (HolsterSphere->GetComponentLocation() - FoundPickup->GetActorLocation()).Size();
-	//			float OldDistance = (HolsterSphere->GetComponentLocation() - ClosestPickup->GetActorLocation()).Size();
-	//			if (NewDistance < OldDistance)
-	//			{
-	//				ClosestPickup = FoundPickup;
-	//			}
-	//		}
-	//	}
-	//}
+	TSet<AActor*> ActorSet;
+	AvrPickup* ClosestPickup = nullptr;
+	HolsterSphere->GetOverlappingActors(ActorSet);
+	for (AActor* FoundActor : ActorSet)
+	{
+		AvrPickup* FoundPickup = Cast<AvrPickup>(FoundActor);
+		if (FoundPickup)
+		{
+			FoundPickup->OnDrop.RemoveAll(this);
 
-	//if (ClosestPickup) 
-	//{ 
-	//	ClosestPickup->OnSnappedOn.AddDynamic(this, &AvrHolster::EnableHolsteredItem);
-	//	ClosestPickup->SnapInitiate(HolsterMesh); 
-	//}
+			if (!ClosestPickup)
+			{
+				ClosestPickup = FoundPickup;
+			}
+			else
+			{
+				float NewDistance = (HolsterSphere->GetComponentLocation() - FoundPickup->GetActorLocation()).Size();
+				float OldDistance = (HolsterSphere->GetComponentLocation() - ClosestPickup->GetActorLocation()).Size();
+				if (NewDistance < OldDistance)
+				{
+					ClosestPickup = FoundPickup;
+				}
+			}
+		}
+	}
+
+	if (ClosestPickup) 
+	{ 
+		ClosestPickup->OnSnappedOn.AddUniqueDynamic(this, &AvrHolster::EnableHolsteredItem);
+		ClosestPickup->SnapInitiate(HolsterSphere); 
+	}
 }
 
 void AvrHolster::EnableHolsteredItem(AvrPickup* PickupToEnable)
 {
 	PickupToEnable->SetPickupEnabled(true);
-	PickupToEnable->NullifySnapTarget();
-	PickupToEnable->OnDrop.RemoveDynamic(this, &AvrHolster::CatchDroppedPickup);
+	PickupToEnable->SetActorEnableCollision(true);
+	PickupToEnable->OnSnappedOn.RemoveAll(this);
 }
 

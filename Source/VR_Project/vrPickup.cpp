@@ -36,6 +36,7 @@ void AvrPickup::Tick(float DeltaTime)
 void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketName)
 {
 	if (!bPickupEnabled) { return; }
+	bPickupEnabled = false;
 
 	SnapTarget = NewParentComponent;
 	SnapSocket = SocketName;
@@ -60,7 +61,6 @@ void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketN
 
 void AvrPickup::SnapOn()
 {
-	bPickupEnabled = false;
 	bMoving = false;
 	bReadyToUse = true;
 	AttachToComponent(SnapTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SnapSocket);
@@ -156,5 +156,11 @@ void AvrPickup::SetPickupEnabled(bool NewState)
 
 void AvrPickup::NullifySnapTarget()
 {
+	if (bReadyToUse && OwningMC) { OwningMC->SetShowDeviceModel(false); }
+	if (OwningMC) { OwningMC = nullptr; }
+	if (OwningPlayer) { OwningPlayer = nullptr; }
 	SnapTarget = nullptr;
+	SnapSocket = NAME_None;
+	bReadyToUse = false;
+	bPickupEnabled = true;
 }
