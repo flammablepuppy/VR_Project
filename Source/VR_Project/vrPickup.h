@@ -11,6 +11,9 @@ class UMotionControllerComponent;
 class USceneComponent;
 class USkeletalMesh;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPickupDropped, AvrPickup*, DroppedPickup);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPickupSnappedOn, AvrPickup*, PickupToEnable);
+
 UCLASS()
 class VR_PROJECT_API AvrPickup : public AActor
 {
@@ -83,20 +86,14 @@ public:
 	//		PUBLIC FUNCTIONS
 	//
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	virtual void SnapInitiate(USceneComponent* NewParentComponent, FName SocketName = NAME_None);
 
 	UFUNCTION()
 	virtual	void SnapOn();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	virtual void Drop();
-
-	//		PUBLIC VARIABLES -- TODO: Get rid of this, make it protected and make a getter.
-	//
-
-	UPROPERTY(BlueprintReadOnly)
-	bool bTriggerPulled = false;
 
 	//		BP INPUT CALLS
 	//
@@ -140,7 +137,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE AvrPlayer* GetOwningPlayer() { return OwningPlayer; }
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool GetPickupEnabled() { return bPickupEnabled; }
 
 	//		SET
@@ -148,4 +145,17 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetPickupEnabled(bool NewState); 
+
+	UFUNCTION(BlueprintCallable)
+	void NullifySnapTarget();
+
+	//		DELEGATE
+	//
+
+	UPROPERTY()
+	FPickupDropped OnDrop;
+
+	UPROPERTY()
+	FPickupSnappedOn OnSnappedOn;
+
 };

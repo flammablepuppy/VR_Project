@@ -46,6 +46,8 @@ protected:
 	USphereComponent* RightVolume;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UHealthStats* HealthStatsComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	class UvrBelt* UtilityBelt;
 
 	//
 	// Basic Locomotion Functions

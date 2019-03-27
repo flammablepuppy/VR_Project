@@ -15,6 +15,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "vrBelt.h"
 
 AvrPlayer::AvrPlayer()
 {
@@ -43,6 +44,9 @@ AvrPlayer::AvrPlayer()
 	RightVolume->SetupAttachment(RightController);
 
 	HealthStatsComp = CreateDefaultSubobject<UHealthStats>("Health and Stats Component");
+
+	UtilityBelt = CreateDefaultSubobject<UvrBelt>("Utility Belt");
+	UtilityBelt->SetupAttachment(RootComponent);
 }
 void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

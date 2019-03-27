@@ -43,6 +43,8 @@ void AvrProjectile::ResolveHit(UPrimitiveComponent * HitComponent, AActor * Othe
 	FDamageEvent Damage;
 	Hit.Actor->TakeDamage(ProjectileDamage, Damage, nullptr, this);
 
+	// TODO: Make shots produce an impuse on the hit actor
+
 	Destroy();
 }
 

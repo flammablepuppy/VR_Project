@@ -5,6 +5,7 @@
 #include "MotionControllerComponent.h"
 #include "vrPlayer.h"
 #include "Components/SceneComponent.h"
+#include "vrHolster.h"
 
 AvrPickup::AvrPickup()
 {
@@ -46,6 +47,11 @@ void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketN
 		OwningMC->SetShowDeviceModel(false);
 		OwningPlayer = Cast<AvrPlayer>(OwningMC->GetOwner());
 	}
+	else
+	{
+		OwningMC = nullptr;
+		OwningPlayer = nullptr;
+	}
 
 	PickupMesh->SetSimulatePhysics(false);
 	bMoving = true;
@@ -59,6 +65,7 @@ void AvrPickup::SnapOn()
 	bReadyToUse = true;
 	AttachToComponent(SnapTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SnapSocket);
 	if (OwningMC) {	OwningMC->SetShowDeviceModel(true);	}
+	OnSnappedOn.Broadcast(this);
 }
 
 void AvrPickup::Drop()
@@ -73,6 +80,7 @@ void AvrPickup::Drop()
 	bReadyToUse = false;
 	bPickupEnabled = true;
 	BPDrop();
+	OnDrop.Broadcast(this); // Delegate for holsters to pick up the item after it's dropped
 }
 
 void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
@@ -114,16 +122,6 @@ void AvrPickup::TriggerPulled(float Value)
 
 	BPTriggerPull(Value);
 
-	// Bools for when functionality is press/release
-	if (Value > 0.3f)
-	{
-		bTriggerPulled = true;
-	}
-	else
-	{
-		bTriggerPulled = false;
-	}
-
 }
 void AvrPickup::TopPushed()
 {
@@ -154,4 +152,9 @@ void AvrPickup::BottomReleased()
 void AvrPickup::SetPickupEnabled(bool NewState)
 {
 	bPickupEnabled = NewState;
+}
+
+void AvrPickup::NullifySnapTarget()
+{
+	SnapTarget = nullptr;
 }
