@@ -79,7 +79,7 @@ protected:
 
 	/** If a held object is tossed at this velocity or higher, it won't automatically attach to a vacant holster */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float NoHolsterSpeed = 190.f;
+	float NoHolsterSpeed = 160.f;
 
 	/** Will attach to a vacant holster when dropped automatically */
 	UPROPERTY()
@@ -164,13 +164,13 @@ public:
 	//		DELEGATE
 	//
 
-	UPROPERTY()
+	UPROPERTY(BlueprintAssignable)
 	FPickupDropped OnDrop;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintAssignable)
 	FPickupSnappedOn OnSnappedOn;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintAssignable)
 	FPickupGrabbed OnGrabbed;
 
 };

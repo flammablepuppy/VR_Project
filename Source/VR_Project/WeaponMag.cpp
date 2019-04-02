@@ -99,7 +99,7 @@ void AWeaponMag::Drop()
 	if (OwningPlayer)
 	{
 		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(this));
-		if (VacantHolster && GetVelocity().Size() < 20.f)
+		if (VacantHolster && (GetVelocity() - OwningPlayer->GetVelocity()).Size() < NoHolsterSpeed && bSeeksHolster)
 		{
 			// This is the crucial part of the override that prevents a magazine being loaded into a weapon from 
 			// snapping into a vacant holster instead of the weapon

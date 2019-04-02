@@ -35,9 +35,11 @@ void UvrBelt::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 		SetWorldRotation(FRotator(TrackedHeadset->GetComponentRotation().Pitch / 2.f, TrackedHeadset->GetComponentRotation().Yaw, 0.f));
 
 		SetWorldLocation(FVector(
-			OwningPlayer->GetRootComponent()->GetComponentLocation().X,
-			OwningPlayer->GetRootComponent()->GetComponentLocation().Y,
-			TrackedHeadset->GetComponentLocation().Z - 50.f));
+			//OwningPlayer->GetRootComponent()->GetComponentLocation().X,
+			//OwningPlayer->GetRootComponent()->GetComponentLocation().Y,
+			TrackedHeadset->GetComponentLocation().X,
+			TrackedHeadset->GetComponentLocation().Y,
+			TrackedHeadset->GetComponentLocation().Z - 60.f));
 	}
 }
 
@@ -68,7 +70,7 @@ AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster)
 			return Holster;
 		}
 		// If there is no CompatiblePickup set, it just has to be empty
-		else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem())
+		else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem() && !Holster->GetProximityAttachEnabled())
 		{
 			return Holster;
 		}

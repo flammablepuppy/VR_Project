@@ -38,7 +38,7 @@ protected:
 
 	/** Allows overlapping, dropped vrPickups to attach to holster */
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-	bool bProximityAttachEnabled = true;
+	bool bProximityAttachEnabled = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Setup")
 	TSubclassOf<AvrPickup> CompatiblePickup;
@@ -64,6 +64,9 @@ public:
 
 	UFUNCTION()
 	FORCEINLINE TSubclassOf<AvrPickup> GetCompatiblePickup() { return CompatiblePickup; }
+
+	UFUNCTION()
+	FORCEINLINE bool GetProximityAttachEnabled() { return bProximityAttachEnabled; }
 
 	UFUNCTION()
 	void CatchDroppedPickup(AvrPickup* DroppedPickup);
