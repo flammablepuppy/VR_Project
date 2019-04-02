@@ -76,6 +76,14 @@ protected:
 	/** Allows input functions to fire when true */
 	UPROPERTY()
 	bool bReadyToUse = false;
+
+	/** If a held object is tossed at this velocity or higher, it won't automatically attach to a vacant holster */
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float NoHolsterSpeed = 190.f;
+
+	/** Will attach to a vacant holster when dropped automatically */
+	UPROPERTY()
+	bool bSeeksHolster = true;
 	
 	//		FUNCTIONS
 	//

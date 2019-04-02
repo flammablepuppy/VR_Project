@@ -35,16 +35,24 @@ void AvrHolster::BeginPlay()
 void AvrHolster::SubscribeCatch(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
-	if (OverlappingPickup && OverlappingPickup->GetOwningMC() && !HolsteredItem)
+	if (OverlappingPickup && OverlappingPickup->GetOwningMC() && !HolsteredItem && bProximityAttachEnabled)
 	{
-		OverlappingPickup->OnDrop.Clear();
-		OverlappingPickup->OnDrop.AddUniqueDynamic(this, &AvrHolster::CatchDroppedPickup);
+		if (CompatiblePickup && OverlappingPickup->IsA(CompatiblePickup))
+		{
+			OverlappingPickup->OnDrop.Clear();
+			OverlappingPickup->OnDrop.AddUniqueDynamic(this, &AvrHolster::CatchDroppedPickup);
+		}
+		else if (!CompatiblePickup)
+		{
+			OverlappingPickup->OnDrop.Clear();
+			OverlappingPickup->OnDrop.AddUniqueDynamic(this, &AvrHolster::CatchDroppedPickup);
+		}
 	}
 }
 void AvrHolster::UnsubCatch(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
 {
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
-	if (OverlappingPickup && OverlappingPickup->GetOwningMC())
+	if (OverlappingPickup && OverlappingPickup->GetOwningMC() && bProximityAttachEnabled)
 	{
 		OverlappingPickup->OnDrop.RemoveAll(this);
 	}
@@ -52,11 +60,6 @@ void AvrHolster::UnsubCatch(UPrimitiveComponent * OverlappedComponent, AActor * 
 
 void AvrHolster::CatchDroppedPickup(AvrPickup* DroppedPickup)
 {
-	if (HolsteredItem)
-	{
-		ClearHolsteredItem(DroppedPickup);
-	}
-
 	HolsteredItem = DroppedPickup;
 	HolsteredItem->OnSnappedOn.AddUniqueDynamic(this, &AvrHolster::EnableHolsteredItem);
 	HolsteredItem->SnapInitiate(HolsterSphere);

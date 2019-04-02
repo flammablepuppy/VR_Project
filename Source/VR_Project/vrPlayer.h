@@ -226,18 +226,28 @@ public:
 
 	UFUNCTION()
 	FORCEINLINE AvrPickup* GetLeftHeldObject() { return LeftHeldObject; }
+
 	UFUNCTION()
 	FORCEINLINE AvrPickup* GetRightHeldObject() { return RightHeldObject; }
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool GetMouseEnabled() { return bMouseEnabled; }
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UMotionControllerComponent* GetLeftMC() { return LeftController; }
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UMotionControllerComponent* GetRightMC() { return RightController; }
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UCameraComponent* GetHeadsetCam() { return HeadsetCamera; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE UvrBelt* GetUtilityBelt() { return UtilityBelt; }
+
 	UFUNCTION(BlueprintCallable)
 	void SetMouseEnabled(bool NewState);
+
 	UFUNCTION()
 	FORCEINLINE FVector GetVelocityLastTick() { return VelocityLastTick; };
 

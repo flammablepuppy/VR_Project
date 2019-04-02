@@ -8,7 +8,7 @@
 
 AMagCartridge::AMagCartridge()
 {
-
+	bSeeksHolster = false;
 }
 void AMagCartridge::BeginPlay()
 {

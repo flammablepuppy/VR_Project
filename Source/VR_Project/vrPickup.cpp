@@ -6,6 +6,8 @@
 #include "vrPlayer.h"
 #include "Components/SceneComponent.h"
 #include "vrHolster.h"
+#include "vrBelt.h"
+#include "SigPistol.h"
 
 AvrPickup::AvrPickup()
 {
@@ -57,16 +59,24 @@ void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketN
 	}
 
 	PickupMesh->SetSimulatePhysics(false);
+
+	AttachToComponent(SnapTarget, FAttachmentTransformRules::KeepWorldTransform);
+
 	bMoving = true;
 	CurrentHomingSpeed = 0.f;
 }
 
 void AvrPickup::SnapOn()
 {
+	OnDrop.Clear();
+
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
 	bMoving = false;
 	bReadyToUse = true;
 	AttachToComponent(SnapTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SnapSocket);
 	if (OwningMC) {	OwningMC->SetShowDeviceModel(true);	}
+
 	OnSnappedOn.Broadcast(this);
 }
 
@@ -74,15 +84,30 @@ void AvrPickup::Drop()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
-	if (bReadyToUse && OwningMC) { OwningMC->SetShowDeviceModel(false); }
+
+	if (bReadyToUse && OwningMC) { OwningMC->SetShowDeviceModel(false); bReadyToUse = false; }
+	else { bReadyToUse = false; }
+
 	if (OwningMC) { OwningMC = nullptr; }
-	if (OwningPlayer) { OwningPlayer = nullptr; }
+	if (OwningPlayer) 
+	{ 
+		//UE_LOG(LogTemp, Warning, TEXT("Toss velocity: %f"), (GetVelocity() - OwningPlayer->GetVelocity()).Size())
+		OnDrop.Clear();
+
+		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(this));
+		if (VacantHolster && (GetVelocity() - OwningPlayer->GetVelocity()).Size() < NoHolsterSpeed && bSeeksHolster)
+		{
+			OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+		}
+		OwningPlayer = nullptr; 
+	}
+
 	SnapTarget = nullptr;
 	SnapSocket = NAME_None;
-	bReadyToUse = false;
 	bPickupEnabled = true;
+
 	BPDrop();
-	OnDrop.Broadcast(this); // Delegate for holsters to pick up the item after it's dropped
+	OnDrop.Broadcast(this);
 }
 
 void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
@@ -106,7 +131,7 @@ void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
 
 	FVector NewDeltaLocation = NewLocation - CurrentLocation;
 
-	if (DeltaLocation.Size() < NewDeltaLocation.Size())
+	if (DeltaLocation.Size() < NewDeltaLocation.Size() * 1.05f)
 	{
 		SnapOn();
 	}

@@ -118,16 +118,16 @@ void AHandThruster::TopPushed()
 	bSetAutoHoverThrottle = true;
 
 }
-void AHandThruster::TopReleased()
-{
-	Super::TopReleased();
-
-}
-void AHandThruster::BottomPushed()
-{
-	Super::BottomPushed();
-
-}
+//void AHandThruster::TopReleased()
+//{
+//	Super::TopReleased();
+//
+//}
+//void AHandThruster::BottomPushed()
+//{
+//	Super::BottomPushed();
+//
+//}
 void AHandThruster::BottomReleased()
 {
 	Super::BottomReleased();

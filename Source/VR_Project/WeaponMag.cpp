@@ -9,6 +9,8 @@
 #include "MotionControllerComponent.h"
 #include "vrPlayer.h"
 #include "vrHolster.h"
+#include "vrPlayer.h"
+#include "vrBelt.h"
 
 AWeaponMag::AWeaponMag()
 {
@@ -72,6 +74,11 @@ void AWeaponMag::ExpendCartridge(int32 RoundsExpended)
 	FMath::Clamp(CurrentCapacity -= RoundsExpended, 0, MaxCapacity);
 }
 
+void AWeaponMag::SetLoading(bool NewState)
+{
+	bLoading = NewState;
+}
+
 void AWeaponMag::SnapOn()
 {
 	Super::SnapOn();
@@ -82,7 +89,39 @@ void AWeaponMag::SnapOn()
 }
 void AWeaponMag::Drop()
 {
-	Super::Drop();
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	PickupMesh->SetSimulatePhysics(true);
+
+	if (bReadyToUse && OwningMC) { OwningMC->SetShowDeviceModel(false); bReadyToUse = false; }
+	else { bReadyToUse = false; }
+
+	if (OwningMC) { OwningMC = nullptr; }
+	if (OwningPlayer)
+	{
+		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(this));
+		if (VacantHolster && GetVelocity().Size() < 20.f)
+		{
+			// This is the crucial part of the override that prevents a magazine being loaded into a weapon from 
+			// snapping into a vacant holster instead of the weapon
+			if (bLoading)
+			{
+				SetLoading(false);
+			}
+			else
+			{
+				OnDrop.Clear();
+				OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+			}
+		}
+		OwningPlayer = nullptr;
+	}
+
+	SnapTarget = nullptr;
+	SnapSocket = NAME_None;
+	bPickupEnabled = true;
+
+	BPDrop();
+	OnDrop.Broadcast(this);
 
 	PickupMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 

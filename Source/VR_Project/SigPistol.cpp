@@ -10,6 +10,7 @@
 #include "MagCartridge.h"
 #include "vrPlayer.h"
 #include "vrHolster.h"
+#include "vrBelt.h"
 
 ASigPistol::ASigPistol()
 {
@@ -66,6 +67,7 @@ void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("Magazine detected"))
 
+			OverlappedMag->SetLoading(true);
 			OverlappedMag->OnDrop.Clear();
 			OverlappedMag->Drop();
 			OverlappedMag->SnapInitiate(PistolMesh, "MagazineWell");
@@ -122,8 +124,20 @@ void ASigPistol::BottomPushed()
 {
 	if (LoadedMagazine)
 	{
-		LoadedMagazine->Drop();
-		LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
+		LoadedMagazine->OnDrop.Clear();
+
+		// If there's a VacantHolster, store discarded magazine in it
+		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(LoadedMagazine));
+		if (VacantHolster)
+		{
+			LoadedMagazine->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+			LoadedMagazine->Drop();
+		}
+		else
+		{
+			LoadedMagazine->Drop();
+			LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
+		}
 		BPBottomPush();
 		LoadedMagazine = nullptr;
 	}

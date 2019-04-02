@@ -52,6 +52,9 @@ protected:
 	UFUNCTION()
 	void UnPrimeCartridge(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UPROPERTY()
+	bool bLoading = false;
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
@@ -81,5 +84,8 @@ public:
 
 	UFUNCTION()
 	void ExpendCartridge(int32 RoundsExpended = 1);
+
+	UFUNCTION()
+	void SetLoading(bool NewState);
 
 };

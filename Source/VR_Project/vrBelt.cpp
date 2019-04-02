@@ -3,6 +3,8 @@
 #include "vrBelt.h"
 #include "vrPlayer.h"
 #include "Camera/CameraComponent.h"
+#include "vrPickup.h"
+#include "vrHolster.h"
 
 UvrBelt::UvrBelt()
 {
@@ -12,6 +14,10 @@ UvrBelt::UvrBelt()
 void UvrBelt::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// TODO: Make belt spawn a specified number of holsters.
+
+	FindAllHolsters();
 
 	OwningPlayer = Cast<AvrPlayer>(GetOwner());
 	if (OwningPlayer)
@@ -35,3 +41,38 @@ void UvrBelt::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 	}
 }
 
+void UvrBelt::FindAllHolsters()
+{
+	OwningPlayer = Cast<AvrPlayer>(GetOwner());
+	if (OwningPlayer)
+	{
+		TArray<AActor*> FoundActors;
+		OwningPlayer->GetAllChildActors(FoundActors);
+		for (AActor* FoundActor : FoundActors)
+		{
+			AvrHolster* FoundHolster = Cast<AvrHolster>(FoundActor);
+			if (FoundHolster)
+			{
+				EquippedHolsters.AddUnique(FoundHolster);
+			}
+		}
+	}
+}
+AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster)
+{
+	for (AvrHolster* Holster : EquippedHolsters)
+	{
+		// Check if a CompatiblePickup is set, if requesting item is the correct class and the holster is empty
+		if (Holster->GetCompatiblePickup() && PickupRequestingHolster->IsA(Holster->GetCompatiblePickup()) && !Holster->GetHolsteredItem())
+		{
+			return Holster;
+		}
+		// If there is no CompatiblePickup set, it just has to be empty
+		else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem())
+		{
+			return Holster;
+		}
+	}
+
+	return nullptr;
+}

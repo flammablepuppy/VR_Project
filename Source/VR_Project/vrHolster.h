@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "vrHolster.generated.h"
 
+class UStaticMeshComponent;
+class USphereComponent;
+class AvrPickup;
+
 UCLASS()
 class VR_PROJECT_API AvrHolster : public AActor
 {
@@ -24,25 +28,42 @@ protected:
 	//
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-	class UStaticMeshComponent* HolsterMesh;
+	UStaticMeshComponent* HolsterMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-	class USphereComponent* HolsterSphere;
+	USphereComponent* HolsterSphere;
 
 	//		VARIABLES
 	//
 
+	/** Allows overlapping, dropped vrPickups to attach to holster */
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	bool bProximityAttachEnabled = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Setup")
+	TSubclassOf<AvrPickup> CompatiblePickup;
+
 	UPROPERTY(BlueprintReadOnly)
-	class AvrPickup* HolsteredItem;
+	AvrPickup* HolsteredItem;
 
 	//		FUNCTIONS
 	//
 
+	/** Subscribes overlapping vrPickup to CatchDroppedPickup function */
 	UFUNCTION()
 	void SubscribeCatch(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	/** Un-subscribes vrPickups leaving overlap */
 	UFUNCTION()
 	void UnsubCatch(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+public:
+
+	UFUNCTION()
+	FORCEINLINE AvrPickup* GetHolsteredItem() { return HolsteredItem; }
+
+	UFUNCTION()
+	FORCEINLINE TSubclassOf<AvrPickup> GetCompatiblePickup() { return CompatiblePickup; }
 
 	UFUNCTION()
 	void CatchDroppedPickup(AvrPickup* DroppedPickup);
@@ -53,3 +74,4 @@ protected:
 	UFUNCTION()
 	void ClearHolsteredItem(AvrPickup* DroppedPickup);
 };
+

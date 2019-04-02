@@ -110,8 +110,8 @@ public:
 
 	virtual void TriggerPulled(float Value) override;
 	virtual void TopPushed() override;
-	virtual void TopReleased() override;
-	virtual void BottomPushed() override;
+	//virtual void TopReleased() override;
+	//virtual void BottomPushed() override;
 	virtual void BottomReleased() override;
 	virtual void Drop() override;
 
