@@ -117,8 +117,8 @@ public:
 	void BPBottomPush();
 	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
 	void BPBottomRelease();
-	UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
-	void BPDrop();
+	//UFUNCTION(BlueprintImplementableEvent, Category = "BP Functions")
+	//void BPDrop();
 
 	//		INPUT CALLS
 	//

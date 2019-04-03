@@ -11,6 +11,7 @@
 #include "vrPlayer.h"
 #include "vrHolster.h"
 #include "vrBelt.h"
+#include "TimerManager.h"
 
 ASigPistol::ASigPistol()
 {
@@ -81,7 +82,7 @@ void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 // Input Functions
 void ASigPistol::TriggerPulled(float Value)
 {
-	if (Value > 0.3f && !bTriggerPulled && !bMagInTransit)
+	if (Value > 0.3f && !bTriggerPulled)
 	{
 		bTriggerPulled = true;
 		DischargeRound();
@@ -130,8 +131,16 @@ void ASigPistol::BottomPushed()
 		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(LoadedMagazine));
 		if (VacantHolster)
 		{
-			LoadedMagazine->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+			// Make pointers that will survive the Drop call on LoadedMagazine
+			TargetVacantHolster = VacantHolster;
+			DroppedMagWaitingToHolster = LoadedMagazine;
+
+			// Allow time for the magazine to be grabbed before going to holster
+			FTimerHandle HolsterSnapDelay_Timer;
+			GetWorldTimerManager().SetTimer(HolsterSnapDelay_Timer, this, &ASigPistol::HolsterEjectedMag, 0.75f);
+
 			LoadedMagazine->Drop();
+			LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
 		}
 		else
 		{
@@ -166,6 +175,7 @@ void ASigPistol::DischargeRound()
 
 		AvrPickup* DroppedCasing =
 		GetWorld()->SpawnActor<AvrPickup>(Cart->GetCasing(), PistolMesh->GetSocketLocation("EjectionPort"), PistolMesh->GetSocketRotation("EjectionPort"));
+		DroppedCasing->SetLifeSpan(10.f);
 
 		ChamberedRound = nullptr;
 
@@ -194,4 +204,27 @@ void ASigPistol::AttemptCharge()
 		PlaySlideForward();
 		bSlideBack = false;
 	}
+}
+/** Called by timer in BottomPushed after setting VacantHolster as OnDrop delegate */
+void ASigPistol::HolsterEjectedMag()
+{
+	// If the mag is too far away, don't attach
+	if ((DroppedMagWaitingToHolster->GetActorLocation() - GetActorLocation()).Size() > TooFarDistance)
+	{
+		DroppedMagWaitingToHolster = nullptr;
+		return;
+	}
+
+	// Only snap to holster if it snapped to anything else since being dropped
+	if (!DroppedMagWaitingToHolster->GetSnapTarget())
+	{
+		DroppedMagWaitingToHolster->OnDrop.AddUniqueDynamic(TargetVacantHolster, &AvrHolster::CatchDroppedPickup);
+		DroppedMagWaitingToHolster->Drop();
+	}
+	else
+	{
+		DroppedMagWaitingToHolster->OnDrop.Clear();
+	}
+
+	DroppedMagWaitingToHolster = nullptr;
 }

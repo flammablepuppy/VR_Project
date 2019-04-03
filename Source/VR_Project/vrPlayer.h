@@ -155,7 +155,7 @@ protected:
 		float BaseCharacterSpeed = 0.f; // Set in BeginPlay
 		/** The forward acceleration the lead controller must achieve to trigger sprint */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float SprintArmSwingReq = 6.f;
+		float SprintArmSwingReq = 5.f;
 		/** The max player speed achievable by swinging arms */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
 		float MaxSprintSpeed = 1200.f;

@@ -11,6 +11,7 @@ class AvrProjectile;
 class AWeaponMag;
 class USphereComponent;
 class AMagCartridge;
+class AvrHolster;
 
 UCLASS()
 class VR_PROJECT_API ASigPistol : public AvrPickup
@@ -22,6 +23,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	//		VARIABLES
+	//
 
 	/** The parent class static mesh "PickupMesh" is used for collision, this mesh has no collision but has all the sockets for effects and animations */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
@@ -37,14 +41,16 @@ protected:
 	/** Pointer to currently loaded magazine */
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
 	AWeaponMag* LoadedMagazine;
+	
+	UPROPERTY()
+	AvrHolster* TargetVacantHolster;
 
-	/** Set true when magazine has entered the MagazineLoadSphere and is animating to a seated position */
-	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
-	bool bMagInTransit = false;
+	UPROPERTY()
+	AWeaponMag* DroppedMagWaitingToHolster;
 
-	/** Time it takes for the magazine to snap into the weapon after entering the MagazineLoadSphere */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pistol Properties")
-	float MagazineLoadTime = 0.15f;
+	/** If magazine is beyond this distance from a vacant holster after being ejected, it won't auto attach */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine Properties")
+	float TooFarDistance = 300.f;
 
 	/** Projectile currently in chamber, used to spawn projectile on trigger pull */
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
@@ -55,17 +61,23 @@ protected:
 	bool bSpawnsLoaded = true;
 
 	/** Magazine that spawns with weapon when bSpawnsLoaded is true */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pistol Properties")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine Properties")
 	TSubclassOf<AWeaponMag> CompatibleMagazine;
 
 	/** Capacity of spawned magazine, -1 defaults to MaxCapacity for the magazine */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pistol Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magazine Properties")
 	int32 StarterCapacity = -1;
+
+	//		FUNCTIONS
+	//
 
 	/** Function that handles the movement of a detected magazine into the magwell and setting it as the LoadedMagazine */
 	UFUNCTION()
 	void MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	/** After a short delay, if there is a compatible vacant holster for an ejected magazine, this holsters the mag */
+	UFUNCTION()
+	void HolsterEjectedMag();
 
 public:
 	virtual void Tick(float DeltaTime) override;

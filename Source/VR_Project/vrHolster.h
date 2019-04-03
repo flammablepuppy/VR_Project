@@ -20,7 +20,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 public:	
-	//virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 
@@ -46,6 +46,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	AvrPickup* HolsteredItem;
 
+	UPROPERTY()
+	bool bScanRunning = false;
+
 	//		FUNCTIONS
 	//
 
@@ -56,6 +59,9 @@ protected:
 	/** Un-subscribes vrPickups leaving overlap */
 	UFUNCTION()
 	void UnsubCatch(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void ScanForPickupsToCatch();
 
 public:
 

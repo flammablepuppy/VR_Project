@@ -6,6 +6,8 @@
 #include "MotionControllerComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "vrPickup.h"
+#include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
 
 UHealthStats::UHealthStats()
 {
@@ -42,24 +44,34 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 			AvrPlayer* vrPlayerOwner = Cast<AvrPlayer>(GetOwner());
 			if (vrPlayerOwner)
 			{
-				PlayerDeath();
+				vrPlayerOwner->DisableInput(Cast<APlayerController>(vrPlayerOwner->GetController()));
+				if (vrPlayerOwner->GetLeftHeldObject()) { vrPlayerOwner->GetLeftHeldObject()->Drop(); }
+				if (vrPlayerOwner->GetRightHeldObject()) { vrPlayerOwner->GetRightHeldObject()->Drop(); }
+				vrPlayerOwner->GetMovementComponent()->StopActiveMovement();
+
 				bOwnerIsDead = true;
+
+				FTimerHandle ReLoadLevel_Timer;
+				GetWorld()->GetTimerManager().SetTimer(ReLoadLevel_Timer, this, &UHealthStats::PlayerDeath, 3.f);
+
 			}
 			else
 			{
-				GetOwner()->Destroy();
+				if (OnDeath.IsBound())
+				{
+					OnDeath.Broadcast();
+				}
+				else
+				{
+					GetOwner()->Destroy();
+				}
 			}
 		}
 	}
 }
 void UHealthStats::PlayerDeath()
 {
-	AvrPlayer* OwningPlayer = Cast<AvrPlayer>(GetOwner());
-	if (OwningPlayer)
-	{
-		//OwningPlayer->DisableInput(Cast<APlayerController>(OwningPlayer->GetController()));
-		if (OwningPlayer->GetLeftHeldObject()) { OwningPlayer->GetLeftHeldObject()->Drop();	}
-		if (OwningPlayer->GetRightHeldObject()) { OwningPlayer->GetRightHeldObject()->Drop(); }
-		OwningPlayer->GetMovementComponent()->StopActiveMovement();
-	}
+	FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName));
+
 }

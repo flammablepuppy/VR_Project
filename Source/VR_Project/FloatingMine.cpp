@@ -91,6 +91,7 @@ void AFloatingMine::HomeTowardTarget()
 	if (Acceleration.Size() > MineTopSpeed) { Acceleration *= 0.94f; }
 
 	SetActorLocation(CurrentLocation + Acceleration);
+	SetActorRotation(Direction.Rotation());
 	OldVelocity = GetActorLocation() - CurrentLocation;
 
 }
@@ -105,8 +106,7 @@ void AFloatingMine::Explode(UPrimitiveComponent * OverlappedComponent, AActor * 
 		{
 			FDamageEvent Damage;
 			HitActor->TakeDamage(MineDamage, Damage, nullptr, this);
-			Destroy();
-
+			HealthStats->OnDeath.Broadcast();
 		}
 	}
 }

@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FDamageTakenSignature, UHealthStats*, HealthStatsComp, float, Health, float, Damage, 
 const class UDamageType*, DamageType, class AController*, InstigatedBy, AActor*, DamageCauser);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOwnerDied);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VR_PROJECT_API UHealthStats : public UActorComponent
@@ -47,4 +48,6 @@ public:
 	UFUNCTION()
 	FORCEINLINE bool CheckIsDead() { return bOwnerIsDead; }
 
+	UPROPERTY(BlueprintAssignable)
+	FOwnerDied OnDeath;
 };

@@ -51,7 +51,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Mine Properties")
 	float MineDamage = 35.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Mine Properties")
+	UPROPERTY(BlueprintReadOnly)
 	class AvrPlayer* TargetPlayer;
 
 	FVector OldVelocity;

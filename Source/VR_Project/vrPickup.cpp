@@ -91,11 +91,9 @@ void AvrPickup::Drop()
 	if (OwningMC) { OwningMC = nullptr; }
 	if (OwningPlayer) 
 	{ 
-		//UE_LOG(LogTemp, Warning, TEXT("Toss velocity: %f"), (GetVelocity() - OwningPlayer->GetVelocity()).Size())
-		OnDrop.Clear();
 
 		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(this));
-		if (VacantHolster && (GetVelocity() - OwningPlayer->GetVelocity()).Size() < NoHolsterSpeed && bSeeksHolster)
+		if (VacantHolster && (GetVelocity() - OwningPlayer->GetVelocity()).Size() < NoHolsterSpeed && bSeeksHolster && !OnDrop.IsBound())
 		{
 			OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
 		}
@@ -106,8 +104,9 @@ void AvrPickup::Drop()
 	SnapSocket = NAME_None;
 	bPickupEnabled = true;
 
-	BPDrop();
+	//BPDrop(); FUNCTIONALITY IS REPLACED BY BINDING DELEGATE TO OnDrop
 	OnDrop.Broadcast(this);
+	OnDrop.Clear();
 }
 
 void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)

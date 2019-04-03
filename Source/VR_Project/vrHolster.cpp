@@ -8,7 +8,7 @@
 
 AvrHolster::AvrHolster()
 {
-	//PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;
 
 	HolsterMesh = CreateDefaultSubobject<UStaticMeshComponent>("Holster Mesh");
 	HolsterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -26,26 +26,32 @@ void AvrHolster::BeginPlay()
 	HolsterSphere->OnComponentEndOverlap.AddDynamic(this, &AvrHolster::UnsubCatch);
 	
 }
-//void AvrHolster::Tick(float DeltaTime)
-//{
-//	Super::Tick(DeltaTime);
-//
-//}
+void AvrHolster::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bScanRunning && bProximityAttachEnabled)
+	{
+		ScanForPickupsToCatch();
+	}
+}
 
 void AvrHolster::SubscribeCatch(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
 	if (OverlappingPickup && OverlappingPickup->GetOwningMC() && !HolsteredItem && bProximityAttachEnabled)
 	{
+		// If compatibility filter is set, check that this item is compatible
 		if (CompatiblePickup && OverlappingPickup->IsA(CompatiblePickup))
 		{
-			OverlappingPickup->OnDrop.Clear();
-			OverlappingPickup->OnDrop.AddUniqueDynamic(this, &AvrHolster::CatchDroppedPickup);
+			bScanRunning = true;
+
 		}
+		// If no compatbility filter is set, always work
 		else if (!CompatiblePickup)
 		{
-			OverlappingPickup->OnDrop.Clear();
-			OverlappingPickup->OnDrop.AddUniqueDynamic(this, &AvrHolster::CatchDroppedPickup);
+			bScanRunning = true;
+
 		}
 	}
 }
@@ -54,7 +60,43 @@ void AvrHolster::UnsubCatch(UPrimitiveComponent * OverlappedComponent, AActor * 
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
 	if (OverlappingPickup && OverlappingPickup->GetOwningMC() && bProximityAttachEnabled)
 	{
-		OverlappingPickup->OnDrop.RemoveAll(this);
+		OverlappingPickup->OnDrop.Clear();
+	}
+}
+
+void AvrHolster::ScanForPickupsToCatch()
+{
+	// Will be pointed to closest compatible pickup to be subbed to catch
+	AvrPickup* SubscriptionTarget = nullptr;
+
+	TSet<AActor*> FoundActors;
+	HolsterSphere->GetOverlappingActors(FoundActors);
+	for (AActor* FoundActor : FoundActors)
+	{
+		AvrPickup* CompatibleFoundPickup = Cast<AvrPickup>(FoundActor);
+		if (CompatibleFoundPickup)
+		{
+			if (!SubscriptionTarget) { SubscriptionTarget = CompatibleFoundPickup; }
+
+			float SubDistance = (HolsterSphere->GetComponentLocation() - SubscriptionTarget->GetActorLocation()).Size();
+			float FoundDistance = (HolsterSphere->GetComponentLocation() - CompatibleFoundPickup->GetActorLocation()).Size();
+			if (FoundDistance < SubDistance)
+			{
+				SubscriptionTarget = CompatibleFoundPickup;
+			}
+
+		}
+	}
+
+	// Stop the scanning if the holster is occupied
+	if (HolsteredItem) { SubscriptionTarget = nullptr; }
+	// Stop scanning if there are no vrPickups in the volume
+	if (!SubscriptionTarget) { bScanRunning = false; }
+
+	if (SubscriptionTarget)
+	{
+		if (SubscriptionTarget->OnDrop.IsBound()) { SubscriptionTarget->OnDrop.Clear(); }
+		SubscriptionTarget->OnDrop.AddUniqueDynamic(this, &AvrHolster::CatchDroppedPickup);
 	}
 }
 
@@ -85,6 +127,7 @@ void AvrHolster::ClearHolsteredItem(AvrPickup* DroppedPickup)
 	{
 		HolsteredItem->OnGrabbed.Clear();
 		HolsteredItem = nullptr;
+		bScanRunning = true; // Allows dropped item to immedietly be dropped back in holster without having to EndOverlap and then Overlap
 
 		HolsterMesh->SetVisibility(true);
 	}

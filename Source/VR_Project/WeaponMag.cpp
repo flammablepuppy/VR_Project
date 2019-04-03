@@ -120,8 +120,8 @@ void AWeaponMag::Drop()
 	SnapSocket = NAME_None;
 	bPickupEnabled = true;
 
-	BPDrop();
 	OnDrop.Broadcast(this);
+	OnDrop.Clear();
 
 	PickupMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
