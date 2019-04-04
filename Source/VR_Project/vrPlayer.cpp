@@ -118,7 +118,7 @@ void AvrPlayer::MoveForward(float Value)
 		FVector HeadForward = HeadForwardRot.Vector();
 
 		AddMovementInput(HeadForward, Value);
-		if (Value > 0.15f || Value < -0.15)
+		if (Value > 0.9f)
 		{
 			bHasForwardMovementInput = true;
 		}
@@ -178,14 +178,18 @@ void AvrPlayer::SnapTurn(float Value)
 }
 void AvrPlayer::MotionInputScan()
 {
+	FVector BottomedActorLocation = GetActorLocation();
+	BottomedActorLocation.Z -= HeadsetCamera->GetComponentLocation().Z;
+
 	// Set variables for scanning
-	HeadRelative = HeadsetCamera->GetComponentTransform().InverseTransformPosition(GetActorLocation());
+	HeadRelative = HeadsetCamera->GetComponentTransform().InverseTransformPosition(BottomedActorLocation);
 	LeftRelative = LeftController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
 	RightRelative = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
 
 	HeadRelVel = HeadLastRelPos - HeadRelative;
 	LeftRelVel = LeftLastRelPos - LeftRelative;
 	RightRelVel = RightLastRelPos - RightRelative;
+
 
 	// Damage character for abruput velocity changes
 	if ((VelocityLastTick - GetVelocity()).Size() > VelocityChangeDamageSpeed)
@@ -199,15 +203,16 @@ void AvrPlayer::MotionInputScan()
 		Jump();
 		if (bHasForwardMovementInput)
 		{
+			// This isn't working... TODO
 			FVector PlayerVelocity = GetCharacterMovement()->Velocity;
 			PlayerVelocity.X *= 4.2f;
 			PlayerVelocity.Y *= 4.2f;
 		}
 	}
 
-	// Check for sprint
-	if (LeftRelVel.Size() > SprintArmSwingReq && bHasForwardMovementInput && LeftController == GetForwardController() ||
-		RightRelVel.Size() > SprintArmSwingReq && bHasForwardMovementInput && RightController == GetForwardController())
+	// Check for sprint TODO: Figure out why I can't get a forward armswing to register as a positive number, when I get that sorted I can swap the > to < and remove negative on swingreq
+	if (LeftRelVel.X + LeftRelVel.Z < -SprintArmSwingReq && bHasForwardMovementInput && LeftController == GetForwardController() ||
+		RightRelVel.X + RightRelVel.Z < -SprintArmSwingReq && bHasForwardMovementInput && RightController == GetForwardController())
 	{
 		MotionSprint();
 	}
@@ -239,7 +244,7 @@ void AvrPlayer::MotionInputScan()
 		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
 		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
 		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerWalkSpeed: %f"), GetCharacterMovement()->MaxWalkSpeed));
+		GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerWalkDecel: %f"), GetCharacterMovement()->BrakingDecelerationWalking));
 		GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerVelocitySize: %f"), GetCharacterMovement()->Velocity.Size()));
 		GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________R: %f"), RightRelVel.X + RightRelVel.Z));
 		GEngine->AddOnScreenDebugMessage(54, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________L: %f"), LeftRelVel.X + LeftRelVel.Z));
@@ -247,8 +252,11 @@ void AvrPlayer::MotionInputScan()
 
 	}
 
+	BottomedActorLocation = GetActorLocation();
+	BottomedActorLocation.Z -= HeadsetCamera->GetComponentLocation().Z;
+
 	// Set variables for reference next tick
-	HeadLastRelPos = HeadsetCamera->GetComponentTransform().InverseTransformPosition(GetActorLocation());
+	HeadLastRelPos = HeadsetCamera->GetComponentTransform().InverseTransformPosition(BottomedActorLocation);
 	LeftLastRelPos = LeftController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
 	RightLastRelPos = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
 	VelocityLastTick = GetMovementComponent()->Velocity;
@@ -285,20 +293,23 @@ void AvrPlayer::MotionSprint()
 {
 	if (bSprintSwingHasRegistered) { return; }
 
-	float CharacterSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	float NewSpeed = FMath::Clamp(CharacterSpeed + (MaxSprintSpeed - BaseCharacterSpeed) / 3.f, 0.f, MaxSprintSpeed);
-	GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+	//float CharacterSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	//float NewSpeed = FMath::Clamp(CharacterSpeed + (MaxSprintSpeed - BaseCharacterSpeed) / 3.f, 0.f, MaxSprintSpeed);
+	float CharacterSpeed = GetCharacterMovement()->BrakingDecelerationWalking;
+	float NewSpeed = FMath::Clamp(CharacterSpeed - (BaseCharacterSpeed / 3.f), 0.f, MaxSprintSpeed);
+
+	GetCharacterMovement()->/*MaxWalkSpeed*/BrakingDecelerationWalking = NewSpeed;
 
 	// Apply 2D impulse in direction of forward controller
 	if (!GetCharacterMovement()->IsFalling())
 	{
-		FVector ImpulseDirection = (GetForwardController()->GetForwardVector() + HeadsetCamera->GetForwardVector()) / 2;
+		FVector ImpulseDirection = /*(GetForwardController()->GetForwardVector() + HeadsetCamera->GetForwardVector()) / 2*/HeadsetCamera->GetForwardVector();
 		ImpulseDirection.Z = 0.f;
 		ImpulseDirection.GetSafeNormal();
 
 		float ImpulsePower = (MaxSprintSpeed - BaseCharacterSpeed) / 3.f;
 
-		LaunchCharacter(ImpulseDirection * ImpulsePower, false, false);
+		LaunchCharacter(ImpulseDirection * /*ImpulsePower*/400.f, false, false);
 	}
 
 	bSprintSwingHasRegistered = true;
@@ -306,11 +317,12 @@ void AvrPlayer::MotionSprint()
 }
 void AvrPlayer::ResetMaxWalkSpeed()
 {
-	GetCharacterMovement()->MaxWalkSpeed = BaseCharacterSpeed;
+	GetCharacterMovement()->/*MaxWalkSpeed*/BrakingDecelerationWalking = BaseCharacterSpeed;
 
 }
 UMotionControllerComponent * AvrPlayer::GetForwardController()
 {
+	// Works on distance to capsule component rather than X position, this takes the 
 	if (/*LeftRelative.X > RightRelative.X*/
 		(LeftController->GetComponentLocation() - GetActorLocation()).Size() > (RightController->GetComponentLocation() - GetActorLocation()).Size())
 	{
