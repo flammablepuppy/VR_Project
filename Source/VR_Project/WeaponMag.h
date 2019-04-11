@@ -43,6 +43,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magazine")
 	int32 CurrentCapacity = -1;
 
+	UPROPERTY()
+	AvrPlayer* TargetPlayerForHolstering;
+
 	//		FUNCTIONS
 	//
 
@@ -52,6 +55,7 @@ protected:
 	UFUNCTION()
 	void UnPrimeCartridge(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	/** Boolean that prevents a magazine being loaded into a weapon from snapping into a holster when Drop is called prior to the SnapInitiate to the MagazineWell */
 	UPROPERTY()
 	bool bLoading = false;
 
@@ -87,5 +91,14 @@ public:
 
 	UFUNCTION()
 	void SetLoading(bool NewState);
+
+	//		PUBLIC FUNCTIONS
+	//
+
+	UFUNCTION()
+	void SetMagSearchForHolster(AvrPlayer* PlayerToHolster);
+
+	UFUNCTION()
+	void SnapToVacantHolster();
 
 };

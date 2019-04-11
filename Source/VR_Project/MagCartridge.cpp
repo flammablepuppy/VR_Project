@@ -26,7 +26,6 @@ void AMagCartridge::SnapInitiate(USceneComponent * NewParentComponent, FName Soc
 	if (TargetMagazine && TargetMagazine->GetOwningMC())
 	{
 		Super::SnapInitiate(TargetMagazine->GetCartridgeLoadSphere(), SocketName);
-		BP_PlayCartridgeLoad();
 
 	}
 	else
@@ -49,6 +48,16 @@ void AMagCartridge::SetTargetMag(AWeaponMag * NewTarget)
 
 void AMagCartridge::LoadMag()
 {
-	TargetMagazine->ExpendCartridge(-1);
-	Destroy();
+	if (TargetMagazine->GetCurrentCapacity() < TargetMagazine->GetMaxCapacity())
+	{
+		TargetMagazine->ExpendCartridge(-1);
+		BP_PlayCartridgeLoad();
+
+		Destroy();
+	}
+	else
+	{
+		Drop();
+		TargetMagazine = nullptr;
+	}
 }

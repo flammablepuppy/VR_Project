@@ -79,10 +79,6 @@ protected:
 	UFUNCTION()
 	void MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
-	/** After a short delay, if there is a compatible vacant holster for an ejected magazine, this holsters the mag */
-	UFUNCTION()
-	void HolsterEjectedMag();
-
 public:
 	virtual void Tick(float DeltaTime) override;
 

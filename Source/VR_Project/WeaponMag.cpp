@@ -11,6 +11,7 @@
 #include "vrHolster.h"
 #include "vrPlayer.h"
 #include "vrBelt.h"
+#include "TimerManager.h"
 
 AWeaponMag::AWeaponMag()
 {
@@ -18,7 +19,6 @@ AWeaponMag::AWeaponMag()
 	CartridgeLoadSphere->SetupAttachment(RootComponent);
 
 }
-
 void AWeaponMag::BeginPlay()
 {
 	Super::BeginPlay();
@@ -30,7 +30,6 @@ void AWeaponMag::BeginPlay()
 	if (CurrentCapacity == -1) { CurrentCapacity = MaxCapacity;	}
 
 }
-
 void AWeaponMag::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -79,7 +78,6 @@ void AWeaponMag::SetLoading(bool NewState)
 {
 	bLoading = NewState;
 }
-
 void AWeaponMag::SnapOn()
 {
 	Super::SnapOn();
@@ -126,4 +124,41 @@ void AWeaponMag::Drop()
 
 	PickupMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
+}
+
+/**
+*	Called by the weapon this magazine was ejected from, after a certain amount of time, search for a vacanat holster to store
+*	the magazine and send it there
+*/
+void AWeaponMag::SetMagSearchForHolster(AvrPlayer* PlayerToHolster)
+{
+	TargetPlayerForHolstering = PlayerToHolster;
+	FTimerHandle HolsterSnapDelay_Timer;
+	GetWorldTimerManager().SetTimer(HolsterSnapDelay_Timer, this, &AWeaponMag::SnapToVacantHolster, 0.65f);
+}
+
+/**
+*	If there is a vacant holster on the player which ejected this mag that can accomodate this magazine, check if it's within
+*	a certain range and snap it to the holster if it is.
+*/
+void AWeaponMag::SnapToVacantHolster()
+{
+	if (SnapTarget)
+	{
+		return; 
+	}
+
+	AvrHolster* VacantHolster = Cast<AvrHolster>(TargetPlayerForHolstering->GetUtilityBelt()->GetVacantHolster(this));
+	if (VacantHolster && 
+		(GetActorLocation() - VacantHolster->GetActorLocation()).Size() < 300.f)
+	{
+		OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+		Drop();
+	}
+	else
+	{
+		OnDrop.Clear();
+	}
+
+	TargetPlayerForHolstering = nullptr;
 }

@@ -127,11 +127,7 @@ void ASigPistol::BottomPushed()
 	{
 		LoadedMagazine->OnDrop.Clear();
 
-		DroppedMagWaitingToHolster = LoadedMagazine;
-
-		// Allow time for the magazine to be grabbed before going to holster
-		FTimerHandle HolsterSnapDelay_Timer;
-		GetWorldTimerManager().SetTimer(HolsterSnapDelay_Timer, this, &ASigPistol::HolsterEjectedMag, DropToHolsterTime);
+		LoadedMagazine->SetMagSearchForHolster(OwningPlayer);
 
 		LoadedMagazine->Drop();
 		LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
@@ -192,35 +188,4 @@ void ASigPistol::AttemptCharge()
 		PlaySlideForward();
 		bSlideBack = false;
 	}
-}
-
-/** Called by timer in BottomPushed after setting VacantHolster as OnDrop delegate */
-void ASigPistol::HolsterEjectedMag()
-{
-	AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(DroppedMagWaitingToHolster));
-	if (VacantHolster)
-	{
-		TargetVacantHolster = VacantHolster;
-	}
-
-	// If the mag is too far away, don't attach
-	if ((DroppedMagWaitingToHolster->GetActorLocation() - GetActorLocation()).Size() > TooFarDistance)
-	{
-		DroppedMagWaitingToHolster = nullptr;
-		return;
-	}
-
-	// Only snap to holster if it snapped to anything else since being dropped
-	if (!DroppedMagWaitingToHolster->GetSnapTarget())
-	{
-		DroppedMagWaitingToHolster->OnDrop.AddUniqueDynamic(TargetVacantHolster, &AvrHolster::CatchDroppedPickup);
-		DroppedMagWaitingToHolster->Drop();
-	}
-	else
-	{
-		DroppedMagWaitingToHolster->OnDrop.Clear();
-	}
-
-	DroppedMagWaitingToHolster = nullptr;
-	TargetVacantHolster = nullptr;
 }
