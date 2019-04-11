@@ -52,6 +52,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine Properties")
 	float TooFarDistance = 300.f;
 
+	/** Time after ejecting a magazine before it seeks a vacant holster */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine Properties")
+	float DropToHolsterTime = 0.55f;
+
 	/** Projectile currently in chamber, used to spawn projectile on trigger pull */
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
 	TSubclassOf<AMagCartridge> ChamberedRound;

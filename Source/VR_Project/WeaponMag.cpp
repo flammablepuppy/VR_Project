@@ -49,6 +49,7 @@ void AWeaponMag::LoadCompatibleCartridge(UPrimitiveComponent * OverlappedCompone
 			Cartridge->Drop();
 			Cartridge->SetTargetMag(this);
 			Cartridge->SnapInitiate(CartridgeLoadSphere);
+			Cartridge->SetPickupEnabled(false);
 		}
 		else if (Cartridge)
 		{

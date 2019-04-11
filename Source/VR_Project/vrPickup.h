@@ -79,10 +79,10 @@ protected:
 
 	/** If a held object is tossed at this velocity or higher, it won't automatically attach to a vacant holster */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float NoHolsterSpeed = 160.f;
+	float NoHolsterSpeed = 180.f;
 
 	/** Will attach to a vacant holster when dropped automatically */
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	bool bSeeksHolster = true;
 	
 	//		FUNCTIONS

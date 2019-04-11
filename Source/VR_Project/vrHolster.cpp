@@ -102,6 +102,8 @@ void AvrHolster::ScanForPickupsToCatch()
 
 void AvrHolster::CatchDroppedPickup(AvrPickup* DroppedPickup)
 {
+	if (HolsteredItem) { return; }
+
 	HolsteredItem = DroppedPickup;
 	HolsteredItem->OnSnappedOn.AddUniqueDynamic(this, &AvrHolster::EnableHolsteredItem);
 	HolsteredItem->SnapInitiate(HolsterSphere);

@@ -127,30 +127,18 @@ void ASigPistol::BottomPushed()
 	{
 		LoadedMagazine->OnDrop.Clear();
 
-		// If there's a VacantHolster, store discarded magazine in it
-		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(LoadedMagazine));
-		if (VacantHolster)
-		{
-			// Make pointers that will survive the Drop call on LoadedMagazine
-			TargetVacantHolster = VacantHolster;
-			DroppedMagWaitingToHolster = LoadedMagazine;
+		DroppedMagWaitingToHolster = LoadedMagazine;
 
-			// Allow time for the magazine to be grabbed before going to holster
-			FTimerHandle HolsterSnapDelay_Timer;
-			GetWorldTimerManager().SetTimer(HolsterSnapDelay_Timer, this, &ASigPistol::HolsterEjectedMag, 0.75f);
+		// Allow time for the magazine to be grabbed before going to holster
+		FTimerHandle HolsterSnapDelay_Timer;
+		GetWorldTimerManager().SetTimer(HolsterSnapDelay_Timer, this, &ASigPistol::HolsterEjectedMag, DropToHolsterTime);
 
-			LoadedMagazine->Drop();
-			LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
-		}
-		else
-		{
-			LoadedMagazine->Drop();
-			LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
-		}
+		LoadedMagazine->Drop();
+		LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
+
 		BPBottomPush();
 		LoadedMagazine = nullptr;
 	}
-
 }
 
 // Functionality
@@ -205,9 +193,16 @@ void ASigPistol::AttemptCharge()
 		bSlideBack = false;
 	}
 }
+
 /** Called by timer in BottomPushed after setting VacantHolster as OnDrop delegate */
 void ASigPistol::HolsterEjectedMag()
 {
+	AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(DroppedMagWaitingToHolster));
+	if (VacantHolster)
+	{
+		TargetVacantHolster = VacantHolster;
+	}
+
 	// If the mag is too far away, don't attach
 	if ((DroppedMagWaitingToHolster->GetActorLocation() - GetActorLocation()).Size() > TooFarDistance)
 	{
@@ -227,4 +222,5 @@ void ASigPistol::HolsterEjectedMag()
 	}
 
 	DroppedMagWaitingToHolster = nullptr;
+	TargetVacantHolster = nullptr;
 }
