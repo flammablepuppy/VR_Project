@@ -92,6 +92,11 @@ void ASigPistol::TriggerPulled(float Value)
 		bTriggerPulled = false;
 	}
 }
+/**
+*	Used to manipulate the slide forward and back
+*	With a magazine loaded it will chamber a round from the magazine
+*	When the slide is forward and brought back it will eject a cartridge if it's chambered
+*/
 void ASigPistol::TopPushed()
 {
 	if (bSlideBack)

@@ -127,8 +127,8 @@ void AWeaponMag::Drop()
 }
 
 /**
-*	Called by the weapon this magazine was ejected from, after a certain amount of time, search for a vacanat holster to store
-*	the magazine and send it there
+*	Called by the weapon this magazine was ejected from
+*	After a certain amount of time, search for a vacanat holster to store the magazine and send it there
 */
 void AWeaponMag::SetMagSearchForHolster(AvrPlayer* PlayerToHolster)
 {
@@ -138,8 +138,8 @@ void AWeaponMag::SetMagSearchForHolster(AvrPlayer* PlayerToHolster)
 }
 
 /**
-*	If there is a vacant holster on the player which ejected this mag that can accomodate this magazine, check if it's within
-*	a certain range and snap it to the holster if it is.
+*	Snaps magazine to a holster 
+*	Checks if the magazine is already held, that there is a vacant holster that can hold it and that it's not too far away
 */
 void AWeaponMag::SnapToVacantHolster()
 {

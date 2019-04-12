@@ -28,7 +28,6 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	//
 	// Components
 	//
 
@@ -49,7 +48,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	class UvrBelt* UtilityBelt;
 
-	//
 	// Basic Locomotion Functions
 	//
 
@@ -64,7 +62,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	bool bMouseEnabled = true;
 
-	//
 	// Snap Turn
 	//
 
@@ -75,20 +72,16 @@ protected:
 	UPROPERTY()
 	bool bSnapTurnReady = true;
 
-	//
 	// VR Specific Movement
 	//
 
 	UFUNCTION()
 	void OffsetRoot();
+
 	/** Height of player based on HMD position */
 	UPROPERTY(BlueprintReadWrite, Category = "vrParameters")
 	float PlayerHeight = 1.78f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "vrParameters")
-	TSubclassOf<UDamageType> MotionDamage;
-
-	//
 	// Motion Input
 	//
 
@@ -119,52 +112,90 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	FVector VelocityLastTick = FVector::ZeroVector;
 
-		// Impact Damage
+	// Impact Damage
+	UFUNCTION()
+	void ApplyImpactDamage();
+
 		/** Velocity change threshold beyond which damage is applied to the player */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Locomotion")
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Impact Damage")
 		float VelocityChangeDamageSpeed = 1000.f; 
-		UFUNCTION()
-		void ApplyImpactDamage();
+
 		/** The minimum amount of damage that will be dealt to the player after an abrupt velocity change */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") 
-		float MinimumImpactDamage = 15.f;
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Impact Damage") 
+		float MinimumImpactDamage = 30.f;
+
 		/** Damage delt per cm/s over velocity change threshold */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input") 
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Impact Damage") 
 		float ExponentialImpactDamage = 0.012f;
 
-		// Jump
+		UPROPERTY(EditDefaultsOnly, Category = "Motion Input: Impact Damage")
+		TSubclassOf<UDamageType> MotionDamage;
+
+	// Jump
+	UFUNCTION()
+	void MotionJump();
+
 		/** The amount of vertical acceleration the HMD must hit to trigger a jump */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
 		float JumpHeadReqZ = 1.5f;
+
 		/** The amount of vertical acceleration both the controllers must hit to trigger a jump */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float JumpHandReqZ = 2.8;
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float JumpHandReqZ = 6.f;
+
+		/** When both hands move vertically by this speed without head movement upward, triggers a small jump */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float JumpSmallReq = 16.f;
+
+		/** Additional impulse in the direction you're looking when performing a Big Jump with forward movement input */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float JumpBigForwardImpulse = 65.f;
+
+		/** Set to true by MoveForward when axis value is greater than 0.3, used to limit accidental jumps and amplify forward motion on big jumps */
 		UPROPERTY()
 		bool bHasForwardMovementInput = false;
 
-		// Sprint
-		UFUNCTION()
-		void MotionSprint();
-		UFUNCTION()
-		void ResetMaxWalkSpeed();
-		FTimerHandle SprintSpeedReturn_Handle;
-		/** Time after the last sprint action detected until walk speed returns to BaseCharacterSpeed */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float SprintReturnTime = 0.9f;
-		UPROPERTY()
-		float BaseCharacterSpeed = 0.f; // Set in BeginPlay
-		/** The forward acceleration the lead controller must achieve to trigger sprint */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float SprintArmSwingReq = 5.f;
-		/** The max player speed achievable by swinging arms */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input")
-		float MaxSprintSpeed = 1200.f;
-		UPROPERTY()
-		bool bSprintSwingHasRegistered = false;
+		/** The minimum duration the jumping motion must be made to trigger a jump */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float JumpDurationReq = 0.08f;
 
-		// Helper Functions
-		UFUNCTION()
-		UMotionControllerComponent* GetForwardController();
+	// Sprint
+	UFUNCTION()
+	void MotionSprint(FVector ImpulseDirection, float ImpulsePercent);
+
+		/** The X and Z relative velocity are added together and compared to this value, if they exceed it MotionSprint is fired */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
+		float SprintMinImpulseSpeed = 14.f;
+
+		/** The velocity that is required to pass a 1.0 multiplier to the calculation of how much impulse power is garnered from a sprint arm swing */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
+		float SprintMaxImpulseSpeed = 30.f;
+
+		/** Time that must elapse before a motion controller can trigger another sprint impulse */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
+		float SprintCooldownDuration = 0.3f;
+
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
+		float SprintDecelResetDuration = 0.75f;
+
+		UPROPERTY()
+			float SprintMinSpeed = 320.f;
+
+		UPROPERTY()
+			float SprintMaxSpeed = 1200.f;
+
+		FTimerHandle SprintLeft_Timer;
+		FTimerHandle SprintRight_Timer;
+		FTimerHandle SprintDecelReset_Timer;
+		UPROPERTY()
+		FVector SprintLeftLastPos = FVector::ZeroVector;
+		UPROPERTY()
+		FVector SprintRightLastPos = FVector::ZeroVector;
+
+
+	// Helper Functions
+	UFUNCTION()
+	UMotionControllerComponent* GetForwardController();
 
 	// Controller Function calls
 	UFUNCTION(Category = "Left Controller Functions")
@@ -250,5 +281,21 @@ public:
 
 	UFUNCTION()
 	FORCEINLINE FVector GetVelocityLastTick() { return VelocityLastTick; };
+
+	//		FOR DEBUG DISPLAY ON HUD
+	//
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BPDebugDisplay();
+
+	UFUNCTION()
+	FORCEINLINE FVector GetHeadRelVel() { return HeadRelVel; }
+
+	UFUNCTION()
+	FORCEINLINE FVector GetLeftRelVel() { return LeftRelVel; }
+
+	UFUNCTION()
+	FORCEINLINE FVector GetRightRelVel() { return RightRelVel; }
+
 
 };

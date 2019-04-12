@@ -86,7 +86,14 @@ void AvrPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	BaseCharacterSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	/** Initialize for use with MotionInput */
+	HeadLastRelPos = HeadsetCamera->GetComponentLocation();
+	LeftLastRelPos = LeftController->GetComponentLocation();
+	RightLastRelPos = RightController->GetComponentLocation();
+
+	/** Prevent MotionImput from firing anything for a moment after starting */
+	GetWorldTimerManager().SetTimer(SprintLeft_Timer, SprintCooldownDuration, false);
+	GetWorldTimerManager().SetTimer(SprintRight_Timer, SprintCooldownDuration, false);
 
 }
 void AvrPlayer::Tick(float DeltaTime)
@@ -94,7 +101,7 @@ void AvrPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	OffsetRoot();
-	MotionInputScan();
+	if (!HealthStatsComp->bOwnerIsDead) { MotionInputScan(); }
 
 }
  
@@ -118,7 +125,7 @@ void AvrPlayer::MoveForward(float Value)
 		FVector HeadForward = HeadForwardRot.Vector();
 
 		AddMovementInput(HeadForward, Value);
-		if (Value > 0.9f)
+		if (Value > 0.3f)
 		{
 			bHasForwardMovementInput = true;
 		}
@@ -178,87 +185,104 @@ void AvrPlayer::SnapTurn(float Value)
 }
 void AvrPlayer::MotionInputScan()
 {
-	FVector BottomedActorLocation = GetActorLocation();
-	BottomedActorLocation.Z -= HeadsetCamera->GetComponentLocation().Z;
+	//	Using the point on the ground in the center of the pawn collision, get the relative position of the head and hands
+	FVector MeasureingPoint = GetCapsuleComponent()->GetComponentLocation(); MeasureingPoint.Z -= GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	HeadRelative = HeadsetCamera->GetComponentTransform().InverseTransformPosition(MeasureingPoint);
+	LeftRelative = LeftController->GetComponentTransform().InverseTransformPosition(MeasureingPoint);
+	RightRelative = RightController->GetComponentTransform().InverseTransformPosition(MeasureingPoint);
 
-	// Set variables for scanning
-	HeadRelative = HeadsetCamera->GetComponentTransform().InverseTransformPosition(BottomedActorLocation);
-	LeftRelative = LeftController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
-	RightRelative = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
-
+	//	With those relative positions, measure each components relative velocity based off of their positions last tick (set at the end of this function)
 	HeadRelVel = HeadLastRelPos - HeadRelative;
 	LeftRelVel = LeftLastRelPos - LeftRelative;
 	RightRelVel = RightLastRelPos - RightRelative;
 
-
-	// Damage character for abruput velocity changes
-	if ((VelocityLastTick - GetVelocity()).Size() > VelocityChangeDamageSpeed)
-	{
-		ApplyImpactDamage();
-	}
-
-	// Check for jump
-	if (HeadRelVel.Z > JumpHeadReqZ && LeftRelVel.Z > JumpHandReqZ && RightRelVel.Z > JumpHandReqZ)
-	{
-		Jump();
-		if (bHasForwardMovementInput)
+		/** IMPACT DAMAGE
+		*	Damage character for abruput velocity changes
+		*/
+		if ((VelocityLastTick - GetVelocity()).Size() > VelocityChangeDamageSpeed)
 		{
-			// This isn't working... TODO
-			FVector PlayerVelocity = GetCharacterMovement()->Velocity;
-			PlayerVelocity.X *= 4.2f;
-			PlayerVelocity.Y *= 4.2f;
+			ApplyImpactDamage();
 		}
-	}
+		
+		/** MOTION JUMP
+		*	Trigger jump when conditions are met
+		*	High jump with forward impulse when arms swing and head pops
+		*	Small jump when arms are whipped up quickly while moving forward
+		*/
+		if (HeadRelVel.Z > JumpHeadReqZ && LeftRelVel.Z > JumpHandReqZ && RightRelVel.Z > JumpHandReqZ)
+		{
+			FTimerHandle FiringJump_Timer;
+			GetWorldTimerManager().SetTimer(FiringJump_Timer, this, &AvrPlayer::MotionJump, JumpDurationReq, false);
 
-	// Check for sprint TODO: Figure out why I can't get a forward armswing to register as a positive number, when I get that sorted I can swap the > to < and remove negative on swingreq
-	if (LeftRelVel.X + LeftRelVel.Z < -SprintArmSwingReq && bHasForwardMovementInput && LeftController == GetForwardController() ||
-		RightRelVel.X + RightRelVel.Z < -SprintArmSwingReq && bHasForwardMovementInput && RightController == GetForwardController())
-	{
-		MotionSprint();
-	}
-	else // Reset the boolean that prevents multiple stacks per swing when the forward swinging arm changes
-	{
-		bSprintSwingHasRegistered = false;
-	}
+			// Prevent triggering sprint while jumping is being checked
+			GetWorldTimerManager().SetTimer(SprintLeft_Timer, JumpDurationReq, false);
+			GetWorldTimerManager().SetTimer(SprintRight_Timer, JumpDurationReq, false);
 
-	// Debug Logging:
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, TEXT("_"));
-		GEngine->AddOnScreenDebugMessage(51, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerWalkDecel: %f"), GetCharacterMovement()->BrakingDecelerationWalking));
-		GEngine->AddOnScreenDebugMessage(52, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________PlayerVelocitySize: %f"), GetCharacterMovement()->Velocity.Size()));
-		GEngine->AddOnScreenDebugMessage(53, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________R: %f"), RightRelVel.X + RightRelVel.Z));
-		GEngine->AddOnScreenDebugMessage(54, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________L: %f"), LeftRelVel.X + LeftRelVel.Z));
-		GEngine->AddOnScreenDebugMessage(55, 0.f, FColor::Red, FString::Printf(TEXT("________________________________________H: %s"), *HeadRelVel.ToString()));
+		}
+		else if (LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq && bHasForwardMovementInput)
+		{
+			GetCharacterMovement()->JumpZVelocity = 550.f;
+			Jump();
+		}
 
-	}
+		/** MOTION SPRINT
+		*	Add an impulse in the direction the forward arm swings
+		*	Triggered when the forward swinging arm x and y relative velocities combined exceed a threshold while the other hand is going in reverse by half that speed
+		*/
+		if (LeftRelVel.X + LeftRelVel.Z > SprintMinImpulseSpeed && 
+			!GetWorldTimerManager().IsTimerActive(SprintLeft_Timer) && 
+			!GetCharacterMovement()->IsFalling() &&
+			RightRelVel.Z + RightRelVel.X < -SprintMinImpulseSpeed * 0.5f)
+		{
+			GetWorldTimerManager().SetTimer(SprintLeft_Timer, SprintCooldownDuration, false);
+			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
 
-	BottomedActorLocation = GetActorLocation();
-	BottomedActorLocation.Z -= HeadsetCamera->GetComponentLocation().Z;
+			FVector Direction = LeftController->GetComponentLocation() - SprintLeftLastPos;
+			Direction.Z = 0.f;
+			FRotator DirRot = Direction.ToOrientationRotator();
+			DirRot -= FRotator(0.f, 10.f, 0.f); // To help offset the way the arm naturally swings
+			Direction = DirRot.Vector();
+			Direction.GetSafeNormal();
 
-	// Set variables for reference next tick
-	HeadLastRelPos = HeadsetCamera->GetComponentTransform().InverseTransformPosition(BottomedActorLocation);
-	LeftLastRelPos = LeftController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
-	RightLastRelPos = RightController->GetComponentTransform().InverseTransformPosition(HeadsetCamera->GetComponentLocation());
+			float Percent = LeftRelVel.X + LeftRelVel.Z - SprintMinImpulseSpeed / SprintMaxImpulseSpeed;
+			if (Percent > 1.f) { Percent = 1.f; }
+
+			MotionSprint(Direction, Percent);
+		}
+		if (RightRelVel.X + RightRelVel.Z > SprintMinImpulseSpeed && 
+			!GetWorldTimerManager().IsTimerActive(SprintRight_Timer) && 
+			!GetCharacterMovement()->IsFalling() &&
+			LeftRelVel.Z + LeftRelVel.X < -SprintMinImpulseSpeed * 0.5f)
+		{
+			GetWorldTimerManager().SetTimer(SprintRight_Timer, SprintCooldownDuration, false);
+			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
+
+			FVector Direction = RightController->GetComponentLocation() - SprintRightLastPos;
+			Direction.Z = 0.f;
+			FRotator DirRot = Direction.ToOrientationRotator();
+			DirRot += FRotator(0.f, 10.f, 0.f); // To help offset the way the arm naturally swings
+			Direction = DirRot.Vector();
+			Direction.GetSafeNormal();
+
+			float Percent = RightRelVel.X + RightRelVel.Z - SprintMinImpulseSpeed / SprintMaxImpulseSpeed;
+			if (Percent > 1.f) { Percent = 1.f; }
+
+			MotionSprint(Direction, Percent);
+		}
+		if (!GetWorldTimerManager().IsTimerActive(SprintDecelReset_Timer))
+		{
+			GetCharacterMovement()->GroundFriction = 2.f;
+			GetCharacterMovement()->MaxWalkSpeed = 300.f;
+		}
+
+	//	Remember positions from this tick for use in the next tick
+	HeadLastRelPos = HeadRelative;
+	LeftLastRelPos = LeftRelative;
+	RightLastRelPos = RightRelative;
+	SprintLeftLastPos = LeftController->GetComponentLocation();
+	SprintRightLastPos = RightController->GetComponentLocation();
+
+	//	Remember pawn velocity to check for impact damage next tick
 	VelocityLastTick = GetMovementComponent()->Velocity;
 
 }
@@ -289,42 +313,47 @@ void AvrPlayer::ApplyImpactDamage()
 		UGameplayStatics::ApplyDamage(this, AppliedDamage, this->GetController(), this, MotionDamage);
 	}
 }
-void AvrPlayer::MotionSprint()
+void AvrPlayer::MotionJump()
 {
-	if (bSprintSwingHasRegistered) { return; }
-
-	//float CharacterSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	//float NewSpeed = FMath::Clamp(CharacterSpeed + (MaxSprintSpeed - BaseCharacterSpeed) / 3.f, 0.f, MaxSprintSpeed);
-	float CharacterSpeed = GetCharacterMovement()->BrakingDecelerationWalking;
-	float NewSpeed = FMath::Clamp(CharacterSpeed - (BaseCharacterSpeed / 3.f), 0.f, MaxSprintSpeed);
-
-	GetCharacterMovement()->/*MaxWalkSpeed*/BrakingDecelerationWalking = NewSpeed;
-
-	// Apply 2D impulse in direction of forward controller
-	if (!GetCharacterMovement()->IsFalling())
+	if (HeadRelVel.Z > JumpHeadReqZ/2)
 	{
-		FVector ImpulseDirection = /*(GetForwardController()->GetForwardVector() + HeadsetCamera->GetForwardVector()) / 2*/HeadsetCamera->GetForwardVector();
-		ImpulseDirection.Z = 0.f;
-		ImpulseDirection.GetSafeNormal();
+		GetCharacterMovement()->JumpZVelocity = 840.f;
+		Jump();
 
-		float ImpulsePower = (MaxSprintSpeed - BaseCharacterSpeed) / 3.f;
+		if (bHasForwardMovementInput)
+		{
+			FVector ForwardImpulse = GetHeadsetCam()->GetForwardVector();
+			ForwardImpulse.Z = 0.f;
+			ForwardImpulse.GetSafeNormal();
+			ForwardImpulse *= JumpBigForwardImpulse;
 
-		LaunchCharacter(ImpulseDirection * /*ImpulsePower*/400.f, false, false);
+			GetCharacterMovement()->Velocity += ForwardImpulse;
+			GetCharacterMovement()->UpdateComponentVelocity();
+		}
 	}
-
-	bSprintSwingHasRegistered = true;
-	GetWorldTimerManager().SetTimer(SprintSpeedReturn_Handle, this, &AvrPlayer::ResetMaxWalkSpeed, SprintReturnTime, false);
 }
-void AvrPlayer::ResetMaxWalkSpeed()
+void AvrPlayer::MotionSprint(FVector ImpulseDirection, float ImpulsePercent)
 {
-	GetCharacterMovement()->/*MaxWalkSpeed*/BrakingDecelerationWalking = BaseCharacterSpeed;
+	// Lower ground friction to simulate higher momentum
+	GetCharacterMovement()->GroundFriction = 0.18f;
 
+	// Increase walk speed 
+	float SpeedIncrement = (SprintMaxSpeed - SprintMinSpeed) / 3.f;
+	float SpeedAddition = FMath::Clamp(GetCharacterMovement()->MaxWalkSpeed + SpeedIncrement, SprintMinSpeed, SprintMaxSpeed);
+	GetCharacterMovement()->MaxWalkSpeed = SpeedAddition;	
+
+	// Apply an impulse
+	GetCharacterMovement()->Velocity += (ImpulseDirection * ImpulsePercent * SpeedIncrement);
+	if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed)
+	{
+		GetCharacterMovement()->Velocity *= (SprintMaxSpeed + (SprintMinSpeed * 0.25)) / GetCharacterMovement()->Velocity.Size();
+	}
+	GetCharacterMovement()->UpdateComponentVelocity();
 }
 UMotionControllerComponent * AvrPlayer::GetForwardController()
 {
 	// Works on distance to capsule component rather than X position, this takes the 
-	if (/*LeftRelative.X > RightRelative.X*/
-		(LeftController->GetComponentLocation() - GetActorLocation()).Size() > (RightController->GetComponentLocation() - GetActorLocation()).Size())
+	if ((LeftController->GetComponentLocation() - GetActorLocation()).Size() > (RightController->GetComponentLocation() - GetActorLocation()).Size())
 	{
 		return LeftController;
 	}

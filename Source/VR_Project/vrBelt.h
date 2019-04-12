@@ -16,6 +16,7 @@ class AvrHolster;
 class AvrPickup;
 class AvrPlayer;
 class UCameraComponent;
+class UCapsuleComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VR_PROJECT_API UvrBelt : public USceneComponent
@@ -31,21 +32,21 @@ public:
 
 protected:
 
-	UPROPERTY(BlueprintReadOnly)
-	AvrPlayer* OwningPlayer;
+UPROPERTY(BlueprintReadOnly)
+AvrPlayer* OwningPlayer;
 
-	UPROPERTY(BlueprintReadOnly)
-	UCameraComponent* TrackedHeadset;
+UPROPERTY(BlueprintReadOnly)
+UCameraComponent* TrackedHeadset;
 
-	UPROPERTY()
-	TArray<AvrHolster*> EquippedHolsters;
+UPROPERTY()
+TArray<AvrHolster*> EquippedHolsters;
 
-	UFUNCTION()
-	void FindAllHolsters();
+UFUNCTION()
+void FindAllHolsters();
 
 public:
 
-	UFUNCTION()
-	AvrHolster* GetVacantHolster(AvrPickup* PickupRequestingHolster);
+UFUNCTION()
+AvrHolster* GetVacantHolster(AvrPickup* PickupRequestingHolster);
 			
 };

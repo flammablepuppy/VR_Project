@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "vrPickup.h"
 #include "vrHolster.h"
+#include "Components/CapsuleComponent.h"
 
 UvrBelt::UvrBelt()
 {
@@ -39,7 +40,7 @@ void UvrBelt::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 			//OwningPlayer->GetRootComponent()->GetComponentLocation().Y,
 			TrackedHeadset->GetComponentLocation().X,
 			TrackedHeadset->GetComponentLocation().Y,
-			TrackedHeadset->GetComponentLocation().Z - 60.f));
+			TrackedHeadset->GetComponentLocation().Z - 60.f ));
 	}
 }
 
