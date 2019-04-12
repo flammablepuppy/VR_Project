@@ -12,6 +12,7 @@ class UMotionControllerComponent;
 class USphereComponent;
 class AvrPickup;
 class UHealthStats;
+class USoundCue;
 
 UCLASS()
 class VR_PROJECT_API AvrPlayer : public ACharacter
@@ -135,29 +136,44 @@ protected:
 	UFUNCTION()
 	void MotionJump();
 
+		/** Sound that plays when a big jump fires */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		USoundCue* BigJumpSound;
+
 		/** The amount of vertical acceleration the HMD must hit to trigger a jump */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float JumpHeadReqZ = 1.5f;
+		float BigJumpHeadReq = 1.5f;
 
 		/** The amount of vertical acceleration both the controllers must hit to trigger a jump */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float JumpHandReqZ = 6.f;
+		float BigJumpHandReq = 6.f;
 
-		/** When both hands move vertically by this speed without head movement upward, triggers a small jump */
+		/** The minimum duration the jumping motion must be made to trigger a big jump */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float JumpSmallReq = 16.f;
+		float JumpDurationReq = 0.08f;
+
+		/** Upward impulse passed to the jump function when a big jump fires */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float BigJumpHeight = 840.f;
 
 		/** Additional impulse in the direction you're looking when performing a Big Jump with forward movement input */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
 		float JumpBigForwardImpulse = 65.f;
 
+		/** Sound that plays when a small jump fires */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		USoundCue* SmallJumpSound;
+
+		/** When both hands move vertically by this speed without head movement upward, triggers a small jump */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float JumpSmallReq = 16.f;
+
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float SmallJumpHeight = 550.f;
+
 		/** Set to true by MoveForward when axis value is greater than 0.3, used to limit accidental jumps and amplify forward motion on big jumps */
 		UPROPERTY()
 		bool bHasForwardMovementInput = false;
-
-		/** The minimum duration the jumping motion must be made to trigger a jump */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float JumpDurationReq = 0.08f;
 
 	// Sprint
 	UFUNCTION()
@@ -251,7 +267,7 @@ protected:
 	AvrPickup* RightHeldObject;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Level Reset")
-	FName LevelToLoad = "TestingMap";
+	FName LevelToLoad = "Lobby";
 
 public:	
 

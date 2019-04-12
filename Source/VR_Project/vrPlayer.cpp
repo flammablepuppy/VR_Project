@@ -16,6 +16,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "vrBelt.h"
+#include "Sound/SoundCue.h"
 
 AvrPlayer::AvrPlayer()
 {
@@ -209,7 +210,7 @@ void AvrPlayer::MotionInputScan()
 		*	High jump with forward impulse when arms swing and head pops
 		*	Small jump when arms are whipped up quickly while moving forward
 		*/
-		if (HeadRelVel.Z > JumpHeadReqZ && LeftRelVel.Z > JumpHandReqZ && RightRelVel.Z > JumpHandReqZ)
+		if (HeadRelVel.Z > BigJumpHeadReq && LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq)
 		{
 			FTimerHandle FiringJump_Timer;
 			GetWorldTimerManager().SetTimer(FiringJump_Timer, this, &AvrPlayer::MotionJump, JumpDurationReq, false);
@@ -221,8 +222,12 @@ void AvrPlayer::MotionInputScan()
 		}
 		else if (LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq && bHasForwardMovementInput)
 		{
-			GetCharacterMovement()->JumpZVelocity = 550.f;
+			GetCharacterMovement()->JumpZVelocity = SmallJumpHeight;
 			Jump();
+			if (!GetCharacterMovement()->IsFalling())
+			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SmallJumpSound, GetActorLocation());
+			}
 		}
 
 		/** MOTION SPRINT
@@ -269,7 +274,16 @@ void AvrPlayer::MotionInputScan()
 
 			MotionSprint(Direction, Percent);
 		}
-		if (!GetWorldTimerManager().IsTimerActive(SprintDecelReset_Timer))
+		if (GetWorldTimerManager().IsTimerActive(SprintDecelReset_Timer) && GetCharacterMovement()->IsFalling())
+		{
+			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
+			GetWorldTimerManager().PauseTimer(SprintDecelReset_Timer);
+		}
+		if (!GetCharacterMovement()->IsFalling() && GetWorldTimerManager().IsTimerPaused(SprintDecelReset_Timer))
+		{
+			GetWorldTimerManager().UnPauseTimer(SprintDecelReset_Timer);
+		}
+		if (!GetWorldTimerManager().IsTimerActive(SprintDecelReset_Timer) && !GetCharacterMovement()->IsFalling())
 		{
 			GetCharacterMovement()->GroundFriction = 2.f;
 			GetCharacterMovement()->MaxWalkSpeed = 300.f;
@@ -315,9 +329,14 @@ void AvrPlayer::ApplyImpactDamage()
 }
 void AvrPlayer::MotionJump()
 {
-	if (HeadRelVel.Z > JumpHeadReqZ/2)
+	if (HeadRelVel.Z > BigJumpHeadReq/2)
 	{
-		GetCharacterMovement()->JumpZVelocity = 840.f;
+		if (!GetCharacterMovement()->IsFalling())
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), BigJumpSound, GetActorLocation());
+		}
+
+		GetCharacterMovement()->JumpZVelocity = BigJumpHeight;
 		Jump();
 
 		if (bHasForwardMovementInput)
@@ -472,6 +491,7 @@ void AvrPlayer::RightBottomRelease()
 
 void AvrPlayer::ResetTestingMap()
 {
+	
 	UGameplayStatics::OpenLevel(GetWorld(), LevelToLoad);
 
 }

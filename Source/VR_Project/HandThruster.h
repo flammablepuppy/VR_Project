@@ -28,10 +28,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel") 
 	bool bFuelRecharges = true;
 	/** Seconds without thrust input before fuel begins recharging */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Fuel") 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel") 
 	float FuelRechargeDelay = 2.5;
 	/** How many seconds to go from empty to full */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Fuel")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel")
 	float FuelRechargeRate = 12.f;
 
 	FTimerHandle FuelRecharge_Handle;
