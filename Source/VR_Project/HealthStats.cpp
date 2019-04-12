@@ -54,6 +54,10 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 				FTimerHandle ReLoadLevel_Timer;
 				GetWorld()->GetTimerManager().SetTimer(ReLoadLevel_Timer, this, &UHealthStats::PlayerDeath, 3.f);
 
+				if (OnDeath.IsBound())
+				{
+					OnDeath.Broadcast();
+				}
 			}
 			else
 			{
@@ -69,9 +73,41 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 		}
 	}
 }
+
+/** Sets CheckpointLocation variable for use in respawning */
+void UHealthStats::SetCheckpointLocation(FVector NewLocation)
+{
+	CheckpointLocation = NewLocation;
+}
+
+/** Checks if a Checkpoint location has been set
+*	@ true - Undo death effects and teleport to checkpoint location, broadcast that a respawn has occurred
+*	@ false - Reload the current level
+*/
 void UHealthStats::PlayerDeath()
 {
-	FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
-	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName));
+	if (CheckpointLocation != FVector::ZeroVector)
+	{
+		AvrPlayer* vrPlayerOwner = Cast<AvrPlayer>(GetOwner());
+		if (vrPlayerOwner)
+		{
+			vrPlayerOwner->EnableInput(Cast<APlayerController>(vrPlayerOwner->GetController()));
+			CurrentHealth = MaximumHealth;
+			bOwnerIsDead = false;
 
+			GetOwner()->SetActorLocation(CheckpointLocation);
+			vrPlayerOwner->GetCharacterMovement()->Velocity = FVector::ZeroVector;
+			vrPlayerOwner->GetCharacterMovement()->UpdateComponentVelocity();
+
+			if (OnRespawn.IsBound())
+			{
+				OnRespawn.Broadcast();
+			}
+		}
+	}
+	else
+	{
+		FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+		UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName));
+	}
 }

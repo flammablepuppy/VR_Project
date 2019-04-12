@@ -195,10 +195,16 @@ protected:
 		float SprintDecelResetDuration = 0.75f;
 
 		UPROPERTY()
-			float SprintMinSpeed = 320.f;
+		float SprintMinSpeed = 320.f;
 
 		UPROPERTY()
-			float SprintMaxSpeed = 1200.f;
+		float SprintMaxSpeed = 1200.f;
+
+		UPROPERTY()
+		float SprintingFriction = 0.18f;
+
+		UPROPERTY()
+		float SprintNormalFriction = 2.f;
 
 		FTimerHandle SprintLeft_Timer;
 		FTimerHandle SprintRight_Timer;
@@ -207,11 +213,6 @@ protected:
 		FVector SprintLeftLastPos = FVector::ZeroVector;
 		UPROPERTY()
 		FVector SprintRightLastPos = FVector::ZeroVector;
-
-
-	// Helper Functions
-	UFUNCTION()
-	UMotionControllerComponent* GetForwardController();
 
 	// Controller Function calls
 	UFUNCTION(Category = "Left Controller Functions")
@@ -313,5 +314,6 @@ public:
 	UFUNCTION()
 	FORCEINLINE FVector GetRightRelVel() { return RightRelVel; }
 
-
+	UPROPERTY()
+	float WhatsTheFriction = 2.f;
 };

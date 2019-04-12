@@ -30,6 +30,9 @@ protected:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE TArray<AvrHolster*> GetEquippedHolsters() { return EquippedHolsters; }
+
 protected:
 
 UPROPERTY(BlueprintReadOnly)

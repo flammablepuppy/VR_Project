@@ -104,6 +104,15 @@ void AvrPlayer::Tick(float DeltaTime)
 	OffsetRoot();
 	if (!HealthStatsComp->bOwnerIsDead) { MotionInputScan(); }
 
+	/** Interpolates back to a normal friction value after sprinting has ended */
+	if (GetCharacterMovement()->MaxWalkSpeed == SprintMinSpeed && GetCharacterMovement()->BrakingFriction != SprintNormalFriction)
+	{
+		WhatsTheFriction = GetCharacterMovement()->BrakingFriction;
+		float NewFriction = FMath::Clamp(GetCharacterMovement()->BrakingFriction + (GetWorld()->GetDeltaSeconds() * 2.f), SprintingFriction, SprintNormalFriction);
+		GetCharacterMovement()->BrakingFriction = NewFriction;
+		//UE_LOG(LogTemp, Warning, TEXT("Friction adjusting on Tick: %f"), NewFriction)
+	}
+
 }
  
 // VR Functions
@@ -285,8 +294,8 @@ void AvrPlayer::MotionInputScan()
 		}
 		if (!GetWorldTimerManager().IsTimerActive(SprintDecelReset_Timer) && !GetCharacterMovement()->IsFalling())
 		{
-			GetCharacterMovement()->GroundFriction = 2.f;
-			GetCharacterMovement()->MaxWalkSpeed = 300.f;
+			//GetCharacterMovement()->GroundFriction = SprintNormalFriction; NOW DONE IN TICK
+			GetCharacterMovement()->MaxWalkSpeed = SprintMinSpeed;
 		}
 
 	//	Remember positions from this tick for use in the next tick
@@ -354,7 +363,7 @@ void AvrPlayer::MotionJump()
 void AvrPlayer::MotionSprint(FVector ImpulseDirection, float ImpulsePercent)
 {
 	// Lower ground friction to simulate higher momentum
-	GetCharacterMovement()->GroundFriction = 0.18f;
+	GetCharacterMovement()->GroundFriction = SprintingFriction;
 
 	// Increase walk speed 
 	float SpeedIncrement = (SprintMaxSpeed - SprintMinSpeed) / 3.f;
@@ -368,18 +377,6 @@ void AvrPlayer::MotionSprint(FVector ImpulseDirection, float ImpulsePercent)
 		GetCharacterMovement()->Velocity *= (SprintMaxSpeed + (SprintMinSpeed * 0.25)) / GetCharacterMovement()->Velocity.Size();
 	}
 	GetCharacterMovement()->UpdateComponentVelocity();
-}
-UMotionControllerComponent * AvrPlayer::GetForwardController()
-{
-	// Works on distance to capsule component rather than X position, this takes the 
-	if ((LeftController->GetComponentLocation() - GetActorLocation()).Size() > (RightController->GetComponentLocation() - GetActorLocation()).Size())
-	{
-		return LeftController;
-	}
-	else
-	{
-		return RightController;
-	}
 }
 
 // Interaction Calls

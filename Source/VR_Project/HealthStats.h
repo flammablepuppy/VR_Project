@@ -9,6 +9,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FDamageTakenSignature, UHealthStats*, HealthStatsComp, float, Health, float, Damage, 
 const class UDamageType*, DamageType, class AController*, InstigatedBy, AActor*, DamageCauser);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOwnerDied);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOwnerRespawned);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VR_PROJECT_API UHealthStats : public UActorComponent
@@ -23,8 +24,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default Values")
 	float MaximumHealth = 100.f;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Default Values")
 	float CurrentHealth;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Gameplay Mechanics")
+	FVector CheckpointLocation = FVector::ZeroVector;
 
 	UFUNCTION()
 	void PlayerDeath();
@@ -50,4 +55,11 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOwnerDied OnDeath;
+
+	UPROPERTY(BlueprintAssignable)
+	FOwnerRespawned OnRespawn;
+
+	UFUNCTION()
+	void SetCheckpointLocation(FVector NewLocation);
+
 };
