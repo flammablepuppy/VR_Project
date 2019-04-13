@@ -38,6 +38,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
 	bool bSlideBack = false;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pistol Properties: Automatic Fire")
+	bool bAutomaticFire = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pistol Properties: Automatic Fire")
+	float AutoCooldown = 0.15f;
+
+	FTimerHandle AutoCooldown_Timer;
+
 	/** Pointer to currently loaded magazine */
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
 	AWeaponMag* LoadedMagazine;
@@ -88,6 +96,7 @@ public:
 	//virtual void TopReleased() override; NOT IN USE
 	virtual void BottomPushed() override;
 	//virtual void BottomReleased() override; NOT IN USE
+	virtual void Drop() override;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_PlayMagLoad();

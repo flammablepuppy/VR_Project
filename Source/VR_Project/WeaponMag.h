@@ -37,7 +37,7 @@ protected:
 
 	/** Maximum capacity of the magazine when fully loaded */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine")
-	int32 MaxCapacity = 15;
+	int32 MaxCapacity = 16;
 
 	/** Initialized in BeginPlay, -1 initializes as a full mag */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magazine")

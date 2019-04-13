@@ -82,14 +82,31 @@ void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 // Input Functions
 void ASigPistol::TriggerPulled(float Value)
 {
-	if (Value > 0.3f && !bTriggerPulled)
+	if (bAutomaticFire)
 	{
-		bTriggerPulled = true;
-		DischargeRound();
+		if (Value > 0.3f)
+		{
+			if (!GetWorldTimerManager().IsTimerActive(AutoCooldown_Timer))
+			{
+				GetWorldTimerManager().SetTimer(AutoCooldown_Timer, this, &ASigPistol::DischargeRound, AutoCooldown, true, 0.f);
+			}
+		}
+		if (Value < 0.3f)
+		{
+			GetWorldTimerManager().ClearTimer(AutoCooldown_Timer);
+		}
 	}
-	else if (Value < 0.3f)
+	else
 	{
-		bTriggerPulled = false;
+		if (Value > 0.3f && !bTriggerPulled)
+		{
+			bTriggerPulled = true;
+			DischargeRound();
+		}
+		else if (Value < 0.3f)
+		{
+			bTriggerPulled = false;
+		}
 	}
 }
 /**
@@ -142,9 +159,21 @@ void ASigPistol::BottomPushed()
 	}
 }
 
+void ASigPistol::Drop()
+{
+	Super::Drop();
+
+	if (GetWorldTimerManager().IsTimerActive(AutoCooldown_Timer))
+	{
+		GetWorldTimerManager().ClearTimer(AutoCooldown_Timer);
+	}
+}
+
 // Functionality
 void ASigPistol::DischargeRound()
 {
+	if (!OwningPlayer || !OwningMC) { return; }
+
 	if (!bSlideBack && ChamberedRound)
 	{
 		AMagCartridge* Cart = ChamberedRound->GetDefaultObject<AMagCartridge>();
