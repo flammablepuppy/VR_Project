@@ -80,6 +80,11 @@ void UHealthStats::SetCheckpointLocation(FVector NewLocation)
 	CheckpointLocation = NewLocation;
 }
 
+void UHealthStats::AdjustCurrency(float CurrencyAdjustment)
+{
+	Currency += CurrencyAdjustment;
+}
+
 /** Checks if a Checkpoint location has been set
 *	@ true - Undo death effects and teleport to checkpoint location, broadcast that a respawn has occurred
 *	@ false - Reload the current level

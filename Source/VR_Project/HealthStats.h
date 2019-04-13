@@ -28,6 +28,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Default Values")
 	float CurrentHealth;
 
+	UPROPERTY()
+	float Currency = 0.f;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Gameplay Mechanics")
 	FVector CheckpointLocation = FVector::ZeroVector;
 
@@ -61,5 +64,11 @@ public:
 
 	UFUNCTION()
 	void SetCheckpointLocation(FVector NewLocation);
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetCurrency() { return Currency; }
+
+	UFUNCTION(BlueprintCallable)
+	void AdjustCurrency(float CurrencyAdjustment = 1.f);
 
 };

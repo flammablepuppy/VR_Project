@@ -293,6 +293,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UvrBelt* GetUtilityBelt() { return UtilityBelt; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE UHealthStats* GetHealthStats() { return HealthStatsComp; }
+
 	UFUNCTION(BlueprintCallable)
 	void SetMouseEnabled(bool NewState);
 

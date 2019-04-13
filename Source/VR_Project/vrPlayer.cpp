@@ -229,7 +229,16 @@ void AvrPlayer::MotionInputScan()
 			GetWorldTimerManager().SetTimer(SprintRight_Timer, JumpDurationReq, false);
 
 		}
-		else if (LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq && bHasForwardMovementInput)
+		else if (GetCharacterMovement()->Velocity.Size() >= SprintMaxSpeed && LeftRelVel.Z + RightRelVel.Z > JumpSmallReq * 2)
+		{
+			MotionJump();
+			if (GetCharacterMovement()->MaxWalkSpeed < SprintMaxSpeed)
+			{
+				GetCharacterMovement()->MaxWalkSpeed = SprintMaxSpeed;
+			}
+		}
+
+		else if (LeftRelVel.Z + RightRelVel.Z > JumpSmallReq * 2 && bHasForwardMovementInput)
 		{
 			GetCharacterMovement()->JumpZVelocity = SmallJumpHeight;
 			Jump();
@@ -294,7 +303,7 @@ void AvrPlayer::MotionInputScan()
 		}
 		if (!GetWorldTimerManager().IsTimerActive(SprintDecelReset_Timer) && !GetCharacterMovement()->IsFalling())
 		{
-			//GetCharacterMovement()->GroundFriction = SprintNormalFriction; NOW DONE IN TICK
+			// Friction is reintroduced over time in Tick
 			GetCharacterMovement()->MaxWalkSpeed = SprintMinSpeed;
 		}
 
@@ -394,40 +403,35 @@ void AvrPlayer::LeftGripRelease()
 }
 void AvrPlayer::LeftTriggerHandle(float Value)
 {
-	if (!LeftHeldObject) { return; }
-	if (Value > 0 && LeftHeldObject->GetOwningMC() == LeftController)
+	if (Value > 0 && LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
 	{
 		LeftHeldObject->TriggerPulled(Value);
 	}
 }
 void AvrPlayer::LeftTopPush()
 {
-	if (!LeftHeldObject) { return; }
-	if (LeftHeldObject->GetOwningMC() == LeftController)
+	if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
 	{
 		LeftHeldObject->TopPushed();
 	}
 }
 void AvrPlayer::LeftTopRelease()
 {
-	if (!LeftHeldObject) { return; }
-	if (LeftHeldObject->GetOwningMC() == LeftController)
+	if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
 	{
 		LeftHeldObject->TopReleased();
 	}
 }
 void AvrPlayer::LeftBottomPush()
 {
-	if (!LeftHeldObject) { return; }
-	if (LeftHeldObject->GetOwningMC() == LeftController)
+	if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
 	{
 		LeftHeldObject->BottomPushed();
 	}
 }
 void AvrPlayer::LeftBottomRelease()
 {
-	if (!LeftHeldObject) { return; }
-	if (LeftHeldObject->GetOwningMC() == LeftController)
+	if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
 	{
 		LeftHeldObject->BottomReleased();
 	}
@@ -447,23 +451,20 @@ void AvrPlayer::RightGripRelease()
 }
 void AvrPlayer::RightTriggerHandle(float Value)
 {
-	if (!RightHeldObject) { return; }
-	if (Value > 0 && RightHeldObject->GetOwningMC() == RightController)
+	if (Value > 0 && RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
 	{
 		RightHeldObject->TriggerPulled(Value);
 	}
 }
 void AvrPlayer::RightTopPush()
 {
-	if (!RightHeldObject) { return; }
-	if (RightHeldObject->GetOwningMC() == RightController)
+	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
 	{
 		RightHeldObject->TopPushed();
 	}
 }
 void AvrPlayer::RightTopRelease()
 {
-	if (!RightHeldObject) { return; }
 	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
 	{
 		RightHeldObject->TopReleased();
@@ -471,7 +472,6 @@ void AvrPlayer::RightTopRelease()
 }
 void AvrPlayer::RightBottomPush()
 {
-	if (!RightHeldObject) { return; }
 	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
 	{
 		RightHeldObject->BottomPushed();
@@ -479,7 +479,6 @@ void AvrPlayer::RightBottomPush()
 }
 void AvrPlayer::RightBottomRelease()
 {
-	if (!RightHeldObject) { return; }
 	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
 	{
 		RightHeldObject->BottomReleased();
