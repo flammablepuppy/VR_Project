@@ -63,6 +63,9 @@ public:
 	FOwnerRespawned OnRespawn;
 
 	UFUNCTION()
+	FORCEINLINE FVector GetCheckpoint() { return CheckpointLocation; }
+
+	UFUNCTION()
 	void SetCheckpointLocation(FVector NewLocation);
 
 	UFUNCTION(BlueprintPure)

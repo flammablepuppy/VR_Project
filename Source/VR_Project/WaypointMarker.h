@@ -54,7 +54,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWaypointIsActive = false;
 
-	/** How long the collection animation will last and float for SetLifetime */
+	/** How long the collection animation will last */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties", meta = (AllowPrivateAccess = "true"))
 	float EffectsDuration = 0.5f;
 
@@ -82,6 +82,9 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE int32 GetWaypointNumber() { return WaypointNumber; }
+
+// DELEGATES
+//////////////
 
 	UPROPERTY(BlueprintAssignable)
 	FWaypointCollected OnCollected;

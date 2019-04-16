@@ -14,11 +14,14 @@ ARaceGameMode::ARaceGameMode()
 /** End race and calculate times/performance */
 void ARaceGameMode::CourseFinished()
 {
-	for (int32 i = 0; i < TimeBetweenWaypoints.Num(); i++)
+	if (LoadedCourse.Num() == TimeBetweenWaypoints.Num())
 	{
-		int32 iCount = i;
-		float CheckpointTime = TimeBetweenWaypoints[i];
-		UE_LOG(LogTemp, Warning, TEXT("Time to checkpoint %d: %f"), iCount, CheckpointTime)
+		for (int32 i = 0; i < TimeBetweenWaypoints.Num(); i++)
+		{
+			int32 iCount = i;
+			float CheckpointTime = TimeBetweenWaypoints[i];
+			UE_LOG(LogTemp, Warning, TEXT("Time to checkpoint %d: %f"), iCount, CheckpointTime)
+		}
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Course Finished!"))
@@ -30,6 +33,9 @@ void ARaceGameMode::CourseFinished()
 		{
 			ActorIter->ActivateWaypoint();
 		}
+
+		ActorIter->OnCollected.Clear();
+		CurrentWaypoint = 0;
 	}
 }
 
@@ -40,7 +46,7 @@ void ARaceGameMode::LoadCourse(FColor ColorCourseToLoad)
 	TimeBetweenWaypoints.Reset();
 	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
 	{
-		AWaypointMarker* Marker = *ActorIter;
+		AWaypointMarker* Marker = *ActorIter; 
 		if (Marker->GetCourseColor() == ColorCourseToLoad)
 		{
 			CourseStartTime = GetWorld()->GetTimeSeconds();

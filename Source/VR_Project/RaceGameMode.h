@@ -22,32 +22,29 @@ protected:
 // VARIABLES
 ///////////////
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess="true"))
 	TArray<AWaypointMarker*> LoadedCourse;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	int32 CurrentWaypoint = 0;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	float CourseStartTime = 0.f;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TArray<float> TimeBetweenWaypoints;
-
-// FUNCTIONS
-///////////////
-
-	UFUNCTION()
-	void CourseFinished();
 
 public:
 // PUBLIC FUNCTIONS
 ///////////////
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
+	void CourseFinished();
+
+	UFUNCTION(BlueprintCallable)
 	void LoadCourse(FColor ColorCourseToLoad);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void DisplayCurrentWaypoint();
-	
+
 };

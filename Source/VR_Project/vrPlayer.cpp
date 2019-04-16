@@ -17,6 +17,7 @@
 #include "Net/UnrealNetwork.h"
 #include "vrBelt.h"
 #include "Sound/SoundCue.h"
+#include "RaceGameMode.h"
 
 AvrPlayer::AvrPlayer()
 {
@@ -487,9 +488,22 @@ void AvrPlayer::RightBottomRelease()
 
 void AvrPlayer::ResetTestingMap()
 {
-	
-	UGameplayStatics::OpenLevel(GetWorld(), LevelToLoad);
+	if (HealthStatsComp->GetCheckpoint() != FVector::ZeroVector)
+	{
+		UGameplayStatics::ApplyDamage(this, 500.f, this->GetController(), this, MotionDamage);
 
+		ARaceGameMode* RaceMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
+		if (RaceMode)
+		{
+			RaceMode->CourseFinished();
+		}
+	}
+
+	else
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), LevelToLoad);
+
+	}
 }
 
 // Interaction Execution
