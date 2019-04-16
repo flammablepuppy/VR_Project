@@ -7,6 +7,7 @@
 #include "vrPlayer.h"
 #include "HealthStats.h"
 #include "Kismet/GameplayStatics.h"
+#include "RaceGameMode.h"
 
 AWaypointMarker::AWaypointMarker()
 {
@@ -29,7 +30,9 @@ void AWaypointMarker::BeginPlay()
 	Super::BeginPlay();
 
 	WaypointCollectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWaypointMarker::WaypointReached);
+	if (WaypointNumber == 0) { bAutoActivates = true; }
 	if (bAutoActivates) { ActivateWaypoint(); }
+	else { DeactivateWaypoint(); }
 	
 }
 
@@ -46,29 +49,41 @@ void AWaypointMarker::Tick(float DeltaTime)
 void AWaypointMarker::WaypointReached(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	AvrPlayer* OverlappingPlayer = Cast<AvrPlayer>(OtherActor);
-	if (OverlappingPlayer && bWaypointActive)
+	if (OverlappingPlayer && bWaypointIsActive)
 	{
-		bWaypointActive = false;
+		bWaypointIsActive = false;
 
-		OverlappingPlayer->GetHealthStats()->AdjustCurrency();
-		if (CollectionSound)
+		// Check if the GameMode is Race and load the course this point is associated with if it's the 0 point
+		if (WaypointNumber == 0 && GetWorld()->GetAuthGameMode()->IsA(ARaceGameMode::StaticClass()))
 		{
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), CollectionSound, OverlappingPlayer->GetActorLocation());
+			ARaceGameMode* RaceMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
+			if (RaceMode)
+			{
+				RaceMode->LoadCourse(CourseColor);
+				UE_LOG(LogTemp, Warning, TEXT("RaceMode detected, %s course loaded."), *CourseColor.ToString())
+
+			}
 		}
+
+		// Do the other stuff
 		OnCollected.Broadcast();
-		SetLifeSpan(EffectsDuration);
+		DeactivateWaypoint();
+		if (CollectionSound) { UGameplayStatics::PlaySoundAtLocation(GetWorld(), CollectionSound, OverlappingPlayer->GetActorLocation()); }
+
+		//SetLifeSpan(EffectsDuration);
+
 	}
 }
 
 void AWaypointMarker::ActivateWaypoint()
 {
-	bWaypointActive = true;
+	bWaypointIsActive = true;
 	WaypointMesh->SetVisibility(true);
 }
 
 void AWaypointMarker::DeactivateWaypoint()
 {
-	bWaypointActive = false;
+	bWaypointIsActive = false;
 	WaypointMesh->SetVisibility(false);
 }
 

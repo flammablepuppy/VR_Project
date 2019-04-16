@@ -40,6 +40,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
 	int32 WaypointNumber = 0;
 
+	/** Used by GameMode to differntiate between multiple routes in a level */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	FColor CourseColor = FColor::Green;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
 	class USoundBase* CollectionSound;
 
@@ -48,7 +52,7 @@ protected:
 	bool bAutoActivates = false;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	bool bWaypointActive = false;
+	bool bWaypointIsActive = false;
 
 	/** How long the collection animation will last and float for SetLifetime */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties", meta = (AllowPrivateAccess = "true"))
@@ -71,7 +75,13 @@ public:
 	void DeactivateWaypoint();
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE bool GetWaypointActive() { return bWaypointActive; }
+	FORCEINLINE bool GetWaypointIsActive() { return bWaypointIsActive; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE FColor GetCourseColor() { return CourseColor; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE int32 GetWaypointNumber() { return WaypointNumber; }
 
 	UPROPERTY(BlueprintAssignable)
 	FWaypointCollected OnCollected;
