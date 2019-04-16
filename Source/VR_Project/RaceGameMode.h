@@ -38,6 +38,8 @@ public:
 // PUBLIC FUNCTIONS
 ///////////////
 
+	virtual void BeginPlay() override;
+
 	UFUNCTION(BlueprintCallable)
 	void CourseFinished();
 

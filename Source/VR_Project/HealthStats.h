@@ -38,7 +38,6 @@ protected:
 	void PlayerDeath();
 
 public:	
-	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION()
 	void OwnerTakesDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
@@ -61,6 +60,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOwnerRespawned OnRespawn;
+
+	UFUNCTION(BlueprintCallable)
+	void RespawnPlayer();
 
 	UFUNCTION()
 	FORCEINLINE FVector GetCheckpoint() { return CheckpointLocation; }

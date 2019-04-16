@@ -5,10 +5,21 @@
 #include "Engine\World.h"
 #include "EngineUtils.h"
 #include "WaypointMarker.h"
+#include "vrPlayer.h"
+#include "HealthStats.h"
 
 ARaceGameMode::ARaceGameMode()
 {
 
+}
+
+void ARaceGameMode::BeginPlay()
+{
+	// Sub to all players OnDeath
+	for (TActorIterator<AvrPlayer> ActorIter(GetWorld()); ActorIter; ++ActorIter)
+	{
+		ActorIter->GetHealthStats()->OnDeath.AddDynamic(this, &ARaceGameMode::CourseFinished);
+	}
 }
 
 /** End race and calculate times/performance */

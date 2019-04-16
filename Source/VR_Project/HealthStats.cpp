@@ -26,11 +26,6 @@ void UHealthStats::BeginPlay()
 		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthStats::OwnerTakesDamage);
 	}
 }
-//void UHealthStats::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-//{
-//	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-//
-//}
 
 void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
@@ -44,20 +39,7 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 			AvrPlayer* vrPlayerOwner = Cast<AvrPlayer>(GetOwner());
 			if (vrPlayerOwner)
 			{
-				vrPlayerOwner->DisableInput(Cast<APlayerController>(vrPlayerOwner->GetController()));
-				if (vrPlayerOwner->GetLeftHeldObject()) { vrPlayerOwner->GetLeftHeldObject()->Drop(); }
-				if (vrPlayerOwner->GetRightHeldObject()) { vrPlayerOwner->GetRightHeldObject()->Drop(); }
-				vrPlayerOwner->GetMovementComponent()->StopActiveMovement();
-
-				bOwnerIsDead = true;
-
-				FTimerHandle ReLoadLevel_Timer;
-				GetWorld()->GetTimerManager().SetTimer(ReLoadLevel_Timer, this, &UHealthStats::PlayerDeath, 3.f);
-
-				if (OnDeath.IsBound())
-				{
-					OnDeath.Broadcast();
-				}
+				PlayerDeath();
 			}
 			else
 			{
@@ -85,21 +67,47 @@ void UHealthStats::AdjustCurrency(float CurrencyAdjustment)
 	Currency += CurrencyAdjustment;
 }
 
-/** Checks if a Checkpoint location has been set
-*	@ true - Undo death effects and teleport to checkpoint location, broadcast that a respawn has occurred
-*	@ false - Reload the current level
-*/
+/** Handles player death and calls for respawn */
 void UHealthStats::PlayerDeath()
+{
+	AvrPlayer* vrPlayerOwner = Cast<AvrPlayer>(GetOwner());
+	if (vrPlayerOwner)
+	{
+		vrPlayerOwner->DisableInput(Cast<APlayerController>(vrPlayerOwner->GetController()));
+		if (vrPlayerOwner->GetLeftHeldObject()) { vrPlayerOwner->GetLeftHeldObject()->Drop(); }
+		if (vrPlayerOwner->GetRightHeldObject()) { vrPlayerOwner->GetRightHeldObject()->Drop(); }
+		vrPlayerOwner->GetMovementComponent()->StopActiveMovement();
+	}
+
+	bOwnerIsDead = true;
+
+	FTimerHandle ReLoadLevel_Timer;
+	GetWorld()->GetTimerManager().SetTimer(ReLoadLevel_Timer, this, &UHealthStats::RespawnPlayer, 2.f);
+
+	if (OnDeath.IsBound())
+	{
+		OnDeath.Broadcast();
+	}
+
+}
+
+/**
+*	If a checkpoint has been reached teleports to checkpoint
+*	If not reloads level
+*/
+void UHealthStats::RespawnPlayer()
 {
 	if (CheckpointLocation != FVector::ZeroVector)
 	{
 		AvrPlayer* vrPlayerOwner = Cast<AvrPlayer>(GetOwner());
 		if (vrPlayerOwner)
 		{
+			// Reverse death effects
 			vrPlayerOwner->EnableInput(Cast<APlayerController>(vrPlayerOwner->GetController()));
 			CurrentHealth = MaximumHealth;
 			bOwnerIsDead = false;
 
+			// Move player to checkpoint and zero their velocity
 			GetOwner()->SetActorLocation(CheckpointLocation);
 			vrPlayerOwner->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 			vrPlayerOwner->GetCharacterMovement()->UpdateComponentVelocity();

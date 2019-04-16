@@ -44,7 +44,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
 	FColor CourseColor = FColor::Green;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Waypoint Properties")
 	class USoundBase* CollectionSound;
 
 	/** When true, WaypointMarker will set itself active in BeginPlay */
