@@ -49,6 +49,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	class UvrBelt* UtilityBelt;
 
+	/** When true, clicking left stick will kill self */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Player Properties")
+	bool bCommitsSeppuku = true;
+
 	// Basic Locomotion Functions
 	//
 

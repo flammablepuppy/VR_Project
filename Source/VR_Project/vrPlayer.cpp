@@ -103,7 +103,7 @@ void AvrPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	OffsetRoot();
-	if (!HealthStatsComp->bOwnerIsDead) { MotionInputScan(); }
+	if (!HealthStatsComp->GetIsDead()) { MotionInputScan(); }
 
 	/** Interpolates back to a normal friction value after sprinting has ended */
 	if (GetCharacterMovement()->MaxWalkSpeed == SprintMinSpeed && GetCharacterMovement()->BrakingFriction != SprintNormalFriction)
@@ -488,17 +488,10 @@ void AvrPlayer::RightBottomRelease()
 
 void AvrPlayer::ResetTestingMap()
 {
-	if (HealthStatsComp->GetCheckpoint() != FVector::ZeroVector)
+	if (bCommitsSeppuku)
 	{
 		UGameplayStatics::ApplyDamage(this, 500.f, this->GetController(), this, MotionDamage);
-
-		ARaceGameMode* RaceMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
-		if (RaceMode)
-		{
-			RaceMode->CourseFinished();
-		}
 	}
-
 	else
 	{
 		UGameplayStatics::OpenLevel(GetWorld(), LevelToLoad);

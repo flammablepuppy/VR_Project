@@ -6,7 +6,10 @@
 #include "GameFramework/GameMode.h"
 #include "RaceGameMode.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayersRespawn);
+
 class AWaypointMarker;
+class AvrPlayer;
 
 /**
  * 
@@ -26,6 +29,9 @@ protected:
 	TArray<AWaypointMarker*> LoadedCourse;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TArray<AvrPlayer*> vrPlayers;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	int32 CurrentWaypoint = 0;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -34,11 +40,23 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TArray<float> TimeBetweenWaypoints;
 
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FVector ActiveCheckpoint = FVector::ZeroVector;
+
+// FUNCTIONS
+//////////////
+
+	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintCallable)
+	void HandlePlayerDeath(AActor* DyingActor);
+
+	UFUNCTION(BlueprintCallable)
+	void RespawnPlayers();
+
 public:
 // PUBLIC FUNCTIONS
 ///////////////
-
-	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable)
 	void CourseFinished();
@@ -48,5 +66,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DisplayCurrentWaypoint();
+
+	UFUNCTION(BlueprintCallable)
+	void SetActiveCheckpoint(FVector CheckpointLocation);
+
+// DELEGATES
+//////////////
+
+	UPROPERTY(BlueprintAssignable)
+	FPlayersRespawn OnRespawn;
 
 };

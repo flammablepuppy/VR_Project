@@ -106,7 +106,7 @@ void AFloatingMine::Explode(UPrimitiveComponent * OverlappedComponent, AActor * 
 		{
 			FDamageEvent Damage;
 			HitActor->TakeDamage(MineDamage, Damage, nullptr, this);
-			HealthStats->OnDeath.Broadcast();
+			HealthStats->OnDeath.Broadcast(nullptr);
 		}
 	}
 }

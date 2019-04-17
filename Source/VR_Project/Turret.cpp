@@ -76,7 +76,7 @@ void ATurret::ScanForPawns()
 		if (FoundPawn)
 		{
 			UHealthStats* PawnHealth = Cast<UHealthStats>(FoundPawn->GetComponentByClass(UHealthStats::StaticClass()));  
-			if (PawnHealth && !PawnHealth->CheckIsDead() && LineTraceForPawn(FoundPawn))  // Check to see if tested pawn is dead and if in LOS
+			if (PawnHealth && !PawnHealth->GetIsDead() && LineTraceForPawn(FoundPawn))  // Check to see if tested pawn is dead and if in LOS
 			{
 				if (!ClosestPawn) // ClosestPawn only gets assigned if the FoundPawn is also in LOS
 				{

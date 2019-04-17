@@ -7,18 +7,57 @@
 #include "WaypointMarker.h"
 #include "vrPlayer.h"
 #include "HealthStats.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 
 ARaceGameMode::ARaceGameMode()
 {
 
 }
-
 void ARaceGameMode::BeginPlay()
 {
 	// Sub to all players OnDeath
 	for (TActorIterator<AvrPlayer> ActorIter(GetWorld()); ActorIter; ++ActorIter)
 	{
-		ActorIter->GetHealthStats()->OnDeath.AddDynamic(this, &ARaceGameMode::CourseFinished);
+		ActorIter->GetHealthStats()->OnDeath.AddDynamic(this, &ARaceGameMode::HandlePlayerDeath);
+	}
+}
+
+void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
+{
+	if (LoadedCourse.Num() > 0)
+	{
+		CourseFinished();
+	}
+
+	if (ActiveCheckpoint != FVector::ZeroVector)
+	{
+		AvrPlayer* vrP = Cast<AvrPlayer>(DyingActor);
+		if (vrP) { vrPlayers.AddUnique(vrP); }
+		FTimerHandle Respawn_Timer;
+		GetWorldTimerManager().SetTimer(Respawn_Timer, this, &ARaceGameMode::RespawnPlayers, 2.f);
+	}
+	else
+	{
+		FString CurrentLevel = UGameplayStatics::GetCurrentLevelName(GetWorld());
+		UGameplayStatics::OpenLevel(GetWorld(), FName(*CurrentLevel));
+	}
+
+}
+
+void ARaceGameMode::RespawnPlayers()
+{
+	OnRespawn.Broadcast();
+
+	for (AvrPlayer* Player : vrPlayers)
+	{
+		Player->EnableInput(Cast<APlayerController>(Player->GetController()));
+		UGameplayStatics::ApplyDamage(Player, -500.f, nullptr, nullptr, nullptr);
+		Player->GetHealthStats()->SetIsDead(false);
+		Player->SetActorLocation(ActiveCheckpoint);
+		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
+		Player->GetCharacterMovement()->UpdateComponentVelocity();
 	}
 }
 
@@ -43,6 +82,10 @@ void ARaceGameMode::CourseFinished()
 		if (ActorIter->GetWaypointNumber() == 0)
 		{
 			ActorIter->ActivateWaypoint();
+		}
+		else
+		{
+			ActorIter->DeactivateWaypoint();
 		}
 
 		ActorIter->OnCollected.Clear();
@@ -94,5 +137,10 @@ void ARaceGameMode::DisplayCurrentWaypoint()
 	{
 		CourseFinished();
 	}
+}
+
+void ARaceGameMode::SetActiveCheckpoint(FVector CheckpointLocation)
+{
+	ActiveCheckpoint = CheckpointLocation;
 }
 
