@@ -27,7 +27,7 @@ void UHealthStats::BeginPlay()
 	}
 }
 
-void UHealthStats::HandleDeath()
+void UHealthStats::Die()
 {
 	AvrPlayer* Owner = Cast<AvrPlayer>(GetOwner());
 	Owner->DisableInput(Cast<APlayerController>(Owner->GetController()));
@@ -39,7 +39,7 @@ void UHealthStats::HandleDeath()
 
 void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
-	if (Damage > 0.f || Damage < 0.f )
+	if (Damage > 0.f || Damage < 0.f)
 	{
 		DamageTaken.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser);
 		CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaximumHealth);
@@ -51,7 +51,7 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 			AvrPlayer* vrPlayerOwner = Cast<AvrPlayer>(GetOwner());
 			if (vrPlayerOwner)
 			{
-				HandleDeath();
+				Die();
 			}
 			if (OnDeath.IsBound())
 			{
@@ -65,15 +65,19 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 	}
 }
 
-/** Sets CheckpointLocation variable for use in respawning */
-void UHealthStats::SetCheckpointLocation(FVector NewLocation)
-{
-	CheckpointLocation = NewLocation;
-}
-
 void UHealthStats::SetIsDead(bool NewState)
 {
 	bOwnerIsDead = NewState;
+}
+
+void UHealthStats::Respawn()
+{
+	AvrPlayer* Owner = Cast<AvrPlayer>(GetOwner());
+	Owner->EnableInput(Cast<APlayerController>(Owner->GetController()));
+	OwnerTakesDamage(GetOwner(), -500.f, nullptr, nullptr, nullptr);
+	bOwnerIsDead = false;
+
+	OnRespawn.Broadcast(GetOwner());
 }
 
 void UHealthStats::AdjustCurrency(float CurrencyAdjustment)

@@ -9,6 +9,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FDamageTakenSignature, UHealthStats*, HealthStatsComp, float, Health, float, Damage, 
 const class UDamageType*, DamageType, class AController*, InstigatedBy, AActor*, DamageCauser);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOwnerDied, AActor*, DyingActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOwnerRespawned, AActor*, RespawningActor);
 
 class AvrPlayer;
 
@@ -35,17 +36,8 @@ protected:
 	UPROPERTY()
 	float Currency = 0.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Gameplay Mechanics")
-	FVector CheckpointLocation = FVector::ZeroVector;
-
 	UPROPERTY(BlueprintReadOnly)
 	bool bOwnerIsDead = false;
-
-// FUNCTIONS
-//////////////
-
-	UFUNCTION()
-	void HandleDeath();
 
 public:	
 
@@ -64,9 +56,6 @@ public:
 	UFUNCTION()
 	FORCEINLINE bool GetIsDead() { return bOwnerIsDead; }
 
-	UFUNCTION()
-	FORCEINLINE FVector GetCheckpoint() { return CheckpointLocation; }
-
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE float GetCurrency() { return Currency; }
 
@@ -74,10 +63,13 @@ public:
 	void AdjustCurrency(float CurrencyAdjustment = 1.f);
 
 	UFUNCTION()
-	void SetCheckpointLocation(FVector NewLocation);
+	void SetIsDead(bool NewState);
 
 	UFUNCTION()
-	void SetIsDead(bool NewState);
+	void Die();
+
+	UFUNCTION()
+	void Respawn();
 
 // DELEGATES
 //////////////
@@ -87,5 +79,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOwnerDied OnDeath;
+
+	UPROPERTY(BlueprintAssignable)
+	FOwnerRespawned OnRespawn;
 
 };

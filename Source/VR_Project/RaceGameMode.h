@@ -6,10 +6,11 @@
 #include "GameFramework/GameMode.h"
 #include "RaceGameMode.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayersRespawn);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayersRespawn, AvrPlayer*, RespawnedPlayer);
 
 class AWaypointMarker;
 class AvrPlayer;
+class AvrPickup;
 
 /**
  * 
@@ -42,6 +43,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FVector ActiveCheckpoint = FVector::ZeroVector;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gameplay")
+	TSubclassOf<AvrPickup> AddToInventoryOnRespawn;
 
 // FUNCTIONS
 //////////////

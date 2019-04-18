@@ -30,26 +30,43 @@ protected:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UFUNCTION(BlueprintPure)
-	FORCEINLINE TArray<AvrHolster*> GetEquippedHolsters() { return EquippedHolsters; }
-
 protected:
 
-UPROPERTY(BlueprintReadOnly)
-AvrPlayer* OwningPlayer;
+// VARIABLES
+//////////////
 
-UPROPERTY(BlueprintReadOnly)
-UCameraComponent* TrackedHeadset;
+	UPROPERTY(BlueprintReadOnly)
+	AvrPlayer* OwningPlayer;
 
-UPROPERTY()
-TArray<AvrHolster*> EquippedHolsters;
+	UPROPERTY(BlueprintReadOnly)
+	UCameraComponent* TrackedHeadset;
 
-UFUNCTION()
-void FindAllHolsters();
+	UPROPERTY(BlueprintReadOnly)
+	TArray<AvrHolster*> EquippedHolsters;
+
+// FUNCTIONS
+//////////////
+
+	UFUNCTION()
+	void FindAllHolsters();
+
+	// TODO: Make a spawn holster function
+	// TODO: Make an int32 variable to limit number of holsters
 
 public:
 
-UFUNCTION()
-AvrHolster* GetVacantHolster(AvrPickup* PickupRequestingHolster);
-			
+// PUBLIC FUNCTIONS
+//////////////////////
+
+	UFUNCTION()
+	AvrHolster* GetVacantHolster(AvrPickup* PickupRequestingHolster, bool OverrideProximityRequirement = false);
+
+
+	/** Populates array with all items found holstered on belt */
+	UFUNCTION()
+	void GetHolsteredItems(TArray<AvrPickup*>& Items);
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE TArray<AvrHolster*> GetEquippedHolsters() { return EquippedHolsters; }
+
 };

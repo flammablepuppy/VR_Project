@@ -100,6 +100,7 @@ void AvrHolster::ScanForPickupsToCatch()
 	}
 }
 
+/** Called to holster an item to this holster, is subscribed to by ScanForPickupsToCatch via overlappig the HolsterSphere also */
 void AvrHolster::CatchDroppedPickup(AvrPickup* DroppedPickup)
 {
 	if (HolsteredItem) 

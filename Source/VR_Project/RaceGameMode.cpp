@@ -10,6 +10,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "vrBelt.h"
+#include "HandThruster.h"
+#include "vrHolster.h"
 
 ARaceGameMode::ARaceGameMode()
 {
@@ -36,7 +39,7 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 		AvrPlayer* vrP = Cast<AvrPlayer>(DyingActor);
 		if (vrP) { vrPlayers.AddUnique(vrP); }
 		FTimerHandle Respawn_Timer;
-		GetWorldTimerManager().SetTimer(Respawn_Timer, this, &ARaceGameMode::RespawnPlayers, 2.f);
+		if (!GetWorldTimerManager().IsTimerActive(Respawn_Timer)) { GetWorldTimerManager().SetTimer(Respawn_Timer, this, &ARaceGameMode::RespawnPlayers, 2.f); }
 	}
 	else
 	{
@@ -46,18 +49,67 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 
 }
 
+/** Respawn player and make sure they have a hand thruster */
 void ARaceGameMode::RespawnPlayers()
 {
-	OnRespawn.Broadcast();
-
 	for (AvrPlayer* Player : vrPlayers)
 	{
-		Player->EnableInput(Cast<APlayerController>(Player->GetController()));
-		UGameplayStatics::ApplyDamage(Player, -500.f, nullptr, nullptr, nullptr);
-		Player->GetHealthStats()->SetIsDead(false);
+		// Respawn, reposition, zero velocity
 		Player->SetActorLocation(ActiveCheckpoint);
 		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 		Player->GetCharacterMovement()->UpdateComponentVelocity();
+		Player->GetHealthStats()->Respawn();
+
+		// Check what items player is holding in hands/holsters
+		TArray<AvrPickup*> Inventory; Inventory.Reset();
+		Player->GetUtilityBelt()->GetHolsteredItems(Inventory);
+		Inventory.AddUnique(Player->GetLeftHeldObject());
+		Inventory.AddUnique(Player->GetRightHeldObject());
+
+		// Check if they lack a required item
+		if (!AddToInventoryOnRespawn) { UE_LOG(LogTemp, Warning, TEXT("No required item set")) OnRespawn.Broadcast(Player); return; }
+		else { UE_LOG(LogTemp, Warning, TEXT("Need a %s"), *AddToInventoryOnRespawn->GetDefaultObject()->GetName()) }
+
+		int32 HasItem = 0;
+		for (AvrPickup* Item : Inventory)
+		{
+			if (Item)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Item found: %s"), *Item->GetName())
+
+				if (Item->IsA(AddToInventoryOnRespawn))
+				{
+					HasItem += 1;
+					UE_LOG(LogTemp, Warning, TEXT("Required Item Found"))
+				}
+			}
+		}
+
+		// If you already have the required item do nothing, otherwise spawn it and attach it to the players belt
+		if (HasItem == 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Missing required item, attempting to spawn"))
+
+			AvrPickup* SpawnedItem =
+				GetWorld()->SpawnActor<AvrPickup>(AddToInventoryOnRespawn, Player->GetUtilityBelt()->GetComponentLocation(), Player->GetUtilityBelt()->GetComponentRotation());
+
+			AvrHolster* VacantHolster = Player->GetUtilityBelt()->GetVacantHolster(SpawnedItem, true);
+			// Attach to a vacant, compatible holster if available
+			if (VacantHolster)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Holstering cast succeeds"))
+
+				SpawnedItem->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+				SpawnedItem->Drop();
+			}
+		}
+		else
+		{
+			// Do nothing
+			UE_LOG(LogTemp, Warning, TEXT("No need to spawn"))
+		}
+
+		OnRespawn.Broadcast(Player);
 	}
 }
 

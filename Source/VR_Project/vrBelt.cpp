@@ -61,7 +61,7 @@ void UvrBelt::FindAllHolsters()
 		}
 	}
 }
-AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster)
+AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool OverrideProximityRequirement)
 {
 	for (AvrHolster* Holster : EquippedHolsters)
 	{
@@ -75,7 +75,21 @@ AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster)
 		{
 			return Holster;
 		}
+		else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem() && OverrideProximityRequirement)
+		{
+			return Holster;
+		}
 	}
 
 	return nullptr;
+}
+
+void UvrBelt::GetHolsteredItems(TArray<AvrPickup*>& Items)
+{
+	Items.Reset();
+
+	for (AvrHolster* Holster : EquippedHolsters)
+	{
+		Items.AddUnique(Holster->GetHolsteredItem());
+	}
 }
