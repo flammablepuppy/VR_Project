@@ -30,8 +30,7 @@ void AWaypointMarker::BeginPlay()
 	Super::BeginPlay();
 
 	WaypointCollectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWaypointMarker::WaypointReached);
-	if (WaypointNumber == 0) { bAutoActivates = true; }
-	if (bAutoActivates) { ActivateWaypoint(); }
+	if (WaypointNumber == 0) { ActivateWaypoint(); }
 	else { DeactivateWaypoint(); }
 	
 }
@@ -48,21 +47,18 @@ void AWaypointMarker::Tick(float DeltaTime)
 
 void AWaypointMarker::WaypointReached(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
+	ARaceGameMode* RaceMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
 	AvrPlayer* OverlappingPlayer = Cast<AvrPlayer>(OtherActor);
 	if (OverlappingPlayer && bWaypointIsActive)
 	{
 		bWaypointIsActive = false;
 
 		// Check if the GameMode is Race and load the course this point is associated with if it's the 0 point
-		if (WaypointNumber == 0 && GetWorld()->GetAuthGameMode()->IsA(ARaceGameMode::StaticClass()))
+		if (WaypointNumber == 0 && RaceMode)
 		{
-			ARaceGameMode* RaceMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
-			if (RaceMode)
-			{
-				RaceMode->LoadCourse(CourseColor);
-				UE_LOG(LogTemp, Warning, TEXT("RaceMode detected, %s course loaded."), *CourseColor.ToString())
+			RaceMode->LoadCourse(CourseColor);
+			UE_LOG(LogTemp, Warning, TEXT("RaceMode detected, %s course loaded."), *CourseColor.ToString())
 
-			}
 		}
 
 		// Do the other stuff

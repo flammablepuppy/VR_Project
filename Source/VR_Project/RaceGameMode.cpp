@@ -13,6 +13,7 @@
 #include "vrBelt.h"
 #include "HandThruster.h"
 #include "vrHolster.h"
+#include "Checkpoint.h"
 
 ARaceGameMode::ARaceGameMode()
 {
@@ -34,12 +35,12 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 		CourseFinished();
 	}
 
-	if (ActiveCheckpoint != FVector::ZeroVector)
+	if (CurrentCheckpoint)
 	{
 		AvrPlayer* vrP = Cast<AvrPlayer>(DyingActor);
 		if (vrP) { vrPlayers.AddUnique(vrP); }
 		FTimerHandle Respawn_Timer;
-		if (!GetWorldTimerManager().IsTimerActive(Respawn_Timer)) { GetWorldTimerManager().SetTimer(Respawn_Timer, this, &ARaceGameMode::RespawnPlayers, 2.f); }
+		if (!GetWorldTimerManager().IsTimerActive(Respawn_Timer)) { GetWorldTimerManager().SetTimer(Respawn_Timer, this, &ARaceGameMode::RespawnPlayers, 1.f); }
 	}
 	else
 	{
@@ -49,67 +50,63 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 
 }
 
-/** Respawn player and make sure they have a hand thruster */
+/** Respawn player, called by HandlePlayerDeath when CurrentCheckpoint is not nullptr */
 void ARaceGameMode::RespawnPlayers()
 {
 	for (AvrPlayer* Player : vrPlayers)
 	{
-		// Respawn, reposition, zero velocity
-		Player->SetActorLocation(ActiveCheckpoint);
-		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
-		Player->GetCharacterMovement()->UpdateComponentVelocity();
+		// Reposition, respawn
+		Player->SetActorLocation(CurrentCheckpoint->GetActorLocation(), false, nullptr, ETeleportType::ResetPhysics);
 		Player->GetHealthStats()->Respawn();
 
-		// Check what items player is holding in hands/holsters
-		TArray<AvrPickup*> Inventory; Inventory.Reset();
-		Player->GetUtilityBelt()->GetHolsteredItems(Inventory);
-		Inventory.AddUnique(Player->GetLeftHeldObject());
-		Inventory.AddUnique(Player->GetRightHeldObject());
-
-		// Check if they lack a required item
-		if (!AddToInventoryOnRespawn) { UE_LOG(LogTemp, Warning, TEXT("No required item set")) OnRespawn.Broadcast(Player); return; }
-		else { UE_LOG(LogTemp, Warning, TEXT("Need a %s"), *AddToInventoryOnRespawn->GetDefaultObject()->GetName()) }
-
-		int32 HasItem = 0;
-		for (AvrPickup* Item : Inventory)
-		{
-			if (Item)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Item found: %s"), *Item->GetName())
-
-				if (Item->IsA(AddToInventoryOnRespawn))
-				{
-					HasItem += 1;
-					UE_LOG(LogTemp, Warning, TEXT("Required Item Found"))
-				}
-			}
-		}
-
-		// If you already have the required item do nothing, otherwise spawn it and attach it to the players belt
-		if (HasItem == 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Missing required item, attempting to spawn"))
-
-			AvrPickup* SpawnedItem =
-				GetWorld()->SpawnActor<AvrPickup>(AddToInventoryOnRespawn, Player->GetUtilityBelt()->GetComponentLocation(), Player->GetUtilityBelt()->GetComponentRotation());
-
-			AvrHolster* VacantHolster = Player->GetUtilityBelt()->GetVacantHolster(SpawnedItem, true);
-			// Attach to a vacant, compatible holster if available
-			if (VacantHolster)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Holstering cast succeeds"))
-
-				SpawnedItem->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
-				SpawnedItem->Drop();
-			}
-		}
-		else
-		{
-			// Do nothing
-			UE_LOG(LogTemp, Warning, TEXT("No need to spawn"))
-		}
+		// If they require a specific item at this checkpoint, spawn it for them
+		EquipRequiredItem(Player, Cast<ACheckpoint>(CurrentCheckpoint)->GetRequiredItem());
 
 		OnRespawn.Broadcast(Player);
+	}
+}
+
+void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TSubclassOf<AvrPickup> ItemToEquip)
+{
+	if (!PlayerToEquip || !ItemToEquip) { return; }
+
+	// Check what items player is holding in hands/holsters
+	TArray<AvrPickup*> Inventory; Inventory.Reset();
+	PlayerToEquip->GetUtilityBelt()->GetHolsteredItems(Inventory);
+	Inventory.AddUnique(PlayerToEquip->GetLeftHeldObject());
+	Inventory.AddUnique(PlayerToEquip->GetRightHeldObject());
+
+	// Check if they lack a required item
+	int32 HasItem = 0;
+	for (AvrPickup* Item : Inventory)
+	{
+		if (Item)
+		{
+			if (Item->IsA(ItemToEquip))
+			{
+				HasItem += 1;
+			}
+		}
+	}
+
+	// If the player doesn't have the item, spawn it and attach it to an empty holster if available
+	if (HasItem == 0)
+	{
+		AvrPickup* SpawnedItem =
+		GetWorld()->SpawnActor<AvrPickup>(ItemToEquip, PlayerToEquip->GetUtilityBelt()->GetComponentLocation(), PlayerToEquip->GetUtilityBelt()->GetComponentRotation());
+
+		AvrHolster* VacantHolster = PlayerToEquip->GetUtilityBelt()->GetVacantHolster(SpawnedItem, true);
+		// Attach to a vacant, compatible holster if available
+		if (VacantHolster)
+		{
+			SpawnedItem->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+			SpawnedItem->Drop();
+		}
+	}
+	// If they already have the required item
+	else
+	{
+		// Do nothing
 	}
 }
 
@@ -118,17 +115,22 @@ void ARaceGameMode::CourseFinished()
 {
 	if (LoadedCourse.Num() == TimeBetweenWaypoints.Num())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Course completed!"))
+
 		for (int32 i = 0; i < TimeBetweenWaypoints.Num(); i++)
 		{
 			int32 iCount = i;
 			float CheckpointTime = TimeBetweenWaypoints[i];
 			UE_LOG(LogTemp, Warning, TEXT("Time to checkpoint %d: %f"), iCount, CheckpointTime)
+
 		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Course not completed."))
+	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Course Finished!"))
-
-	/** Reset all initial waypoints so courses can be run again */
+	// Reset all initial waypoints so courses can be run again
 	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
 	{
 		if (ActorIter->GetWaypointNumber() == 0)
@@ -180,7 +182,6 @@ void ARaceGameMode::DisplayCurrentWaypoint()
 	{
 		if (Marker->GetWaypointNumber() == CurrentWaypoint)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Current Waypoint: %d"), CurrentWaypoint)
 			Marker->ActivateWaypoint();
 		}
 	}
@@ -191,8 +192,9 @@ void ARaceGameMode::DisplayCurrentWaypoint()
 	}
 }
 
-void ARaceGameMode::SetActiveCheckpoint(FVector CheckpointLocation)
+void ARaceGameMode::SetActiveCheckpoint(AActor * CheckpointActor)
 {
-	ActiveCheckpoint = CheckpointLocation;
+	//CurrentCheckpoint->Destroy();
+	CurrentCheckpoint = CheckpointActor;
 }
 

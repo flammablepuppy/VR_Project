@@ -47,18 +47,6 @@ public:
 	UFUNCTION()
 	void OwnerTakesDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
-	UFUNCTION()
-	FORCEINLINE float GetCurrentHealth() { return CurrentHealth; }
-
-	UFUNCTION()
-	FORCEINLINE float GetMaxHealth() { return MaximumHealth; }
-
-	UFUNCTION()
-	FORCEINLINE bool GetIsDead() { return bOwnerIsDead; }
-
-	UFUNCTION(BlueprintPure)
-	FORCEINLINE float GetCurrency() { return Currency; }
-
 	UFUNCTION(BlueprintCallable)
 	void AdjustCurrency(float CurrencyAdjustment = 1.f);
 
@@ -70,6 +58,18 @@ public:
 
 	UFUNCTION()
 	void Respawn();
+
+	UFUNCTION()
+	FORCEINLINE float GetCurrentHealth() { return CurrentHealth; }
+
+	UFUNCTION()
+	FORCEINLINE float GetMaxHealth() { return MaximumHealth; }
+
+	UFUNCTION()
+	FORCEINLINE bool GetIsDead() { return bOwnerIsDead; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetCurrency() { return Currency; }
 
 // DELEGATES
 //////////////

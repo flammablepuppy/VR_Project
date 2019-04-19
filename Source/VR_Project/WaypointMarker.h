@@ -47,16 +47,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Waypoint Properties")
 	class USoundBase* CollectionSound;
 
-	/** When true, WaypointMarker will set itself active in BeginPlay */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
-	bool bAutoActivates = false;
-
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWaypointIsActive = false;
-
-	/** How long the collection animation will last */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties", meta = (AllowPrivateAccess = "true"))
-	float EffectsDuration = 0.5f;
 
 // FUNCTIONS
 //////////////

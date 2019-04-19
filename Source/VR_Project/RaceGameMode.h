@@ -42,10 +42,7 @@ protected:
 	TArray<float> TimeBetweenWaypoints;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FVector ActiveCheckpoint = FVector::ZeroVector;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gameplay")
-	TSubclassOf<AvrPickup> AddToInventoryOnRespawn;
+	AActor * CurrentCheckpoint;
 
 // FUNCTIONS
 //////////////
@@ -57,6 +54,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void RespawnPlayers();
+
+	UFUNCTION(BlueprintCallable)
+	void EquipRequiredItem(AvrPlayer* PlayerToEquip, TSubclassOf<AvrPickup> ItemToEquip);
 
 public:
 // PUBLIC FUNCTIONS
@@ -72,7 +72,10 @@ public:
 	void DisplayCurrentWaypoint();
 
 	UFUNCTION(BlueprintCallable)
-	void SetActiveCheckpoint(FVector CheckpointLocation);
+	void SetActiveCheckpoint(AActor * CheckpointActor);
+
+	UFUNCTION(BlueprintPure)
+	AActor* GetCurrentCheckpoint() { return CurrentCheckpoint; }
 
 // DELEGATES
 //////////////
