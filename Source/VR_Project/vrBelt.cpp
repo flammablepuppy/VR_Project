@@ -93,3 +93,35 @@ void UvrBelt::GetHolsteredItems(TArray<AvrPickup*>& Items)
 		Items.AddUnique(Holster->GetHolsteredItem());
 	}
 }
+
+/** TODO: Make a pickup item that spawns a holster when you pick it up 
+*	TODO: Figure out how to check if there's already a holster in the place it's being told to spawn
+*/
+
+void UvrBelt::SpawnHolster(FVector BeltPosition, TSubclassOf<AvrHolster> HolsterType, AvrHolster*& OutHolster, bool RequiresProximity)
+{
+	// Check if spawning the holster will exceed number allowed
+	if (EquippedHolsters.Num() < MaxHolsters)
+	{
+		// Spawn and attach the holster
+		AvrHolster* SpawnedHolster = GetWorld()->SpawnActor<AvrHolster>(HolsterType, BeltPosition, GetComponentRotation());
+		SpawnedHolster->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
+		SpawnedHolster->SetActorRelativeRotation(FRotator(0.f, 0.f, 0.f));
+
+		// Add it to the array so OnDrop can be subbed on it automatically
+		EquippedHolsters.AddUnique(SpawnedHolster);
+
+		// Optional: Make is proximity dependent if 
+		if (RequiresProximity)
+		{
+			SpawnedHolster->SetProximityEnabled(true);
+		}
+
+		OutHolster = SpawnedHolster;
+	}
+}
+
+void UvrBelt::SetMaxHolsters(int32 NewMax)
+{
+	MaxHolsters = NewMax;
+}

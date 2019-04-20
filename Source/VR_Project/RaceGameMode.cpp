@@ -61,8 +61,6 @@ void ARaceGameMode::RespawnPlayers()
 
 		// If they require a specific item at this checkpoint, spawn it for them
 		EquipRequiredItem(Player, Cast<ACheckpoint>(CurrentCheckpoint)->GetRequiredItem());
-
-		OnRespawn.Broadcast(Player);
 	}
 }
 

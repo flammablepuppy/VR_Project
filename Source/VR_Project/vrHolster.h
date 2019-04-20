@@ -24,8 +24,8 @@ public:
 
 protected:
 
-	//		COMPONENTS
-	//
+// COMPONENTS
+///////////////
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UStaticMeshComponent* HolsterMesh;
@@ -33,8 +33,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USphereComponent* HolsterSphere;
 
-	//		VARIABLES
-	//
+// VARIABLES
+//////////////
 
 	/** Allows overlapping, dropped vrPickups to attach to holster */
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
@@ -49,21 +49,25 @@ protected:
 	UPROPERTY()
 	bool bScanRunning = false;
 
-	//		FUNCTIONS
-	//
+// FUNCTIONS
+//////////////
 
-	/** Subscribes overlapping vrPickup to CatchDroppedPickup function */
+	/** Activates scan */
 	UFUNCTION()
 	void SubscribeCatch(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
-	/** Un-subscribes vrPickups leaving overlap */
+	/** Deactivates scan */
 	UFUNCTION()
 	void UnsubCatch(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	/** Subscribes closest overlapping vrPickup to CatchDroppedPickup function */
 	UFUNCTION()
 	void ScanForPickupsToCatch();
 
 public:
+
+// PUBLIC FUNCTION
+////////////////////
 
 	UFUNCTION()
 	FORCEINLINE AvrPickup* GetHolsteredItem() { return HolsteredItem; }
@@ -74,7 +78,7 @@ public:
 	UFUNCTION()
 	FORCEINLINE bool GetProximityAttachEnabled() { return bProximityAttachEnabled; }
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void CatchDroppedPickup(AvrPickup* DroppedPickup);
 
 	UFUNCTION()
@@ -82,5 +86,11 @@ public:
 
 	UFUNCTION()
 	void ClearHolsteredItem(AvrPickup* DroppedPickup);
+
+	UFUNCTION(BlueprintCallable)
+	void SetCompatiblePickup(TSubclassOf<AvrPickup> NewCompatiblePickup);
+
+	UFUNCTION(BlueprintCallable)
+	void SetProximityEnabled(bool NewState);
 };
 

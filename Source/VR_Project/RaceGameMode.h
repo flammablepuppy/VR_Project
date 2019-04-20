@@ -6,8 +6,6 @@
 #include "GameFramework/GameMode.h"
 #include "RaceGameMode.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayersRespawn, AvrPlayer*, RespawnedPlayer);
-
 class AWaypointMarker;
 class AvrPlayer;
 class AvrPickup;
@@ -76,11 +74,5 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	AActor* GetCurrentCheckpoint() { return CurrentCheckpoint; }
-
-// DELEGATES
-//////////////
-
-	UPROPERTY(BlueprintAssignable)
-	FPlayersRespawn OnRespawn;
 
 };

@@ -44,29 +44,39 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<AvrHolster*> EquippedHolsters;
 
-// FUNCTIONS
-//////////////
-
-	UFUNCTION()
-	void FindAllHolsters();
-
-	// TODO: Make a spawn holster function
-	// TODO: Make an int32 variable to limit number of holsters
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Holster Properties")
+	int32 MaxHolsters = 4;
 
 public:
 
 // PUBLIC FUNCTIONS
 //////////////////////
 
+	UFUNCTION(BlueprintCallable)
+	void FindAllHolsters();
+
 	UFUNCTION()
 	AvrHolster* GetVacantHolster(AvrPickup* PickupRequestingHolster, bool OverrideProximityRequirement = false);
 
-
-	/** Populates array with all items found holstered on belt */
+	/** Populates output parameter array with all items found holstered on belt */
 	UFUNCTION()
 	void GetHolsteredItems(TArray<AvrPickup*>& Items);
+
+	/**
+	*	@param RelativeLocation - Where, relative to the vrBelt, the holster should be attached
+	*	@param HolsterType - Specific holster class to spawn
+	*	@param RequireProximity - Sets whether the holster requires overlap to holster an item
+	*/
+	UFUNCTION(BlueprintCallable)
+	void SpawnHolster(FVector BeltPosition, TSubclassOf<AvrHolster> HolsterType, AvrHolster*& OutHolster, bool RequiresProximity = false);
+
+	UFUNCTION(BlueprintCallable)
+	void SetMaxHolsters(int32 NewMax);
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE TArray<AvrHolster*> GetEquippedHolsters() { return EquippedHolsters; }
 
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE int32 GetMaxHolsters() { return MaxHolsters; }
+	
 };

@@ -36,6 +36,11 @@ void AvrHolster::Tick(float DeltaTime)
 	}
 }
 
+/**
+*
+*/
+
+/** Starts scan */
 void AvrHolster::SubscribeCatch(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
@@ -55,6 +60,7 @@ void AvrHolster::SubscribeCatch(UPrimitiveComponent * OverlappedComponent, AActo
 		}
 	}
 }
+/** Stops scan */
 void AvrHolster::UnsubCatch(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
 {
 	AvrPickup* OverlappingPickup = Cast<AvrPickup>(OtherActor);
@@ -63,7 +69,7 @@ void AvrHolster::UnsubCatch(UPrimitiveComponent * OverlappedComponent, AActor * 
 		OverlappingPickup->OnDrop.Clear();
 	}
 }
-
+/** Subscribes the closest vrPickup in the sphere to be caught when dropped */
 void AvrHolster::ScanForPickupsToCatch()
 {
 	// Will be pointed to closest compatible pickup to be subbed to catch
@@ -95,12 +101,16 @@ void AvrHolster::ScanForPickupsToCatch()
 
 	if (SubscriptionTarget)
 	{
-		if (SubscriptionTarget->OnDrop.IsBound()) { SubscriptionTarget->OnDrop.Clear(); }
+		SubscriptionTarget->OnDrop.Clear();
 		SubscriptionTarget->OnDrop.AddUniqueDynamic(this, &AvrHolster::CatchDroppedPickup);
 	}
 }
 
-/** Called to holster an item to this holster, is subscribed to by ScanForPickupsToCatch via overlappig the HolsterSphere also */
+/** THIS IS HOW YOU ATTACH THINGS TO THE HOLSTER <------!!!
+*	Called to holster an item in this holster
+*	To use, subscribe a vrPickup OnDrop to this function ie "vrPickup->OnDrop.AddUniqueDynamic(vrHolster, &AvrHolster::CatchDroppedPickup);"
+*	CANNOT be called directly by a pickup, will not function correctly
+*/
 void AvrHolster::CatchDroppedPickup(AvrPickup* DroppedPickup)
 {
 	if (HolsteredItem) 
@@ -115,6 +125,7 @@ void AvrHolster::CatchDroppedPickup(AvrPickup* DroppedPickup)
 	HolsterMesh->SetVisibility(false);
 }
 
+/** Called when a caught pickup snaps onto the holster, allowing it to be grabbed out of the holster */
 void AvrHolster::EnableHolsteredItem(AvrPickup* PickupToEnable)
 {
 	if (PickupToEnable == HolsteredItem)
@@ -127,6 +138,7 @@ void AvrHolster::EnableHolsteredItem(AvrPickup* PickupToEnable)
 	}
 }
 
+/** Called when holstered pickup is retrieved from the holster, freeing up the holster and allowing it to scan again */
 void AvrHolster::ClearHolsteredItem(AvrPickup* DroppedPickup)
 {
 	if (HolsteredItem)
@@ -137,5 +149,15 @@ void AvrHolster::ClearHolsteredItem(AvrPickup* DroppedPickup)
 
 		HolsterMesh->SetVisibility(true);
 	}
+}
+
+void AvrHolster::SetCompatiblePickup(TSubclassOf<AvrPickup> NewCompatiblePickup)
+{
+	CompatiblePickup = NewCompatiblePickup;
+}
+
+void AvrHolster::SetProximityEnabled(bool NewState)
+{
+	bProximityAttachEnabled = NewState;
 }
 
