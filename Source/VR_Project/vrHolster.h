@@ -87,6 +87,12 @@ public:
 	UFUNCTION()
 	void ClearHolsteredItem(AvrPickup* DroppedPickup);
 
+	UFUNCTION()
+	void DropHolsteredItem(AvrPickup* DroppedPickup);
+
+	UFUNCTION()
+	void ValidateHolsteredItem();
+
 	UFUNCTION(BlueprintCallable)
 	void SetCompatiblePickup(TSubclassOf<AvrPickup> NewCompatiblePickup);
 

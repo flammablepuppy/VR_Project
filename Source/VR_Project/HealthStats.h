@@ -33,11 +33,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Default Values")
 	float CurrentHealth;
 
-	UPROPERTY()
-	float Currency = 0.f;
-
 	UPROPERTY(BlueprintReadOnly)
 	bool bOwnerIsDead = false;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	AvrPlayer * OwningPlayer;
+
+	UPROPERTY()
+	TArray<AvrPickup*> YardSaleDrop;
 
 public:	
 
@@ -46,9 +49,6 @@ public:
 
 	UFUNCTION()
 	void OwnerTakesDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
-
-	UFUNCTION(BlueprintCallable)
-	void AdjustCurrency(float CurrencyAdjustment = 1.f);
 
 	UFUNCTION()
 	void SetIsDead(bool NewState);
@@ -59,17 +59,22 @@ public:
 	UFUNCTION()
 	void Respawn();
 
+	/** Drop all held items and items in holsters, returns array of dropped items */
 	UFUNCTION()
+	void YardSale();
+
+	UFUNCTION(BlueprintPure)
 	FORCEINLINE float GetCurrentHealth() { return CurrentHealth; }
 
-	UFUNCTION()
+	UFUNCTION(BlueprintPure)
 	FORCEINLINE float GetMaxHealth() { return MaximumHealth; }
 
-	UFUNCTION()
+	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool GetIsDead() { return bOwnerIsDead; }
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE float GetCurrency() { return Currency; }
+	FORCEINLINE TArray<AvrPickup*> GetYardSaleDrop() { return YardSaleDrop; }
+
 
 // DELEGATES
 //////////////

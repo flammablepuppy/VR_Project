@@ -14,6 +14,8 @@ ACheckpoint::ACheckpoint()
 	PrimaryActorTick.bCanEverTick = true;
 
 	CheckpointMesh = CreateDefaultSubobject<UStaticMeshComponent>("Checkpoint Mesh");
+	CheckpointMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CheckpointMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	RootComponent = CheckpointMesh;
 
 	CheckpointSphere = CreateDefaultSubobject<USphereComponent>("Checkpoint Sphere");

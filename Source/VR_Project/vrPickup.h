@@ -152,6 +152,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool GetPickupEnabled() { return bPickupEnabled; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool GetSeeksHolster() { return bSeeksHolster; }
+
+
 	//		SET
 	//
 
@@ -160,6 +164,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void NullifySnapTarget();
+
+	UFUNCTION(BlueprintCallable)
+	void SetSeeksHolster(bool NewState);
 
 	//		DELEGATE
 	//

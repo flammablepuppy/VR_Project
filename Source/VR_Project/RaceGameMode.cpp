@@ -40,7 +40,7 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 		AvrPlayer* vrP = Cast<AvrPlayer>(DyingActor);
 		if (vrP) { vrPlayers.AddUnique(vrP); }
 		FTimerHandle Respawn_Timer;
-		if (!GetWorldTimerManager().IsTimerActive(Respawn_Timer)) { GetWorldTimerManager().SetTimer(Respawn_Timer, this, &ARaceGameMode::RespawnPlayers, 1.f); }
+		if (!GetWorldTimerManager().IsTimerActive(Respawn_Timer)) { GetWorldTimerManager().SetTimer(Respawn_Timer, this, &ARaceGameMode::RespawnPlayers, 2.f); }
 	}
 	else
 	{
@@ -57,54 +57,64 @@ void ARaceGameMode::RespawnPlayers()
 	{
 		// Reposition, respawn
 		Player->SetActorLocation(CurrentCheckpoint->GetActorLocation(), false, nullptr, ETeleportType::ResetPhysics);
+		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
+		Player->GetCharacterMovement()->UpdateComponentVelocity();
 		Player->GetHealthStats()->Respawn();
 
 		// If they require a specific item at this checkpoint, spawn it for them
-		EquipRequiredItem(Player, Cast<ACheckpoint>(CurrentCheckpoint)->GetRequiredItem());
+		if (bRespawnWithInventory)
+		{
+			// Probably best to just keep track of the dropped items, then teleport them back to the player
+		}
+		else // If the last checkpoint they hit spawns a specific item that is requried
+		{
+			EquipRequiredItem(Player, Cast<ACheckpoint>(CurrentCheckpoint)->GetRequiredItem());
+		}
 	}
 }
 
-void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TSubclassOf<AvrPickup> ItemToEquip)
+void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclassOf<AvrPickup>> ItemsToEquip)
 {
-	if (!PlayerToEquip || !ItemToEquip) { return; }
+	if (!PlayerToEquip || ItemsToEquip.Num() == 0) { return; }
 
 	// Check what items player is holding in hands/holsters
 	TArray<AvrPickup*> Inventory; Inventory.Reset();
 	PlayerToEquip->GetUtilityBelt()->GetHolsteredItems(Inventory);
-	Inventory.AddUnique(PlayerToEquip->GetLeftHeldObject());
-	Inventory.AddUnique(PlayerToEquip->GetRightHeldObject());
 
-	// Check if they lack a required item
-	int32 HasItem = 0;
-	for (AvrPickup* Item : Inventory)
+	for (TSubclassOf<AvrPickup> ItemToEquip : ItemsToEquip)
 	{
-		if (Item)
+		// Check if they lack a required item
+		int32 HasItem = 0;
+		for (AvrPickup* Item : Inventory)
 		{
-			if (Item->IsA(ItemToEquip))
+			if (Item)
 			{
-				HasItem += 1;
+				if (Item->IsA(ItemToEquip))
+				{
+					HasItem += 1;
+				}
 			}
 		}
-	}
 
-	// If the player doesn't have the item, spawn it and attach it to an empty holster if available
-	if (HasItem == 0)
-	{
-		AvrPickup* SpawnedItem =
-		GetWorld()->SpawnActor<AvrPickup>(ItemToEquip, PlayerToEquip->GetUtilityBelt()->GetComponentLocation(), PlayerToEquip->GetUtilityBelt()->GetComponentRotation());
-
-		AvrHolster* VacantHolster = PlayerToEquip->GetUtilityBelt()->GetVacantHolster(SpawnedItem, true);
-		// Attach to a vacant, compatible holster if available
-		if (VacantHolster)
+		// If the player doesn't have the item, spawn it and attach it to an empty holster if available
+		if (HasItem == 0)
 		{
-			SpawnedItem->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
-			SpawnedItem->Drop();
+			AvrPickup* SpawnedItem =
+				GetWorld()->SpawnActor<AvrPickup>(ItemToEquip, PlayerToEquip->GetUtilityBelt()->GetComponentLocation(), PlayerToEquip->GetUtilityBelt()->GetComponentRotation());
+
+			AvrHolster* VacantHolster = PlayerToEquip->GetUtilityBelt()->GetVacantHolster(SpawnedItem, true);
+			// Attach to a vacant, compatible holster if available
+			if (VacantHolster)
+			{
+				SpawnedItem->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+				SpawnedItem->Drop();
+			}
 		}
-	}
-	// If they already have the required item
-	else
-	{
-		// Do nothing
+		// If they already have the required item
+		else
+		{
+			// Do nothing
+		}
 	}
 }
 
@@ -194,5 +204,10 @@ void ARaceGameMode::SetActiveCheckpoint(AActor * CheckpointActor)
 {
 	//CurrentCheckpoint->Destroy();
 	CurrentCheckpoint = CheckpointActor;
+}
+
+void ARaceGameMode::SetRespawnWithInventory(bool NewState)
+{
+	bRespawnWithInventory = NewState;
 }
 

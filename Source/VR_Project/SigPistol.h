@@ -12,6 +12,8 @@ class AWeaponMag;
 class USphereComponent;
 class AMagCartridge;
 class AvrHolster;
+class USceneComponent;
+class UMotionController;
 
 UCLASS()
 class VR_PROJECT_API ASigPistol : public AvrPickup
@@ -35,6 +37,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USphereComponent* MagazineLoadSphere;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	USphereComponent* WeaponForegrip;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Pistol Properties")
 	bool bSlideBack = false;
 
@@ -43,6 +48,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pistol Properties: Automatic Fire")
 	float AutoCooldown = 0.15f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Properties: Two Handed")
+	bool bTwoHandEnabled = false;
 
 	FTimerHandle AutoCooldown_Timer;
 
@@ -86,6 +94,12 @@ protected:
 	/** Function that handles the movement of a detected magazine into the magwell and setting it as the LoadedMagazine */
 	UFUNCTION()
 	void MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	UFUNCTION()
+	void ForegripSub(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void GrabForegrip(UMotionControllerComponent* RequestingController);
 
 public:
 	virtual void Tick(float DeltaTime) override;

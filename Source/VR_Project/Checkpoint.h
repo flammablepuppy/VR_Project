@@ -40,8 +40,9 @@ protected:
 // VARIABLES
 //////////////
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Respawn Effects")
-	TSubclassOf<AvrPickup> RequiredItem;
+	/** GameMode will spawn these items then put them in holsters for the player */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Checkpoint: Additional Respawn Effects")
+	TArray<TSubclassOf<AvrPickup>> RequiredItems;
 
 // FUNCTIONS
 //////////////
@@ -61,5 +62,5 @@ public:
 	USphereComponent* GetCheckpointSphere() { return CheckpointSphere; }
 
 	UFUNCTION(BlueprintPure)
-	TSubclassOf<AvrPickup> GetRequiredItem() { return RequiredItem; }
+	TArray<TSubclassOf<AvrPickup>> GetRequiredItem() { return RequiredItems; }
 };

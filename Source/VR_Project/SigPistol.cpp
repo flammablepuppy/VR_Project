@@ -12,6 +12,7 @@
 #include "vrHolster.h"
 #include "vrBelt.h"
 #include "TimerManager.h"
+#include "MotionControllerComponent.h"
 
 ASigPistol::ASigPistol()
 {
@@ -23,6 +24,13 @@ ASigPistol::ASigPistol()
 
 	MagazineLoadSphere = CreateDefaultSubobject<USphereComponent>("Magazine Load Sphere");
 	MagazineLoadSphere->SetupAttachment(PistolMesh);
+
+	if (bTwoHandEnabled)
+	{
+		WeaponForegrip = CreateDefaultSubobject<USphereComponent>("Weapon Foregrip");
+		WeaponForegrip->SetupAttachment(RootComponent);
+
+	}
 	
 }
 void ASigPistol::BeginPlay()
@@ -30,6 +38,10 @@ void ASigPistol::BeginPlay()
 	Super::BeginPlay();
 
 	MagazineLoadSphere->OnComponentBeginOverlap.AddDynamic(this, &ASigPistol::MagOverlap);
+	//if (bTwoHandEnabled)
+	//{
+	//	WeaponForegrip->OnComponentBeginOverlap.AddDynamic(this, &ASigPistol::ForegripSub);
+	//}
 
 	if (bSpawnsLoaded && CompatibleMagazine)
 	{
@@ -53,6 +65,11 @@ void ASigPistol::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+/**
+*
+*/
+
 void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (LoadedMagazine) { return; }
@@ -77,6 +94,26 @@ void ASigPistol::MagOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 			BP_PlayMagLoad();
 		}
 	}
+}
+void ASigPistol::ForegripSub(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	UMotionControllerComponent* MCOverlap = Cast<UMotionControllerComponent>(OtherComp);
+	if (MCOverlap)
+	{
+		AvrPlayer* vrPlayer = Cast<AvrPlayer>(MCOverlap->GetOwner());
+		if (vrPlayer)
+		{
+			vrPlayer->OnGrip.AddUniqueDynamic(this, &ASigPistol::GrabForegrip);
+		}
+	}
+}
+void ASigPistol::GrabForegrip(UMotionControllerComponent* RequestingController)
+{
+	FVector NewDirection = RequestingController->GetComponentLocation() - GetActorLocation();
+	FRotator NewRotation = NewDirection.Rotation();
+	NewRotation.Roll = GetOwningMC()->GetComponentRotation().Roll;
+
+	SetActorRotation(NewRotation);
 }
 
 // Input Functions

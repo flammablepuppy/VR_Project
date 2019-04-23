@@ -8,6 +8,8 @@
 #include "vrPickup.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "vrBelt.h"
+#include "vrHolster.h"
 
 UHealthStats::UHealthStats()
 {
@@ -19,23 +21,25 @@ void UHealthStats::BeginPlay()
 	Super::BeginPlay();
 
 	CurrentHealth = MaximumHealth;
-
-	AActor* MyOwner = GetOwner();
-	if (MyOwner)
+	OwningPlayer = Cast<AvrPlayer>(GetOwner());
+	
+	if (OwningPlayer)
 	{
-		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthStats::OwnerTakesDamage);
+		OwningPlayer->OnTakeAnyDamage.AddDynamic(this, &UHealthStats::OwnerTakesDamage);
+	}
+	else
+	{
+		AActor* MyOwner = GetOwner();
+		if (MyOwner)
+		{
+			MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthStats::OwnerTakesDamage);
+		}
 	}
 }
 
-void UHealthStats::Die()
-{
-	AvrPlayer* Owner = Cast<AvrPlayer>(GetOwner());
-	Owner->DisableInput(Cast<APlayerController>(Owner->GetController()));
-	if (Owner->GetLeftHeldObject()) { Owner->GetLeftHeldObject()->Drop(); }
-	if (Owner->GetRightHeldObject()) { Owner->GetRightHeldObject()->Drop(); }
-	Owner->GetMovementComponent()->StopActiveMovement();
-
-}
+/**
+*
+*/
 
 void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
@@ -48,11 +52,6 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 		{
 			bOwnerIsDead = true;
 
-			AvrPlayer* vrPlayerOwner = Cast<AvrPlayer>(GetOwner());
-			if (vrPlayerOwner)
-			{
-				Die();
-			}
 			if (OnDeath.IsBound())
 			{
 				OnDeath.Broadcast(GetOwner());
@@ -61,8 +60,24 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 			{
 				GetOwner()->Destroy();
 			}
+
+			AvrPlayer* vrPlayerOwner = Cast<AvrPlayer>(GetOwner());
+			if (vrPlayerOwner)
+			{
+				Die();
+			}
 		}
 	}
+}
+
+void UHealthStats::Die()
+{
+	AvrPlayer* Owner = Cast<AvrPlayer>(GetOwner());
+	Owner->DisableInput(Cast<APlayerController>(Owner->GetController()));
+	Owner->GetMovementComponent()->StopActiveMovement();
+
+	YardSale();
+
 }
 
 void UHealthStats::SetIsDead(bool NewState)
@@ -72,15 +87,39 @@ void UHealthStats::SetIsDead(bool NewState)
 
 void UHealthStats::Respawn()
 {
-	AvrPlayer* Owner = Cast<AvrPlayer>(GetOwner());
-	Owner->EnableInput(Cast<APlayerController>(Owner->GetController()));
-	OwnerTakesDamage(GetOwner(), -500.f, nullptr, nullptr, nullptr);
+	OwningPlayer->EnableInput(Cast<APlayerController>(OwningPlayer->GetController()));
+	OwnerTakesDamage(OwningPlayer, -MaximumHealth, nullptr, nullptr, nullptr);
 	bOwnerIsDead = false;
-
 	OnRespawn.Broadcast(GetOwner());
 }
 
-void UHealthStats::AdjustCurrency(float CurrencyAdjustment)
+void UHealthStats::YardSale()
 {
-	Currency += CurrencyAdjustment;
+	TArray<AvrPickup*> Inventory; Inventory.Reset();
+	OwningPlayer->GetUtilityBelt()->GetHolsteredItems(Inventory);
+	Inventory.AddUnique(OwningPlayer->GetLeftHeldObject());
+	Inventory.AddUnique(OwningPlayer->GetRightHeldObject());
+
+	// Clear, disable and drop all items
+	for (AvrPickup* Item : Inventory)
+	{
+		if (Item)
+		{
+			Item->OnDrop.Clear();
+			Item->SetSeeksHolster(false);
+			Item->Drop();
+			Item->SetSeeksHolster(true);
+			OwningPlayer->GetUtilityBelt()->ValidateAllHolsters();
+
+			// SetLifeSpan is cancelled if items are picked up before being destroyed
+			Item->SetLifeSpan(7.f);
+			TArray<AActor*> Children;
+			Item->GetAllChildActors(Children);
+			for (AActor* Child : Children)
+			{
+				Child->SetLifeSpan(6.9f);
+			}
+		}
+	}
 }
+

@@ -134,7 +134,9 @@ void AvrHolster::EnableHolsteredItem(AvrPickup* PickupToEnable)
 		HolsteredItem->SetActorEnableCollision(true);
 		HolsteredItem->OnSnappedOn.Clear();
 
+		// Allow it to be grabbed, or externally dropped from holster
 		HolsteredItem->OnGrabbed.AddUniqueDynamic(this, &AvrHolster::ClearHolsteredItem);
+		HolsteredItem->OnDrop.AddUniqueDynamic(this, &AvrHolster::DropHolsteredItem);
 	}
 }
 
@@ -146,8 +148,29 @@ void AvrHolster::ClearHolsteredItem(AvrPickup* DroppedPickup)
 		HolsteredItem->OnGrabbed.Clear();
 		HolsteredItem = nullptr;
 		bScanRunning = true; // Allows dropped item to immedietly be dropped back in holster without having to EndOverlap and then Overlap
-
 		HolsterMesh->SetVisibility(true);
+	}
+}
+
+/** Allows for holstered items to be dropped from holster */
+void AvrHolster::DropHolsteredItem(AvrPickup* DroppedPickup)
+{
+	bScanRunning = true; // Allows dropped item to immedietly be dropped back in holster without having to EndOverlap and then Overlap
+	HolsterMesh->SetVisibility(true);
+}
+
+/** Ensure that a holstered item is in fact, in the holster */
+void AvrHolster::ValidateHolsteredItem()
+{
+	if (HolsteredItem)
+	{
+		auto Loc1 = GetHolsteredItem()->GetActorLocation();
+		auto Loc2 = HolsterMesh->GetComponentLocation();
+		auto Delta = Loc1 - Loc2;
+		if (Delta.Size() > 1.f)
+		{
+			ClearHolsteredItem(HolsteredItem);
+		}
 	}
 }
 

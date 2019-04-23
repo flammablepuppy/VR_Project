@@ -42,6 +42,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	AActor * CurrentCheckpoint;
 
+	UPROPERTY()
+	bool bRespawnWithInventory = false;
+
 // FUNCTIONS
 //////////////
 
@@ -54,7 +57,7 @@ protected:
 	void RespawnPlayers();
 
 	UFUNCTION(BlueprintCallable)
-	void EquipRequiredItem(AvrPlayer* PlayerToEquip, TSubclassOf<AvrPickup> ItemToEquip);
+	void EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclassOf<AvrPickup>> ItemsToEquip);
 
 public:
 // PUBLIC FUNCTIONS
@@ -74,5 +77,8 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	AActor* GetCurrentCheckpoint() { return CurrentCheckpoint; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetRespawnWithInventory(bool NewState);
 
 };

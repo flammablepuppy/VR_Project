@@ -37,6 +37,8 @@ void AvrPickup::Tick(float DeltaTime)
 // Grabbing
 void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketName)
 {
+	SetLifeSpan(-1.f);
+
 	if (!bPickupEnabled) { return; }
 	bPickupEnabled = false;
 
@@ -68,8 +70,6 @@ void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketN
 
 void AvrPickup::SnapOn()
 {
-	OnDrop.Clear();
-
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
 	bMoving = false;
@@ -91,9 +91,8 @@ void AvrPickup::Drop()
 	if (OwningMC) { OwningMC = nullptr; }
 	if (OwningPlayer) 
 	{ 
-
 		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(this));
-		if (VacantHolster && (GetVelocity() - OwningPlayer->GetVelocity()).Size() < NoHolsterSpeed && bSeeksHolster && !OnDrop.IsBound())
+		if (VacantHolster && (GetVelocity() - OwningPlayer->GetVelocity()).Size() < NoHolsterSpeed && bSeeksHolster)
 		{
 			OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
 		}
@@ -104,9 +103,7 @@ void AvrPickup::Drop()
 	SnapSocket = NAME_None;
 	bPickupEnabled = true;
 
-	//BPDrop(); FUNCTIONALITY IS REPLACED BY BINDING DELEGATE TO OnDrop
 	OnDrop.Broadcast(this);
-	OnDrop.Clear();
 }
 
 void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
@@ -189,4 +186,9 @@ void AvrPickup::NullifySnapTarget()
 	SnapSocket = NAME_None;
 	bReadyToUse = false;
 	bPickupEnabled = true;
+}
+
+void AvrPickup::SetSeeksHolster(bool NewState)
+{
+	bSeeksHolster = NewState;
 }

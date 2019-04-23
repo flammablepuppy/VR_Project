@@ -47,13 +47,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Holster Properties")
 	int32 MaxHolsters = 4;
 
+
+// FUNCTIONS
+//////////////
+
+	UFUNCTION(BlueprintCallable)
+	void FindAllHolsters();
+
 public:
 
 // PUBLIC FUNCTIONS
 //////////////////////
-
-	UFUNCTION(BlueprintCallable)
-	void FindAllHolsters();
 
 	UFUNCTION()
 	AvrHolster* GetVacantHolster(AvrPickup* PickupRequestingHolster, bool OverrideProximityRequirement = false);
@@ -61,6 +65,9 @@ public:
 	/** Populates output parameter array with all items found holstered on belt */
 	UFUNCTION()
 	void GetHolsteredItems(TArray<AvrPickup*>& Items);
+
+	UFUNCTION()
+	void ValidateAllHolsters();
 
 	/**
 	*	@param RelativeLocation - Where, relative to the vrBelt, the holster should be attached

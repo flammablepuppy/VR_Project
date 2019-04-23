@@ -14,6 +14,8 @@ class AvrPickup;
 class UHealthStats;
 class USoundCue;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGripRequest, UMotionControllerComponent*, RequestingController);
+
 UCLASS()
 class VR_PROJECT_API AvrPlayer : public ACharacter
 {
@@ -170,7 +172,7 @@ protected:
 
 		/** When both hands move vertically by this speed without head movement upward, triggers a small jump */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float JumpSmallReq = 16.f;
+		float JumpSmallReq = 12.f;
 
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
 		float SmallJumpHeight = 550.f;
@@ -178,6 +180,8 @@ protected:
 		/** Set to true by MoveForward when axis value is greater than 0.3, used to limit accidental jumps and amplify forward motion on big jumps */
 		UPROPERTY()
 		bool bHasForwardMovementInput = false;
+
+		FTimerHandle HighSpeedJump_Timer;
 
 	// Sprint
 	UFUNCTION()
@@ -198,15 +202,19 @@ protected:
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
 		float SprintDecelResetDuration = 0.75f;
 
-		UPROPERTY()
+		/** Default walking speed */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
 		float SprintMinSpeed = 320.f;
 
-		UPROPERTY()
+		/** Max speed attainable by sprinting */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
 		float SprintMaxSpeed = 1200.f;
 
-		UPROPERTY()
+		/** Friction when sprinting, low value better simulates momentum of running */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
 		float SprintingFriction = 0.18f;
 
+		/** Normal friction value, applied when not sprinting */
 		UPROPERTY()
 		float SprintNormalFriction = 2.f;
 
@@ -323,4 +331,10 @@ public:
 
 	UPROPERTY()
 	float WhatsTheFriction = 2.f;
+
+// DELEGATES
+//////////////
+
+	UPROPERTY(BlueprintAssignable)
+	FGripRequest OnGrip;
 };

@@ -17,7 +17,7 @@ void UvrBelt::BeginPlay()
 	Super::BeginPlay();
 
 	// TODO: Make belt spawn a specified number of holsters.
-
+	
 	FindAllHolsters();
 
 	OwningPlayer = Cast<AvrPlayer>(GetOwner());
@@ -46,6 +46,8 @@ void UvrBelt::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 
 void UvrBelt::FindAllHolsters()
 {
+	EquippedHolsters.Reset();
+
 	OwningPlayer = Cast<AvrPlayer>(GetOwner());
 	if (OwningPlayer)
 	{
@@ -90,7 +92,16 @@ void UvrBelt::GetHolsteredItems(TArray<AvrPickup*>& Items)
 
 	for (AvrHolster* Holster : EquippedHolsters)
 	{
+		Holster->ValidateHolsteredItem();
 		Items.AddUnique(Holster->GetHolsteredItem());
+	}
+}
+
+void UvrBelt::ValidateAllHolsters()
+{
+	for (AvrHolster* Holster : EquippedHolsters)
+	{
+		Holster->ValidateHolsteredItem();
 	}
 }
 

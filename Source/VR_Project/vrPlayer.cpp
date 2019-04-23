@@ -210,7 +210,7 @@ void AvrPlayer::MotionInputScan()
 		/** IMPACT DAMAGE
 		*	Damage character for abruput velocity changes
 		*/
-		if ((VelocityLastTick - GetVelocity()).Size() > VelocityChangeDamageSpeed)
+		if ((VelocityLastTick - GetVelocity()).Size() > VelocityChangeDamageSpeed && !GetHealthStats()->GetIsDead())
 		{
 			ApplyImpactDamage();
 		}
@@ -220,7 +220,9 @@ void AvrPlayer::MotionInputScan()
 		*	High jump with forward impulse when arms swing and head pops
 		*	Small jump when arms are whipped up quickly while moving forward
 		*/
-		if (HeadRelVel.Z > BigJumpHeadReq && LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq)
+		// Big Jump
+		if (HeadRelVel.Z > BigJumpHeadReq && LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq ||								// Condition 1 - Head popping with arm swing
+			LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq && GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed - 50.f)	// Condition 2 - High speed with arm swing
 		{
 			FTimerHandle FiringJump_Timer;
 			GetWorldTimerManager().SetTimer(FiringJump_Timer, this, &AvrPlayer::MotionJump, JumpDurationReq, false);
@@ -228,18 +230,13 @@ void AvrPlayer::MotionInputScan()
 			// Prevent triggering sprint while jumping is being checked
 			GetWorldTimerManager().SetTimer(SprintLeft_Timer, JumpDurationReq, false);
 			GetWorldTimerManager().SetTimer(SprintRight_Timer, JumpDurationReq, false);
+			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
 
+			if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed - 50.f)
+			{ GetWorldTimerManager().SetTimer(HighSpeedJump_Timer, 0.5f, false); } //TODO: EXPERIMENT WITH THIS MORE
 		}
-		else if (GetCharacterMovement()->Velocity.Size() >= SprintMaxSpeed && LeftRelVel.Z + RightRelVel.Z > JumpSmallReq * 2)
-		{
-			MotionJump();
-			if (GetCharacterMovement()->MaxWalkSpeed < SprintMaxSpeed)
-			{
-				GetCharacterMovement()->MaxWalkSpeed = SprintMaxSpeed;
-			}
-		}
-
-		else if (LeftRelVel.Z + RightRelVel.Z > JumpSmallReq * 2 && bHasForwardMovementInput)
+		// Small Jump
+		else if (LeftRelVel.Z > JumpSmallReq &&	RightRelVel.Z > JumpSmallReq &&	bHasForwardMovementInput)
 		{
 			GetCharacterMovement()->JumpZVelocity = SmallJumpHeight;
 			Jump();
@@ -253,10 +250,12 @@ void AvrPlayer::MotionInputScan()
 		*	Add an impulse in the direction the forward arm swings
 		*	Triggered when the forward swinging arm x and y relative velocities combined exceed a threshold while the other hand is going in reverse by half that speed
 		*/
-		if (LeftRelVel.X + LeftRelVel.Z > SprintMinImpulseSpeed && 
+		float LeftSwing = LeftRelVel.X + LeftRelVel.Z;
+		float RightSwing = RightRelVel.X + RightRelVel.Z;
+		if (LeftSwing > SprintMinImpulseSpeed && 
+			RightSwing < -SprintMinImpulseSpeed * 0.75f &&
 			!GetWorldTimerManager().IsTimerActive(SprintLeft_Timer) && 
-			!GetCharacterMovement()->IsFalling() &&
-			RightRelVel.Z + RightRelVel.X < -SprintMinImpulseSpeed * 0.5f)
+			!GetCharacterMovement()->IsFalling() )
 		{
 			GetWorldTimerManager().SetTimer(SprintLeft_Timer, SprintCooldownDuration, false);
 			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
@@ -273,10 +272,10 @@ void AvrPlayer::MotionInputScan()
 
 			MotionSprint(Direction, Percent);
 		}
-		if (RightRelVel.X + RightRelVel.Z > SprintMinImpulseSpeed && 
+		if (RightSwing > SprintMinImpulseSpeed && 
+			LeftSwing < -SprintMinImpulseSpeed * 0.75f &&
 			!GetWorldTimerManager().IsTimerActive(SprintRight_Timer) && 
-			!GetCharacterMovement()->IsFalling() &&
-			LeftRelVel.Z + LeftRelVel.X < -SprintMinImpulseSpeed * 0.5f)
+			!GetCharacterMovement()->IsFalling() )
 		{
 			GetWorldTimerManager().SetTimer(SprintRight_Timer, SprintCooldownDuration, false);
 			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
@@ -348,7 +347,7 @@ void AvrPlayer::ApplyImpactDamage()
 }
 void AvrPlayer::MotionJump()
 {
-	if (HeadRelVel.Z > BigJumpHeadReq/2)
+	if (HeadRelVel.Z > BigJumpHeadReq/2 || GetWorldTimerManager().IsTimerActive(HighSpeedJump_Timer))
 	{
 		if (!GetCharacterMovement()->IsFalling())
 		{
@@ -368,6 +367,12 @@ void AvrPlayer::MotionJump()
 			GetCharacterMovement()->Velocity += ForwardImpulse;
 			GetCharacterMovement()->UpdateComponentVelocity();
 		}
+
+		// Lower ground friction to simulate higher momentum
+		GetCharacterMovement()->GroundFriction = SprintingFriction;
+
+		// Max walk speed so it's easier to trigger subsequent big jumps
+		GetCharacterMovement()->MaxWalkSpeed = SprintMaxSpeed;
 	}
 }
 void AvrPlayer::MotionSprint(FVector ImpulseDirection, float ImpulsePercent)
@@ -394,6 +399,11 @@ void AvrPlayer::LeftGripPull()
 {
 	ScanForClosestObject(LeftVolume, LeftScanTarget, LeftController);
 	ExecuteGrip(LeftScanTarget, LeftHeldObject, LeftController);
+	if (OnGrip.IsBound())
+	{
+		OnGrip.Broadcast(LeftController);
+		OnGrip.Clear();
+	}
 }
 void AvrPlayer::LeftGripRelease()
 {
@@ -442,6 +452,11 @@ void AvrPlayer::RightGripPull()
 {
 	ScanForClosestObject(RightVolume, RightScanTarget, RightController);
 	ExecuteGrip(RightScanTarget, RightHeldObject, RightController);
+	if (OnGrip.IsBound())
+	{
+		OnGrip.Broadcast(RightController);
+		OnGrip.Clear();
+	}
 }
 void AvrPlayer::RightGripRelease()
 {
