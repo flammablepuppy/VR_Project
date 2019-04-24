@@ -50,18 +50,20 @@ public:
 	UFUNCTION()
 	void OwnerTakesDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetIsDead(bool NewState);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Die();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Respawn();
 
-	/** Drop all held items and items in holsters, returns array of dropped items */
-	UFUNCTION()
-	void YardSale();
+	UFUNCTION(BlueprintCallable)
+	void YardSale(float DroppedItemsLifespan = -1.f);
+
+	UFUNCTION(BlueprintCallable)
+	void MemorizePlayerItems(TArray<AvrPickup*>& OutInventory);
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE float GetCurrentHealth() { return CurrentHealth; }

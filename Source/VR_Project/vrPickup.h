@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GrabInterface.h"
+#include "SpecialVariables.h"
 #include "GameFramework/Actor.h"
 #include "vrPickup.generated.h"
 
@@ -16,7 +18,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPickupSnappedOn, AvrPickup*, Pickup
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPickupGrabbed, AvrPickup*, GrabbedPickup);
 
 UCLASS()
-class VR_PROJECT_API AvrPickup : public AActor
+class VR_PROJECT_API AvrPickup : public AActor, public IGrabInterface
 {
 	GENERATED_BODY()
 	

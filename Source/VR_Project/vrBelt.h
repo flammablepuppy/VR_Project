@@ -66,14 +66,6 @@ public:
 	UFUNCTION()
 	void GetHolsteredItems(TArray<AvrPickup*>& Items);
 
-	UFUNCTION()
-	void ValidateAllHolsters();
-
-	/**
-	*	@param RelativeLocation - Where, relative to the vrBelt, the holster should be attached
-	*	@param HolsterType - Specific holster class to spawn
-	*	@param RequireProximity - Sets whether the holster requires overlap to holster an item
-	*/
 	UFUNCTION(BlueprintCallable)
 	void SpawnHolster(FVector BeltPosition, TSubclassOf<AvrHolster> HolsterType, AvrHolster*& OutHolster, bool RequiresProximity = false);
 

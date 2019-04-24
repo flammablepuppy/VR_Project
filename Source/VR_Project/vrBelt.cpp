@@ -44,6 +44,7 @@ void UvrBelt::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 	}
 }
 
+/** Resets and populates the array containing all the attached holsters */
 void UvrBelt::FindAllHolsters()
 {
 	EquippedHolsters.Reset();
@@ -63,6 +64,12 @@ void UvrBelt::FindAllHolsters()
 		}
 	}
 }
+
+/**
+*	Finds a vacant holster
+*	@param PickupRequestingHolster, Finds a holster that is specifically for this item
+*	@param OverrideProximityRequirement, When true item will snap to the holster even if outside it's sphere
+*/
 AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool OverrideProximityRequirement)
 {
 	for (AvrHolster* Holster : EquippedHolsters)
@@ -72,12 +79,13 @@ AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool
 		{
 			return Holster;
 		}
-		// If there is no CompatiblePickup set, it just has to be empty
+		// If there is no CompatiblePickup set, the holster is empty, and the holster doesn't require proximity
 		else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem() && !Holster->GetProximityAttachEnabled())
 		{
 			return Holster;
 		}
-		else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem() && OverrideProximityRequirement)
+		// If there is no CompatiblePickup set, the holster is empty, the holster does require proximity but the override is true
+		else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem() && Holster->GetProximityAttachEnabled() && OverrideProximityRequirement == true)
 		{
 			return Holster;
 		}
@@ -86,22 +94,18 @@ AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool
 	return nullptr;
 }
 
+/** Populates provided array with all the items currently attached to any holster on the belt */
 void UvrBelt::GetHolsteredItems(TArray<AvrPickup*>& Items)
 {
 	Items.Reset();
 
 	for (AvrHolster* Holster : EquippedHolsters)
 	{
-		Holster->ValidateHolsteredItem();
-		Items.AddUnique(Holster->GetHolsteredItem());
-	}
-}
-
-void UvrBelt::ValidateAllHolsters()
-{
-	for (AvrHolster* Holster : EquippedHolsters)
-	{
-		Holster->ValidateHolsteredItem();
+		// Check if item is co-located with the holster, otherwise it must not be holstered there anymore
+		if ((Holster->GetHolsteredItem()->GetActorLocation() - Holster->GetActorLocation()).Size() < 0.5f)
+		{
+			Items.AddUnique(Holster->GetHolsteredItem());
+		}
 	}
 }
 

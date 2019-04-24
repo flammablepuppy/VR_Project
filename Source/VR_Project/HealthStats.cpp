@@ -93,33 +93,53 @@ void UHealthStats::Respawn()
 	OnRespawn.Broadcast(GetOwner());
 }
 
-void UHealthStats::YardSale()
+/** Owning Player drops all their stuff */
+void UHealthStats::YardSale(float DroppedItemsLifespan)
 {
-	TArray<AvrPickup*> Inventory; Inventory.Reset();
-	OwningPlayer->GetUtilityBelt()->GetHolsteredItems(Inventory);
-	Inventory.AddUnique(OwningPlayer->GetLeftHeldObject());
-	Inventory.AddUnique(OwningPlayer->GetRightHeldObject());
-
-	// Clear, disable and drop all items
-	for (AvrPickup* Item : Inventory)
+	if (DroppedItemsLifespan > 0.f)
 	{
-		if (Item)
+		TArray<AvrPickup*> PlayerInventory;
+		MemorizePlayerItems(PlayerInventory);
+		for (AvrPickup* Item : PlayerInventory)
 		{
-			Item->OnDrop.Clear();
-			Item->SetSeeksHolster(false);
-			Item->Drop();
-			Item->SetSeeksHolster(true);
-			OwningPlayer->GetUtilityBelt()->ValidateAllHolsters();
-
-			// SetLifeSpan is cancelled if items are picked up before being destroyed
-			Item->SetLifeSpan(7.f);
-			TArray<AActor*> Children;
-			Item->GetAllChildActors(Children);
-			for (AActor* Child : Children)
-			{
-				Child->SetLifeSpan(6.9f);
-			}
+			Item->SetLifeSpan(DroppedItemsLifespan);
 		}
 	}
+
+	TArray<AvrHolster*> Holsters = OwningPlayer->GetUtilityBelt()->GetEquippedHolsters();
+	for (AvrHolster* Holster : Holsters)
+	{
+		Holster->DropHolsteredItem();
+	}
+
+	if (OwningPlayer->GetLeftHeldObject())
+	{
+		AvrPickup* RememberLeft = OwningPlayer->GetLeftHeldObject();
+		RememberLeft->SetSeeksHolster(false);
+		RememberLeft->Drop();
+		RememberLeft->SetSeeksHolster(true);
+	}
+
+	if (OwningPlayer->GetRightHeldObject())
+	{
+		AvrPickup* RememberRight = OwningPlayer->GetRightHeldObject();
+		RememberRight->SetSeeksHolster(false);
+		RememberRight->Drop();
+		RememberRight->SetSeeksHolster(true);
+	}
+}
+
+void UHealthStats::MemorizePlayerItems(TArray<AvrPickup*>& OutInventory)
+{
+	OutInventory.Reset();
+
+	TArray<AvrHolster*> Holsters = OwningPlayer->GetUtilityBelt()->GetEquippedHolsters();
+	for (AvrHolster* Holster : Holsters)
+	{
+		OutInventory.AddUnique(Holster->GetHolsteredItem());
+	}
+
+	OutInventory.AddUnique(OwningPlayer->GetLeftHeldObject());
+	OutInventory.AddUnique(OwningPlayer->GetRightHeldObject());
 }
 

@@ -26,6 +26,8 @@ void AvrPickup::BeginPlay()
 {
 	Super::BeginPlay();
 
+	InitializeGrabInterface(EGrabAction::GA_ObjectToHand, GetOwner());
+
 }
 void AvrPickup::Tick(float DeltaTime)
 {
@@ -42,7 +44,7 @@ void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketN
 	if (!bPickupEnabled) { return; }
 	bPickupEnabled = false;
 
-	OnGrabbed.Broadcast(this);
+	if (OnGrabbed.IsBound()) { OnGrabbed.Broadcast(this); }
 
 	SnapTarget = NewParentComponent;
 	SnapSocket = SocketName;
@@ -94,7 +96,10 @@ void AvrPickup::Drop()
 		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(this));
 		if (VacantHolster && (GetVelocity() - OwningPlayer->GetVelocity()).Size() < NoHolsterSpeed && bSeeksHolster)
 		{
-			OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+			if (!OnDrop.IsBound())
+			{
+				OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+			}
 		}
 		OwningPlayer = nullptr; 
 	}
@@ -104,6 +109,7 @@ void AvrPickup::Drop()
 	bPickupEnabled = true;
 
 	OnDrop.Broadcast(this);
+	OnDrop.Clear();
 }
 
 void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)

@@ -221,8 +221,9 @@ void AvrPlayer::MotionInputScan()
 		*	Small jump when arms are whipped up quickly while moving forward
 		*/
 		// Big Jump
-		if (HeadRelVel.Z > BigJumpHeadReq && LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq ||								// Condition 1 - Head popping with arm swing
-			LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq && GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed - 50.f)	// Condition 2 - High speed with arm swing
+		if (HeadRelVel.Z > BigJumpHeadReq && LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq ||		// Condition 1 - Head popping with arm swing
+			LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq &&											// Condition 2 - High speed with arm swing
+			GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed - 50.f && bHasForwardMovementInput)			
 		{
 			FTimerHandle FiringJump_Timer;
 			GetWorldTimerManager().SetTimer(FiringJump_Timer, this, &AvrPlayer::MotionJump, JumpDurationReq, false);
@@ -233,7 +234,7 @@ void AvrPlayer::MotionInputScan()
 			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
 
 			if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed - 50.f)
-			{ GetWorldTimerManager().SetTimer(HighSpeedJump_Timer, 0.5f, false); } //TODO: EXPERIMENT WITH THIS MORE
+			{ GetWorldTimerManager().SetTimer(HighSpeedJump_Timer, 0.1f, false); } //TODO: EXPERIMENT WITH THIS MORE
 		}
 		// Small Jump
 		else if (LeftRelVel.Z > JumpSmallReq &&	RightRelVel.Z > JumpSmallReq &&	bHasForwardMovementInput)
