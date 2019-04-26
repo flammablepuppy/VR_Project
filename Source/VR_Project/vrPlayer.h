@@ -123,6 +123,9 @@ protected:
 	UFUNCTION()
 	void ApplyImpactDamage();
 
+		UPROPERTY()
+		bool bImpactDamageActive = true;
+
 		/** Velocity change threshold beyond which damage is applied to the player */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Impact Damage")
 		float VelocityChangeDamageSpeed = 1000.f; 
@@ -313,6 +316,9 @@ public:
 
 	UFUNCTION()
 	FORCEINLINE FVector GetVelocityLastTick() { return VelocityLastTick; };
+
+	UFUNCTION()
+	void SetImpactDamageEnabled(bool NewState);
 
 	//		FOR DEBUG DISPLAY ON HUD
 	//

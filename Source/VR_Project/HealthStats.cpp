@@ -75,8 +75,9 @@ void UHealthStats::Die()
 	AvrPlayer* Owner = Cast<AvrPlayer>(GetOwner());
 	Owner->DisableInput(Cast<APlayerController>(Owner->GetController()));
 	Owner->GetMovementComponent()->StopActiveMovement();
+	Owner->SetImpactDamageEnabled(false);
 
-	YardSale();
+	//YardSale();
 
 }
 
@@ -90,6 +91,7 @@ void UHealthStats::Respawn()
 	OwningPlayer->EnableInput(Cast<APlayerController>(OwningPlayer->GetController()));
 	OwnerTakesDamage(OwningPlayer, -MaximumHealth, nullptr, nullptr, nullptr);
 	bOwnerIsDead = false;
+	OwningPlayer->SetImpactDamageEnabled(true);
 	OnRespawn.Broadcast(GetOwner());
 }
 
@@ -102,7 +104,23 @@ void UHealthStats::YardSale(float DroppedItemsLifespan)
 		MemorizePlayerItems(PlayerInventory);
 		for (AvrPickup* Item : PlayerInventory)
 		{
-			Item->SetLifeSpan(DroppedItemsLifespan);
+			if (Item)
+			{
+				Item->SetLifeSpan(DroppedItemsLifespan);
+
+				// TODO: Make a bool for wether or not dropped items can be recovered
+				Item->SetPickupEnabled(false);
+				// Weapon magazines were not destroying, this attempts and fails to take care of that TODO TODO TODO
+				TArray<AActor*> Children;
+				Item->GetAttachedActors(Children);
+				for (AActor* Child : Children)
+				{
+					if (Child)
+					{
+						Child->SetLifeSpan(DroppedItemsLifespan);
+					}
+				}
+			}
 		}
 	}
 

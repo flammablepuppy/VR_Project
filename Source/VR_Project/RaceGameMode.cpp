@@ -28,8 +28,18 @@ void ARaceGameMode::BeginPlay()
 	}
 }
 
+/**
+*	Reaction when a player death has been broadcast.
+*/
 void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 {
+	// In this GameMode we don't want players to retain items they had on death, if they've hit a checkpoint the needed items will spawn on their belt
+	AvrPlayer* DyingPlayer = Cast<AvrPlayer>(DyingActor);
+	if (DyingPlayer)
+	{
+		DyingPlayer->GetHealthStats()->YardSale(3.f);
+	}
+
 	if (LoadedCourse.Num() > 0)
 	{
 		CourseFinished();
@@ -57,8 +67,6 @@ void ARaceGameMode::RespawnPlayers()
 	{
 		// Reposition, respawn
 		Player->SetActorLocation(CurrentCheckpoint->GetActorLocation(), false, nullptr, ETeleportType::ResetPhysics);
-		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
-		Player->GetCharacterMovement()->UpdateComponentVelocity();
 		Player->GetHealthStats()->Respawn();
 
 		// If they require a specific item at this checkpoint, spawn it for them
@@ -77,43 +85,17 @@ void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclass
 {
 	if (!PlayerToEquip || ItemsToEquip.Num() == 0) { return; }
 
-	// Check what items player is holding in hands/holsters
-	TArray<AvrPickup*> Inventory; Inventory.Reset();
-	PlayerToEquip->GetUtilityBelt()->GetHolsteredItems(Inventory);
-
 	for (TSubclassOf<AvrPickup> ItemToEquip : ItemsToEquip)
 	{
-		// Check if they lack a required item
-		int32 HasItem = 0;
-		for (AvrPickup* Item : Inventory)
-		{
-			if (Item)
-			{
-				if (Item->IsA(ItemToEquip))
-				{
-					HasItem += 1;
-				}
-			}
-		}
+		AvrPickup* SpawnedItem =
+			GetWorld()->SpawnActor<AvrPickup>(ItemToEquip, PlayerToEquip->GetUtilityBelt()->GetComponentLocation(), PlayerToEquip->GetUtilityBelt()->GetComponentRotation());
 
-		// If the player doesn't have the item, spawn it and attach it to an empty holster if available
-		if (HasItem == 0)
+		AvrHolster* VacantHolster = PlayerToEquip->GetUtilityBelt()->GetVacantHolster(SpawnedItem, true);
+		// Attach to a vacant, compatible holster if available
+		if (VacantHolster)
 		{
-			AvrPickup* SpawnedItem =
-				GetWorld()->SpawnActor<AvrPickup>(ItemToEquip, PlayerToEquip->GetUtilityBelt()->GetComponentLocation(), PlayerToEquip->GetUtilityBelt()->GetComponentRotation());
-
-			AvrHolster* VacantHolster = PlayerToEquip->GetUtilityBelt()->GetVacantHolster(SpawnedItem, true);
-			// Attach to a vacant, compatible holster if available
-			if (VacantHolster)
-			{
-				SpawnedItem->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
-				SpawnedItem->Drop();
-			}
-		}
-		// If they already have the required item
-		else
-		{
-			// Do nothing
+			SpawnedItem->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
+			SpawnedItem->Drop();
 		}
 	}
 }

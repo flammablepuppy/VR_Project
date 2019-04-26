@@ -55,7 +55,7 @@ void IGrabInterface::SnapObjectToHand()
 	if (!bCanBeGrabbed)
 		return;
 
-	UpdateObjectPostion(OwningActor, InteractingMC.MCCPtr->GetComponentTransform());
+	UpdateObjectPostion(OwningActor, InteractingMC.ControllerPtr->GetComponentTransform());
 }
 
 void IGrabInterface::SnapHandToObject()

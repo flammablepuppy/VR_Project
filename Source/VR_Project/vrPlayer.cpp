@@ -210,7 +210,8 @@ void AvrPlayer::MotionInputScan()
 		/** IMPACT DAMAGE
 		*	Damage character for abruput velocity changes
 		*/
-		if ((VelocityLastTick - GetVelocity()).Size() > VelocityChangeDamageSpeed && !GetHealthStats()->GetIsDead())
+		if ((VelocityLastTick - GetVelocity()).Size() > VelocityChangeDamageSpeed && !GetHealthStats()->GetIsDead()
+			&& bImpactDamageActive)
 		{
 			ApplyImpactDamage();
 		}
@@ -223,7 +224,7 @@ void AvrPlayer::MotionInputScan()
 		// Big Jump
 		if (HeadRelVel.Z > BigJumpHeadReq && LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq ||		// Condition 1 - Head popping with arm swing
 			LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq &&											// Condition 2 - High speed with arm swing
-			GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed - 50.f && bHasForwardMovementInput)			
+			GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed && bHasForwardMovementInput)			
 		{
 			FTimerHandle FiringJump_Timer;
 			GetWorldTimerManager().SetTimer(FiringJump_Timer, this, &AvrPlayer::MotionJump, JumpDurationReq, false);
@@ -233,7 +234,7 @@ void AvrPlayer::MotionInputScan()
 			GetWorldTimerManager().SetTimer(SprintRight_Timer, JumpDurationReq, false);
 			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
 
-			if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed - 50.f)
+			if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed)
 			{ GetWorldTimerManager().SetTimer(HighSpeedJump_Timer, 0.1f, false); } //TODO: EXPERIMENT WITH THIS MORE
 		}
 		// Small Jump
@@ -584,4 +585,9 @@ void AvrPlayer::SetMouseEnabled(bool NewState)
 {
 	bMouseEnabled = NewState;
 
+}
+
+void AvrPlayer::SetImpactDamageEnabled(bool NewState)
+{
+	bImpactDamageActive = NewState;
 }
