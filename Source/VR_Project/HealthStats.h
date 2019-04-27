@@ -77,6 +77,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE TArray<AvrPickup*> GetYardSaleDrop() { return YardSaleDrop; }
 
+	UFUNCTION()
+	void SetCurrentHealth(float NewHealth);
+
 
 // DELEGATES
 //////////////

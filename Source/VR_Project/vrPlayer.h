@@ -42,7 +42,7 @@ protected:
 	UMotionControllerComponent* LeftController;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UMotionControllerComponent* RightController;
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+ 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* LeftVolume;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* RightVolume;
@@ -203,7 +203,7 @@ protected:
 		float SprintCooldownDuration = 0.3f;
 
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
-		float SprintDecelResetDuration = 0.75f;
+		float SprintDecelResetDuration = 0.35f;
 
 		/** Default walking speed */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")

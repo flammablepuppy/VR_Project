@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "vrBelt.h"
 #include "vrHolster.h"
+#include "TimerManager.h"
 
 UHealthStats::UHealthStats()
 {
@@ -76,7 +77,6 @@ void UHealthStats::Die()
 	Owner->DisableInput(Cast<APlayerController>(Owner->GetController()));
 	Owner->GetMovementComponent()->StopActiveMovement();
 	Owner->SetImpactDamageEnabled(false);
-
 	//YardSale();
 
 }
@@ -89,10 +89,17 @@ void UHealthStats::SetIsDead(bool NewState)
 void UHealthStats::Respawn()
 {
 	OwningPlayer->EnableInput(Cast<APlayerController>(OwningPlayer->GetController()));
-	OwnerTakesDamage(OwningPlayer, -MaximumHealth, nullptr, nullptr, nullptr);
+	//OwnerTakesDamage(OwningPlayer, -MaximumHealth, nullptr, nullptr, nullptr);
+	SetCurrentHealth(MaximumHealth);
 	bOwnerIsDead = false;
-	OwningPlayer->SetImpactDamageEnabled(true);
+
+	FTimerHandle EnableDamage_Handle;
+	FTimerDelegate EnableDamageDelegate;
+	EnableDamageDelegate.BindUFunction(OwningPlayer, FName("SetImpactDamageEnabled"), true);
+	GetWorld()->GetTimerManager().SetTimer(EnableDamage_Handle, EnableDamageDelegate, 0.5f, false);
+
 	OnRespawn.Broadcast(GetOwner());
+
 }
 
 /** Owning Player drops all their stuff */
@@ -159,5 +166,10 @@ void UHealthStats::MemorizePlayerItems(TArray<AvrPickup*>& OutInventory)
 
 	OutInventory.AddUnique(OwningPlayer->GetLeftHeldObject());
 	OutInventory.AddUnique(OwningPlayer->GetRightHeldObject());
+}
+
+void UHealthStats::SetCurrentHealth(float NewHealth)
+{
+	CurrentHealth = NewHealth;
 }
 

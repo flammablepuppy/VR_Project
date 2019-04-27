@@ -66,6 +66,10 @@ void AWaypointMarker::WaypointReached(UPrimitiveComponent * OverlappedComponent,
 		DeactivateWaypoint();
 		if (CollectionSound) { UGameplayStatics::PlaySoundAtLocation(GetWorld(), CollectionSound, OverlappingPlayer->GetActorLocation()); }
 
+		if (bFunctionsAsCheckpoint)
+		{
+			RaceMode->SetActiveCheckpoint(this);
+		}
 	}
 }
 

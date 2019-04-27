@@ -59,6 +59,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclassOf<AvrPickup>> ItemsToEquip);
 
+	UFUNCTION(BlueprintCallable)
+	void HideAllWaypoints();
+	   
 public:
 // PUBLIC FUNCTIONS
 ///////////////

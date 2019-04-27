@@ -44,6 +44,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
 	FColor CourseColor = FColor::Green;
 
+	/** If true, player will respawn at this checkpoint upon death */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	bool bFunctionsAsCheckpoint = false;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Waypoint Properties")
 	class USoundBase* CollectionSound;
 

@@ -40,9 +40,18 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 		DyingPlayer->GetHealthStats()->YardSale(3.f);
 	}
 
-	if (LoadedCourse.Num() > 0)
+	// If the current checkpoint is a waypoint, it's not a true race course so don't reset all the waypoints
+	AWaypointMarker* WaypointCheckpoint = Cast<AWaypointMarker>(CurrentCheckpoint);
+	if (LoadedCourse.Num() > 0 && !WaypointCheckpoint)
 	{
 		CourseFinished();
+	}
+	// If using a waypoint checkpoint, make the first waypoint after the checkpoint the active checkpoint
+	if (WaypointCheckpoint)
+	{
+		HideAllWaypoints();
+		CurrentWaypoint = WaypointCheckpoint->GetWaypointNumber();
+		DisplayCurrentWaypoint();
 	}
 
 	if (CurrentCheckpoint)
@@ -67,6 +76,8 @@ void ARaceGameMode::RespawnPlayers()
 	{
 		// Reposition, respawn
 		Player->SetActorLocation(CurrentCheckpoint->GetActorLocation(), false, nullptr, ETeleportType::ResetPhysics);
+		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
+		Player->GetCharacterMovement()->UpdateComponentVelocity();
 		Player->GetHealthStats()->Respawn();
 
 		// If they require a specific item at this checkpoint, spawn it for them
@@ -74,9 +85,12 @@ void ARaceGameMode::RespawnPlayers()
 		{
 			// Probably best to just keep track of the dropped items, then teleport them back to the player
 		}
-		else // If the last checkpoint they hit spawns a specific item that is requried
+		else // If the last checkpoint they hit spawns a specific item that is requried, Waypoints cannot spawn required items
 		{
-			EquipRequiredItem(Player, Cast<ACheckpoint>(CurrentCheckpoint)->GetRequiredItem());
+			if (Cast<ACheckpoint>(CurrentCheckpoint))
+			{
+				EquipRequiredItem(Player, Cast<ACheckpoint>(CurrentCheckpoint)->GetRequiredItem());
+			}
 		}
 	}
 }
@@ -91,12 +105,20 @@ void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclass
 			GetWorld()->SpawnActor<AvrPickup>(ItemToEquip, PlayerToEquip->GetUtilityBelt()->GetComponentLocation(), PlayerToEquip->GetUtilityBelt()->GetComponentRotation());
 
 		AvrHolster* VacantHolster = PlayerToEquip->GetUtilityBelt()->GetVacantHolster(SpawnedItem, true);
-		// Attach to a vacant, compatible holster if available
+		// Attach to a vacant, compatible holster if available -- All holsters should be vacant due to YardSale
 		if (VacantHolster)
 		{
 			SpawnedItem->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);
 			SpawnedItem->Drop();
 		}
+	}
+}
+
+void ARaceGameMode::HideAllWaypoints()
+{
+	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
+	{
+		ActorIter->DeactivateWaypoint();
 	}
 }
 

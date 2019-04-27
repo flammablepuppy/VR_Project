@@ -104,9 +104,14 @@ void AFloatingMine::Explode(UPrimitiveComponent * OverlappedComponent, AActor * 
 		BlastRadius->GetOverlappingActors(BlastedActors);
 		for (AActor* HitActor : BlastedActors)
 		{
-			FDamageEvent Damage;
-			HitActor->TakeDamage(MineDamage, Damage, nullptr, this);
-			HealthStats->OnDeath.Broadcast(nullptr);
+			AvrPlayer* Player = Cast<AvrPlayer>(HitActor);
+			{
+				if (Player)
+				{
+					FDamageEvent Damage;
+					HitActor->TakeDamage(MineDamage, Damage, nullptr, this);
+				}
+			}
 		}
 	}
 }
