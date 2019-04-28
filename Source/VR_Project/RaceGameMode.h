@@ -86,6 +86,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetRespawnWithInventory(bool NewState);
 
+	UFUNCTION(BlueprintCallable)
+	void ModeOpenLevel(FString LevelToOpen);
 
 // DELEGATE
 /////////////

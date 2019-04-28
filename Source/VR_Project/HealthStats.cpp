@@ -89,7 +89,6 @@ void UHealthStats::SetIsDead(bool NewState)
 void UHealthStats::Respawn()
 {
 	OwningPlayer->EnableInput(Cast<APlayerController>(OwningPlayer->GetController()));
-	//OwnerTakesDamage(OwningPlayer, -MaximumHealth, nullptr, nullptr, nullptr);
 	SetCurrentHealth(MaximumHealth);
 	bOwnerIsDead = false;
 

@@ -6,6 +6,7 @@
 #include "vrPlayer.h"
 #include "TimerManager.h"
 #include "HealthStats.h"
+#include "Kismet/GameplayStatics.h"
 
 AFloatingMine::AFloatingMine()
 {
@@ -110,6 +111,7 @@ void AFloatingMine::Explode(UPrimitiveComponent * OverlappedComponent, AActor * 
 				{
 					FDamageEvent Damage;
 					HitActor->TakeDamage(MineDamage, Damage, nullptr, this);
+					UGameplayStatics::ApplyDamage(this, HealthStats->GetMaxHealth(), nullptr, nullptr, nullptr);
 				}
 			}
 		}

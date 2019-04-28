@@ -260,7 +260,7 @@ void AvrPlayer::MotionInputScan()
 			!GetCharacterMovement()->IsFalling() )
 		{
 			GetWorldTimerManager().SetTimer(SprintLeft_Timer, SprintCooldownDuration, false);
-			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
+			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration + 0.2f, false); // Give slightly more time before decel to aid in leap/bounding
 
 			FVector Direction = LeftController->GetComponentLocation() - SprintLeftLastPos;
 			Direction.Z = 0.f;
@@ -280,7 +280,7 @@ void AvrPlayer::MotionInputScan()
 			!GetCharacterMovement()->IsFalling() )
 		{
 			GetWorldTimerManager().SetTimer(SprintRight_Timer, SprintCooldownDuration, false);
-			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration, false);
+			GetWorldTimerManager().SetTimer(SprintDecelReset_Timer, SprintDecelResetDuration + 0.2f, false);
 
 			FVector Direction = RightController->GetComponentLocation() - SprintRightLastPos;
 			Direction.Z = 0.f;

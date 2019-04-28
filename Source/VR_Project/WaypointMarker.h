@@ -54,6 +54,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWaypointIsActive = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	TArray<TSubclassOf<AvrPickup>> ItemsToSpawn;
+
 // FUNCTIONS
 //////////////
 
@@ -78,6 +81,9 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE int32 GetWaypointNumber() { return WaypointNumber; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE TArray<TSubclassOf<AvrPickup>> GetItemsToSpawn() { return ItemsToSpawn; }
 
 // DELEGATES
 //////////////

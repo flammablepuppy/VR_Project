@@ -13,7 +13,6 @@
 #include "vrBelt.h"
 #include "HandThruster.h"
 #include "vrHolster.h"
-#include "Checkpoint.h"
 
 ARaceGameMode::ARaceGameMode()
 {
@@ -63,8 +62,12 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 	}
 	else
 	{
+		FTimerHandle LoadLevel_Handle;
+		FTimerDelegate LoadLevelDelegate;
 		FString CurrentLevel = UGameplayStatics::GetCurrentLevelName(GetWorld());
-		UGameplayStatics::OpenLevel(GetWorld(), FName(*CurrentLevel));
+		LoadLevelDelegate.BindUFunction(this, FName("ModeOpenLevel"), CurrentLevel);
+
+		GetWorldTimerManager().SetTimer(LoadLevel_Handle, LoadLevelDelegate, 2.f, false);
 	}
 
 }
@@ -87,9 +90,9 @@ void ARaceGameMode::RespawnPlayers()
 		}
 		else // If the last checkpoint they hit spawns a specific item that is requried, Waypoints cannot spawn required items
 		{
-			if (Cast<ACheckpoint>(CurrentCheckpoint))
+			if (Cast<AWaypointMarker>(CurrentCheckpoint))
 			{
-				EquipRequiredItem(Player, Cast<ACheckpoint>(CurrentCheckpoint)->GetRequiredItem());
+				EquipRequiredItem(Player, Cast<AWaypointMarker>(CurrentCheckpoint)->GetItemsToSpawn());
 			}
 		}
 	}
@@ -122,6 +125,11 @@ void ARaceGameMode::HideAllWaypoints()
 	}
 }
 
+void ARaceGameMode::ModeOpenLevel(FString LevelToOpen)
+{
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelToOpen));
+}
+
 /** End race and calculate times/performance */
 void ARaceGameMode::CourseFinished()
 {
@@ -139,8 +147,8 @@ void ARaceGameMode::CourseFinished()
 			/*FString Message = "Time to checkpoint ";
 			Message += FString::FromInt(iCount);
 			Message += ": ";
-			Message += FString::SanitizeFloat(CheckpointTime);
-			OnMessageSend.Broadcast(Message);*/
+			Message += FString::SanitizeFloat(CheckpointTime);*/
+			OnMessageSend.Broadcast("You won.");
 
 		}
 	}
