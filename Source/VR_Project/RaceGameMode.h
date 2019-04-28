@@ -10,6 +10,8 @@ class AWaypointMarker;
 class AvrPlayer;
 class AvrPickup;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSendMessageSignature, FString, TextToPrint);
+
 /**
  * 
  */
@@ -84,4 +86,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetRespawnWithInventory(bool NewState);
 
+
+// DELEGATE
+/////////////
+
+	UPROPERTY(BlueprintAssignable)
+	FSendMessageSignature OnMessageSend;
 };

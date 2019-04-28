@@ -135,6 +135,13 @@ void ARaceGameMode::CourseFinished()
 			float CheckpointTime = TimeBetweenWaypoints[i];
 			UE_LOG(LogTemp, Warning, TEXT("Time to checkpoint %d: %f"), iCount, CheckpointTime)
 
+			// TODO: Figure out how to do this properly
+			/*FString Message = "Time to checkpoint ";
+			Message += FString::FromInt(iCount);
+			Message += ": ";
+			Message += FString::SanitizeFloat(CheckpointTime);
+			OnMessageSend.Broadcast(Message);*/
+
 		}
 	}
 	else
