@@ -31,9 +31,10 @@ void UvrBelt::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	// Adjust the rotation of the belt to keep it in front of the camera
 	if (TrackedHeadset)
 	{
-		SetWorldRotation(FRotator(TrackedHeadset->GetComponentRotation().Pitch / 2.f, TrackedHeadset->GetComponentRotation().Yaw, 0.f));
+		SetWorldRotation(FRotator(/*TrackedHeadset->GetComponentRotation().Pitch / 2.f*/0.f, TrackedHeadset->GetComponentRotation().Yaw, 0.f));
 
 		SetWorldLocation(FVector(
 			//OwningPlayer->GetRootComponent()->GetComponentLocation().X,
