@@ -7,6 +7,8 @@
 #include "TimerManager.h"
 #include "HealthStats.h"
 #include "Kismet/GameplayStatics.h"
+#include "Camera/CameraComponent.h"
+#include "DrawDebugHelpers.h"
 
 AFloatingMine::AFloatingMine()
 {
@@ -36,7 +38,36 @@ void AFloatingMine::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (TargetPlayer) { HomeTowardTarget(); }
+	if (bScanOn) { ScanForTargets(); }
+	if (TargetPlayer && !bHasTarget)
+	{
+		FVector Direction = TargetPlayer->GetActorLocation() - GetActorLocation();
+		Direction.GetSafeNormal();
+
+		//DrawDebugLine(GetWorld(), 
+		//	GetActorLocation(), 
+		//	GetActorLocation() + Direction * 500.f, 
+		//	FColor::Red, 
+		//	false, 
+		//	0.1f);
+
+		FHitResult Hit;
+		if (GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), GetActorLocation() + Direction * 500.f, ECC_Pawn))
+		{
+			if (Hit.GetActor())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s"), *Hit.GetActor()->GetName())
+			}
+			AvrPlayer* HitPlayer = Cast<AvrPlayer>(Hit.GetActor());
+			if (HitPlayer)
+			{
+				bHasTarget = true;
+			}
+		}
+
+	}
+
+	if (bHasTarget) { HomeTowardTarget(); }
 
 }
 void AFloatingMine::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -50,12 +81,9 @@ void AFloatingMine::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 void AFloatingMine::OverlapScan(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-	AvrPlayer* vrPlayer = Cast<AvrPlayer>(OtherActor);
-	if (vrPlayer)
-	{
-		ScanForTargets();
-	}
+	bScanOn = true;
 }
+
 void AFloatingMine::ScanForTargets()
 {
 	TSet<AActor*> ActorsInRadius;
@@ -63,13 +91,18 @@ void AFloatingMine::ScanForTargets()
 
 	for (AActor* Actor : ActorsInRadius)
 	{
+		// Check for vrPlayers
 		AvrPlayer* vrPlayer = Cast<AvrPlayer>(Actor);
+
+		// Set TargetPlayer to closest vrPlayer
 		if (vrPlayer && !TargetPlayer)
 		{
 			TargetPlayer = vrPlayer;
 			//UE_LOG(LogTemp, Warning, TEXT("TargetPlayer found: %s"), *TargetPlayer->GetName())
 
 		}
+
+		// If TargetPlayer is already set, make any player that gets closer than current target the new target
 		else if (vrPlayer)
 		{
 			float CurTargetDis = (TargetPlayer->GetActorLocation() - GetActorLocation()).Size();
@@ -79,23 +112,32 @@ void AFloatingMine::ScanForTargets()
 				TargetPlayer = vrPlayer;
 			}
 		}
+
+		// Stop the scan if there are no vrPlayers
+		if (!vrPlayer)
+		{
+			bScanOn = false;
+		}
+
 	}
 }
+
 void AFloatingMine::HomeTowardTarget()
 {
-	float DeltaTime = GetWorld()->GetDeltaSeconds();
-	FVector CurrentLocation = MineMesh->GetComponentLocation();
-	FVector TargetLocation = TargetPlayer->GetActorLocation();
-	FVector Direction = (TargetLocation - CurrentLocation).GetSafeNormal();
+		float DeltaTime = GetWorld()->GetDeltaSeconds();
+		FVector CurrentLocation = MineMesh->GetComponentLocation();
+		FVector TargetLocation = TargetPlayer->GetActorLocation();
+		FVector Direction = (TargetLocation - CurrentLocation).GetSafeNormal();
 
-	FVector Acceleration = OldVelocity + Direction * MineAcceleration * DeltaTime;
-	if (Acceleration.Size() > MineTopSpeed) { Acceleration *= 0.94f; }
+		FVector Acceleration = OldVelocity + Direction * MineAcceleration * DeltaTime;
+		if (Acceleration.Size() > MineTopSpeed) { Acceleration *= 0.94f; }
 
-	SetActorLocation(CurrentLocation + Acceleration);
-	SetActorRotation(Direction.Rotation());
-	OldVelocity = GetActorLocation() - CurrentLocation;
+		SetActorLocation(CurrentLocation + Acceleration);
+		SetActorRotation(Direction.Rotation());
+		OldVelocity = GetActorLocation() - CurrentLocation;
 
 }
+
 void AFloatingMine::Explode(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	AvrPlayer* Player = Cast<AvrPlayer>(OtherActor);

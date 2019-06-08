@@ -56,6 +56,9 @@ protected:
 
 	FVector OldVelocity;
 
+	bool bScanOn = false;
+	bool bHasTarget = false;
+
 	//		FUNCTIONS
 	//
 
