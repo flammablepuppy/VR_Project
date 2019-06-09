@@ -39,6 +39,8 @@ void AFloatingMine::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (bScanOn) { ScanForTargets(); }
+
+	// Ensure mine has LOS before tracking toward target -- there's almost certainly a better place to put this, probably on a short timer instead of Tick
 	if (TargetPlayer && !bHasTarget)
 	{
 		FVector Direction = TargetPlayer->GetActorLocation() - GetActorLocation();
@@ -54,10 +56,7 @@ void AFloatingMine::Tick(float DeltaTime)
 		FHitResult Hit;
 		if (GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), GetActorLocation() + Direction * 500.f, ECC_Pawn))
 		{
-			if (Hit.GetActor())
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s"), *Hit.GetActor()->GetName())
-			}
+			//if (Hit.GetActor())	{ UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s"), *Hit.GetActor()->GetName()) }
 			AvrPlayer* HitPlayer = Cast<AvrPlayer>(Hit.GetActor());
 			if (HitPlayer)
 			{
@@ -67,7 +66,7 @@ void AFloatingMine::Tick(float DeltaTime)
 
 	}
 
-	if (bHasTarget) { HomeTowardTarget(); }
+	if (bHasTarget && bTrackingOn) { HomeTowardTarget(); }
 
 }
 void AFloatingMine::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -158,6 +157,13 @@ void AFloatingMine::Explode(UPrimitiveComponent * OverlappedComponent, AActor * 
 			}
 		}
 	}
+}
+
+void AFloatingMine::SetTrackingOn(bool NewState)
+{
+	bTrackingOn = NewState;
+	NewState ? MineMesh->SetEnableGravity(false) : MineMesh->SetEnableGravity(true);
+
 }
 
 

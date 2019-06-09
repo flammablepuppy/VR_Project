@@ -317,7 +317,7 @@ public:
 	UFUNCTION()
 	FORCEINLINE FVector GetVelocityLastTick() { return VelocityLastTick; };
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetImpactDamageEnabled(bool NewState);
 
 	//		FOR DEBUG DISPLAY ON HUD
