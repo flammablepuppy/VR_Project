@@ -98,12 +98,10 @@ AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool
 /** Populates provided array with all the items currently attached to any holster on the belt */
 void UvrBelt::GetHolsteredItems(TArray<AvrPickup*>& Items)
 {
-	Items.Reset();
-
 	for (AvrHolster* Holster : EquippedHolsters)
 	{
 		// Check if item is co-located with the holster, otherwise it must not be holstered there anymore
-		if ((Holster->GetHolsteredItem()->GetActorLocation() - Holster->GetActorLocation()).Size() < 0.5f)
+		if (Holster->GetHolsteredItem() && (Holster->GetHolsteredItem()->GetActorLocation() - Holster->GetActorLocation()).Size() < 0.5f)
 		{
 			Items.AddUnique(Holster->GetHolsteredItem());
 		}

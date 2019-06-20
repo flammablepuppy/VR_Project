@@ -98,17 +98,47 @@ void ARaceGameMode::RespawnPlayers()
 	}
 }
 
+/** Spawn items that may be required for player progression and attach them their utility belt */
 void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclassOf<AvrPickup>> ItemsToEquip)
 {
 	if (!PlayerToEquip || ItemsToEquip.Num() == 0) { return; }
 
-	for (TSubclassOf<AvrPickup> ItemToEquip : ItemsToEquip)
+	TArray<TSubclassOf<AvrPickup>> SpawnItems = ItemsToEquip; // For some reason I have to copy the list, can't figure out how to manipulate the list I took as a parameter
+
+	// Check if player already has item, remove it from the list of items to spawn if they already have it
+	TArray<AvrPickup*> HolsteredItems;
+	PlayerToEquip->GetUtilityBelt()->GetHolsteredItems(HolsteredItems);
+	HolsteredItems.AddUnique(PlayerToEquip->GetLeftHeldObject());
+	HolsteredItems.AddUnique(PlayerToEquip->GetRightHeldObject());
+
+	if (HolsteredItems.Num() > 0)
+	{
+		for (AvrPickup* Item : HolsteredItems)
+		{
+			if (Item)
+			{
+				for (TSubclassOf<AvrPickup> PickupSubclass : ItemsToEquip)
+				{
+					if (PickupSubclass)
+					{
+						if (Item->IsA(PickupSubclass))
+						{
+							SpawnItems.Remove(PickupSubclass);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Spawn the item and attach is to player utility belt
+	for (TSubclassOf<AvrPickup> ItemToEquip : SpawnItems)
 	{
 		AvrPickup* SpawnedItem =
 			GetWorld()->SpawnActor<AvrPickup>(ItemToEquip, PlayerToEquip->GetUtilityBelt()->GetComponentLocation(), PlayerToEquip->GetUtilityBelt()->GetComponentRotation());
 
 		AvrHolster* VacantHolster = PlayerToEquip->GetUtilityBelt()->GetVacantHolster(SpawnedItem, true);
-		// Attach to a vacant, compatible holster if available -- All holsters should be vacant due to YardSale
+		// Attach to a vacant, compatible holster if available
 		if (VacantHolster)
 		{
 			SpawnedItem->OnDrop.AddUniqueDynamic(VacantHolster, &AvrHolster::CatchDroppedPickup);

@@ -54,7 +54,8 @@ void AFloatingMine::Tick(float DeltaTime)
 		//	0.1f);
 
 		FHitResult Hit;
-		if (GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), GetActorLocation() + Direction * 500.f, ECC_Pawn))
+		float LOSDistance = ScanRadius->GetScaledSphereRadius();
+		if (GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), GetActorLocation() + Direction * LOSDistance, ECC_Pawn))
 		{
 			//if (Hit.GetActor())	{ UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s"), *Hit.GetActor()->GetName()) }
 			AvrPlayer* HitPlayer = Cast<AvrPlayer>(Hit.GetActor());
