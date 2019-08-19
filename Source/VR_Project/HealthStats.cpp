@@ -49,6 +49,15 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 		DamageTaken.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser);
 		CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaximumHealth);
 
+		if (InstigatedBy)
+		{
+			AvrPlayer* PlayerCausingDamage = Cast<AvrPlayer>(InstigatedBy->GetPawn());
+			if (PlayerCausingDamage)
+			{
+				PlayerCausingDamage->SendCombatText(DamageCauser->GetActorLocation(), Damage, InstigatedBy->GetPawn()->GetActorLocation());
+			}
+		}
+
 		if (CurrentHealth <= 0.f && !bOwnerIsDead)
 		{
 			bOwnerIsDead = true;

@@ -4,6 +4,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "vrPlayer.h"
+#include "vrPickup.h"
+#include "HealthStats.h"
 
 AvrProjectile::AvrProjectile()
 {
@@ -41,9 +43,17 @@ void AvrProjectile::BeginPlay()
 void AvrProjectile::ResolveHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)
 {
 	FDamageEvent Damage;
-	Hit.Actor->TakeDamage(ProjectileDamage, Damage, nullptr, this);
 
-	// TODO: Make shots produce an impuse on the hit actor
+	AvrPickup* FiringWeapon = Cast<AvrPickup>(GetOwner());
+	if (FiringWeapon)
+	{
+		AvrPlayer* FiringPlayer = Cast<AvrPlayer>(FiringWeapon->GetOwningMC()->GetOwner());
+		Hit.Actor->TakeDamage(ProjectileDamage, Damage, FiringPlayer->GetController(), this);
+	}
+	else
+	{
+		Hit.Actor->TakeDamage(ProjectileDamage, Damage, nullptr, this);
+	}
 
 	Destroy();
 }

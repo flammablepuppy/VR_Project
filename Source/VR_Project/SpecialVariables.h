@@ -42,6 +42,9 @@ struct FMotionControllerInfo
 	UPROPERTY()
 	class UStaticMeshComponent* HandMeshPtr;
 
+	UPROPERTY()
+	bool bGripping = false;
+
 // CONSTRUCTORS
 /////////////////
 
@@ -50,13 +53,15 @@ struct FMotionControllerInfo
 	{
 		ControllerPtr = nullptr;
 		HandMeshPtr = nullptr;
+		bGripping = false;
 	}
 
 	// Initiazlied Constructor
-	FMotionControllerInfo(UMotionControllerComponent* MotionController, UStaticMeshComponent* HandMesh)
+	FMotionControllerInfo(UMotionControllerComponent* MotionController, UStaticMeshComponent* HandMesh, bool GripState)
 	{
 		ControllerPtr = MotionController;
 		HandMeshPtr = HandMesh;
+		bGripping = GripState;
 	}
 
 };

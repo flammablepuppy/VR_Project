@@ -325,6 +325,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BPDebugDisplay();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void SendCombatText(FVector DisplayLocation, float Damage, FVector FiringPlayerPosition);
 
 	UFUNCTION()
 	FORCEINLINE FVector GetHeadRelVel() { return HeadRelVel; }
