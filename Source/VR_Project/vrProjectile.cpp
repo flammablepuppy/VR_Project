@@ -47,6 +47,7 @@ void AvrProjectile::ResolveHit(UPrimitiveComponent * HitComponent, AActor * Othe
 	AvrPickup* FiringWeapon = Cast<AvrPickup>(GetOwner());
 	if (FiringWeapon)
 	{
+		// This passes the FiringPlayer to the hit actor for spawning of floating damage text
 		AvrPlayer* FiringPlayer = Cast<AvrPlayer>(FiringWeapon->GetOwningMC()->GetOwner());
 		Hit.Actor->TakeDamage(ProjectileDamage, Damage, FiringPlayer->GetController(), this);
 	}
