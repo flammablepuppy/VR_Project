@@ -81,7 +81,8 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("RBottom", IE_Pressed, this, &AvrPlayer::RightBottomPush);
 	PlayerInputComponent->BindAction("RBottom", IE_Released, this, &AvrPlayer::RightBottomRelease);
 
-	PlayerInputComponent->BindAction("ResetLevel", IE_Pressed, this, &AvrPlayer::ResetTestingMap);
+	PlayerInputComponent->BindAction("LeftStickClick", IE_Pressed, this, &AvrPlayer::MotionJumpScan);
+	PlayerInputComponent->BindAction("LeftStickClick", IE_Released, this, &AvrPlayer::StopMotionJumpScan);
 
 }
 void AvrPlayer::BeginPlay()
@@ -173,6 +174,27 @@ void AvrPlayer::MouseLookYaw(float Value)
 		AddControllerYawInput(Value);
 	}
 }
+void AvrPlayer::MotionJumpScan()
+{
+	bScanningJump = true;
+	GetWorldTimerManager().SetTimer(QuickJump_Timer, QuickJumpWindow, false);
+}
+void AvrPlayer::StopMotionJumpScan()
+{
+	if (GetWorldTimerManager().IsTimerActive(QuickJump_Timer))
+	{
+		GetCharacterMovement()->JumpZVelocity = SmallJumpHeight;
+		Jump();
+
+		if (!GetCharacterMovement()->IsFalling())
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), SmallJumpSound, GetActorLocation());
+		}
+	}
+	
+	bScanningJump = false;
+	
+}
 void AvrPlayer::SnapTurn(float Value)
 {
 	if (Value > 0.1f && bSnapTurnReady)
@@ -222,9 +244,8 @@ void AvrPlayer::MotionInputScan()
 		*	Small jump when arms are whipped up quickly while moving forward
 		*/
 		// Big Jump
-		if (HeadRelVel.Z > BigJumpHeadReq && LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq ||		// Condition 1 - Head popping with arm swing
-			LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq &&											// Condition 2 - High speed with arm swing
-			GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed && bHasForwardMovementInput)			
+		if (HeadRelVel.Z > BigJumpHeadReq && LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq  && bScanningJump ||		// Condition 1 - Head popping with arm swing and button pressed
+			LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq && GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed)	// Condition 2 - High velocity with arm swing
 		{
 			FTimerHandle FiringJump_Timer;
 			GetWorldTimerManager().SetTimer(FiringJump_Timer, this, &AvrPlayer::MotionJump, JumpDurationReq, false);
@@ -237,16 +258,16 @@ void AvrPlayer::MotionInputScan()
 			if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed)
 			{ GetWorldTimerManager().SetTimer(HighSpeedJump_Timer, 0.1f, false); } //TODO: EXPERIMENT WITH THIS MORE
 		}
-		// Small Jump
-		else if (LeftRelVel.Z > JumpSmallReq &&	RightRelVel.Z > JumpSmallReq &&	bHasForwardMovementInput)
-		{
-			GetCharacterMovement()->JumpZVelocity = SmallJumpHeight;
-			Jump();
-			if (!GetCharacterMovement()->IsFalling())
-			{
-				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SmallJumpSound, GetActorLocation());
-			}
-		}
+		//// Small Jump
+		//else if (LeftRelVel.Z > JumpSmallReq &&	RightRelVel.Z > JumpSmallReq &&	bHasForwardMovementInput)
+		//{
+		//	GetCharacterMovement()->JumpZVelocity = SmallJumpHeight;
+		//	Jump();
+		//	if (!GetCharacterMovement()->IsFalling())
+		//	{
+		//		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SmallJumpSound, GetActorLocation());
+		//	}
+		//}
 
 		/** MOTION SPRINT
 		*	Add an impulse in the direction the forward arm swings

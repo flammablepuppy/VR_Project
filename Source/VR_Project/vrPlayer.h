@@ -53,7 +53,7 @@ protected:
 
 	/** When true, clicking left stick will kill self */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Player Properties")
-	bool bCommitsSeppuku = true;
+	bool bCommitsSeppuku = false;
 
 	// Basic Locomotion Functions
 	//
@@ -68,6 +68,21 @@ protected:
 	void MouseLookYaw(float Value);
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	bool bMouseEnabled = true;
+
+	/** 
+		Button based jumping and leap detection
+		- While button is held, motion input function is looking for leap motion input
+		- If the button is pressed then released in QuickJumpWindow time or less, a small jump fires
+	*/
+	UFUNCTION()
+	void MotionJumpScan();
+	UFUNCTION()
+	void StopMotionJumpScan();
+	bool bScanningJump = false;
+	FTimerHandle QuickJump_Timer;
+	UPROPERTY(EditDefaultsOnly, Category = "Jump")
+	float QuickJumpWindow = 0.4f;
+
 
 	// Snap Turn
 	//
