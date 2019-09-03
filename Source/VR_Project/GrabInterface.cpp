@@ -36,7 +36,11 @@ void IGrabInterface::ReactToGrab(const FMotionControllerInfo& GrabbingMC)
 
 	switch (GrabAction)
 	{
-		case EGrabAction::GA_ObjectToHand:
+		case EGrabAction::GA_ObjectToHandSnap:
+			SnapObjectToHand();
+			break;
+
+		case EGrabAction::GA_ObjectToHandAccel:
 			SnapObjectToHand();
 			break;
 
@@ -50,25 +54,29 @@ void IGrabInterface::ReactToGrab(const FMotionControllerInfo& GrabbingMC)
 	}
 }
 
-void IGrabInterface::SnapObjectToHand()
+void IGrabInterface::SnapObjectToHand()//TODO
 {
-	if (!bCanBeGrabbed)
-		return;
+	if (!bCanBeGrabbed)	return;
 
 	UpdateObjectPostion(OwningActor, InteractingMC.ControllerPtr->GetComponentTransform());
 }
 
-void IGrabInterface::SnapHandToObject()
+void IGrabInterface::AccelObjectToHand()//TODO
 {
-	if (!bCanBeGrabbed)
-		return;
+	if (!bCanBeGrabbed)	return;
+
+	UpdateObjectPostion(OwningActor, InteractingMC.ControllerPtr->GetComponentTransform());
+}
+
+void IGrabInterface::SnapHandToObject()//TODO
+{
+	if (!bCanBeGrabbed)	return;
 
 }
 
-void IGrabInterface::CollectObject()
+void IGrabInterface::CollectObject()//TODO
 {
-	if (!bCanBeGrabbed)
-		return;
+	if (!bCanBeGrabbed)	return;
 
 }
 
@@ -85,11 +93,11 @@ void IGrabInterface::UpdateObjectPostion(UObject* ObjectToMove, FTransform Targe
 	{
 		CurrentTransform = ComponentObject->GetComponentTransform();
 	}
-
+	
+	// Get DeltaSeconds from owner, return if unable
 	float DeltaSeconds = -1.f;
-	if (GEngine) { DeltaSeconds = GEngine->GetWorldFromContextObject(OwningActor, EGetWorldErrorMode::ReturnNull)->GetDeltaSeconds(); }
-	else { return; }
-	if (DeltaSeconds < 0.f) { return; }
+	if (GEngine) DeltaSeconds = GEngine->GetWorldFromContextObject(OwningActor, EGetWorldErrorMode::ReturnNull)->GetDeltaSeconds();
+	if (DeltaSeconds < 0.f) return;
 	
 	FVector DeltaLocation = CurrentTransform.GetLocation() - TargetTransform.GetLocation();
 	FQuat DeltaRotation = CurrentTransform.GetRotation() - TargetTransform.GetRotation();
@@ -110,9 +118,18 @@ void IGrabInterface::UpdateObjectPostion(UObject* ObjectToMove, FTransform Targe
 		DeltaLocation = ComponentObject->GetComponentLocation() - TargetTransform.GetLocation();
 	}
 
-	if (DeltaLocation.Size() > 0.1f)
+	// Simulate ticking
+	if (GrabAction == EGrabAction::GA_ObjectToHandAccel)
 	{
 		UpdateObjectPostion(ObjectToMove, TargetTransform);
+	}
+	else if (GrabAction == EGrabAction::GA_ObjectToHandSnap && DeltaLocation.Size() > 0.1f)
+	{
+		UpdateObjectPostion(ObjectToMove, TargetTransform);
+	}
+	else if (GrabAction == EGrabAction::GA_ObjectToHandSnap && DeltaLocation.Size() > 0.1f)
+	{
+		//TODO SnapToController()
 	}
 }
 

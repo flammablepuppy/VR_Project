@@ -73,25 +73,27 @@ void UvrBelt::FindAllHolsters()
 */
 AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool OverrideProximityRequirement)
 {
-	for (AvrHolster* Holster : EquippedHolsters)
+	if (PickupRequestingHolster != nullptr)
 	{
-		// Check if a CompatiblePickup is set, if requesting item is the correct class and the holster is empty
-		if (Holster->GetCompatiblePickup() && PickupRequestingHolster->IsA(Holster->GetCompatiblePickup()) && !Holster->GetHolsteredItem())
+		for (AvrHolster* Holster : EquippedHolsters)
 		{
-			return Holster;
-		}
-		// If there is no CompatiblePickup set, the holster is empty, and the holster doesn't require proximity
-		else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem() && !Holster->GetProximityAttachEnabled())
-		{
-			return Holster;
-		}
-		// If there is no CompatiblePickup set, the holster is empty, the holster does require proximity but the override is true
-		else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem() && Holster->GetProximityAttachEnabled() && OverrideProximityRequirement == true)
-		{
-			return Holster;
+			// Check if a CompatiblePickup is set, if requesting item is the correct class and the holster is empty
+			if (Holster->GetCompatiblePickup() && PickupRequestingHolster->IsA(Holster->GetCompatiblePickup()) && !Holster->GetHolsteredItem())
+			{
+				return Holster;
+			}
+			// If there is no CompatiblePickup set, the holster is empty, and the holster doesn't require proximity
+			else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem() && !Holster->GetProximityAttachEnabled())
+			{
+				return Holster;
+			}
+			// If there is no CompatiblePickup set, the holster is empty, the holster does require proximity but the override is true
+			else if (!Holster->GetCompatiblePickup() && !Holster->GetHolsteredItem() && Holster->GetProximityAttachEnabled() && OverrideProximityRequirement == true)
+			{
+				return Holster;
+			}
 		}
 	}
-
 	return nullptr;
 }
 

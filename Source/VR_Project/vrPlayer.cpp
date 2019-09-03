@@ -54,9 +54,6 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	// LeftVolume->OnComponentBeginOverlap.BindDynamic( TODO: Finsh binding overlap and endoverlap events for both volumes to show when a pickup is in range
-	// RightVolume->OnComponentBeginOverlap.BindDynamic( 
-
 	PlayerInputComponent->BindAxis("MoveForward", this, &AvrPlayer::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AvrPlayer::MoveRight);
 	PlayerInputComponent->BindAxis("MouseLookPitch", this, &AvrPlayer::MouseLookPitch);
@@ -244,8 +241,8 @@ void AvrPlayer::MotionInputScan()
 		*	Small jump when arms are whipped up quickly while moving forward
 		*/
 		// Big Jump
-		if (HeadRelVel.Z > BigJumpHeadReq && LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq  && bScanningJump ||		// Condition 1 - Head popping with arm swing and button pressed
-			LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq && GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed)	// Condition 2 - High velocity with arm swing
+		if (/*HeadRelVel.Z > BigJumpHeadReq && */LeftRelVel.Z > BigJumpHandReq && RightRelVel.Z > BigJumpHandReq  && bScanningJump /*||			// Condition 1 - Arm swing and button pressed
+			LeftRelVel.Z > JumpSmallReq && RightRelVel.Z > JumpSmallReq && GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed + 50.f*/)	// Condition 2 - High velocity with arm swing
 		{
 			FTimerHandle FiringJump_Timer;
 			GetWorldTimerManager().SetTimer(FiringJump_Timer, this, &AvrPlayer::MotionJump, JumpDurationReq, false);
@@ -370,33 +367,30 @@ void AvrPlayer::ApplyImpactDamage()
 }
 void AvrPlayer::MotionJump()
 {
-	if (HeadRelVel.Z > BigJumpHeadReq/2 || GetWorldTimerManager().IsTimerActive(HighSpeedJump_Timer))
+	if (!GetCharacterMovement()->IsFalling())
 	{
-		if (!GetCharacterMovement()->IsFalling())
-		{
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), BigJumpSound, GetActorLocation());
-		}
-
-		GetCharacterMovement()->JumpZVelocity = BigJumpHeight;
-		Jump();
-
-		if (bHasForwardMovementInput)
-		{
-			FVector ForwardImpulse = GetHeadsetCam()->GetForwardVector();
-			ForwardImpulse.Z = 0.f;
-			ForwardImpulse.GetSafeNormal();
-			ForwardImpulse *= JumpBigForwardImpulse;
-
-			GetCharacterMovement()->Velocity += ForwardImpulse;
-			GetCharacterMovement()->UpdateComponentVelocity();
-		}
-
-		// Lower ground friction to simulate higher momentum
-		GetCharacterMovement()->GroundFriction = SprintingFriction;
-
-		// Max walk speed so it's easier to trigger subsequent big jumps
-		GetCharacterMovement()->MaxWalkSpeed = SprintMaxSpeed;
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), BigJumpSound, GetActorLocation());
 	}
+
+	GetCharacterMovement()->JumpZVelocity = BigJumpHeight;
+	Jump();
+
+	if (bHasForwardMovementInput)
+	{
+		FVector ForwardImpulse = GetHeadsetCam()->GetForwardVector();
+		ForwardImpulse.Z = 0.f;
+		ForwardImpulse.GetSafeNormal();
+		ForwardImpulse *= JumpBigForwardImpulse;
+
+		GetCharacterMovement()->Velocity += ForwardImpulse;
+		GetCharacterMovement()->UpdateComponentVelocity();
+	}
+
+	// Lower ground friction to simulate higher momentum
+	GetCharacterMovement()->GroundFriction = SprintingFriction;
+
+	// Max walk speed so it's easier to trigger subsequent big jumps
+	GetCharacterMovement()->MaxWalkSpeed = SprintMaxSpeed;
 }
 void AvrPlayer::MotionSprint(FVector ImpulseDirection, float ImpulsePercent)
 {

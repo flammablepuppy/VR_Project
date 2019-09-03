@@ -36,7 +36,21 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 	AvrPlayer* DyingPlayer = Cast<AvrPlayer>(DyingActor);
 	if (DyingPlayer)
 	{
-		DyingPlayer->GetHealthStats()->YardSale(3.f);
+		if (bShouldYardSale)
+		{
+			DyingPlayer->GetHealthStats()->YardSale(3.f);
+		}
+		else
+		{
+			if (DyingPlayer->GetLeftHeldObject())
+			{
+				DyingPlayer->GetLeftHeldObject()->Drop();
+			}
+			if (DyingPlayer->GetRightHeldObject())
+			{
+				DyingPlayer->GetRightHeldObject()->Drop();
+			}
+		}
 	}
 
 	// If the current checkpoint is a waypoint, it's not a true race course so don't reset all the waypoints
@@ -158,6 +172,11 @@ void ARaceGameMode::HideAllWaypoints()
 void ARaceGameMode::ModeOpenLevel(FString LevelToOpen)
 {
 	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelToOpen));
+}
+
+void ARaceGameMode::SetShouldYardSale(bool NewState)
+{
+	bShouldYardSale = NewState;
 }
 
 /** End race and calculate times/performance */

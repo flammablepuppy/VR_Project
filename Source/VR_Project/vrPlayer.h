@@ -118,11 +118,11 @@ protected:
 	FVector RightRelative;
 
 	UPROPERTY(BlueprintReadOnly)
-	FVector HeadRelVel = HeadLastRelPos - HeadRelative;
+	FVector HeadRelVel = FVector::ZeroVector;
 	UPROPERTY(BlueprintReadOnly)
-	FVector LeftRelVel = -(LeftLastRelPos - LeftRelative);
+	FVector LeftRelVel = FVector::ZeroVector;
 	UPROPERTY(BlueprintReadOnly)
-	FVector RightRelVel = -(RightLastRelPos - RightRelative);
+	FVector RightRelVel = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadOnly)
 	FVector HeadLastRelPos = FVector::ZeroVector;

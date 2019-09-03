@@ -47,6 +47,9 @@ protected:
 	UPROPERTY()
 	bool bRespawnWithInventory = false;
 
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	bool bShouldYardSale = true;
+
 // FUNCTIONS
 //////////////
 
@@ -88,6 +91,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ModeOpenLevel(FString LevelToOpen);
+
+	UFUNCTION(BlueprintCallable)
+	void SetShouldYardSale(bool NewState);
 
 // DELEGATE
 /////////////

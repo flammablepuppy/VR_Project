@@ -218,6 +218,7 @@ void ASigPistol::DischargeRound()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetOwningPlayer();
 
 		GetWorld()->SpawnActor<AvrProjectile>(Cart->GetProjectile(), 
 			PistolMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetForwardVector() * (GetOwningPlayer()->GetVelocity().Size() * 0.05f)), 

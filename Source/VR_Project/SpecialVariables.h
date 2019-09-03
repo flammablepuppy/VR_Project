@@ -8,9 +8,10 @@
 UENUM(BlueprintType)
 enum class EGrabAction : uint8
 {
-	GA_ObjectToHand		UMETA(DisplayName = "HandKing"),
-	GA_HandToObject		UMETA(DisplayName = "ObjectKing"),
-	GA_CollectObject	UMETA(DisplayName = "Collectable")
+	GA_ObjectToHandSnap		UMETA(DisplayName = "HandKingSnap"),
+	GA_ObjectToHandAccel	UMETA(DisplayName = "HandKingAccel"),
+	GA_HandToObject			UMETA(DisplayName = "ObjectKing"),
+	GA_CollectObject		UMETA(DisplayName = "Collectable")
 };
 
 /**

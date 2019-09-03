@@ -42,9 +42,9 @@ public:
 	void InitializeGrabInterface(EGrabAction GrabBehavior, AActor* Owner);
 	void ReactToGrab(const FMotionControllerInfo& GrabbingMC);
 	void SnapObjectToHand();
+	void AccelObjectToHand();
 	void SnapHandToObject();
 	void CollectObject();
 	void UpdateObjectPostion(UObject* ObjectToMove, FTransform TargetTransform);
 	void Drop();
-
 };
