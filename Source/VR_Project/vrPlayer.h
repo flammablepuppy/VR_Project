@@ -326,6 +326,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE UHealthStats* GetHealthStats() { return HealthStatsComp; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE float GetSprintSpeed() { return SprintMaxSpeed; }
+
 	UFUNCTION(BlueprintCallable)
 	void SetMouseEnabled(bool NewState);
 

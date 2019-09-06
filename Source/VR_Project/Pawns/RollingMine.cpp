@@ -236,8 +236,11 @@ void ARollingMine::SpikeStab(UPrimitiveComponent* HitComponent, AActor* OtherAct
 	AvrPlayer* Player = Cast<AvrPlayer>(OtherComp->GetOwner());
 	if (Player && !GetWorldTimerManager().IsTimerActive(SpikeCooldown_Timer))
 	{
+
 		FDamageEvent DamEve;
 		OtherActor->TakeDamage(SpikeDamage, DamEve, this->GetController(), this);
+
+		Player->GetHealthStats()->ApplySlow(0.5f, 5.f);
 
 		FVector ImpulseDirection = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal() + FVector(0.f, 0.f, 1.f);
 		Player->GetMovementComponent()->Velocity += ImpulseDirection.GetSafeNormal() * ImpulsePower;
@@ -247,5 +250,6 @@ void ARollingMine::SpikeStab(UPrimitiveComponent* HitComponent, AActor* OtherAct
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), StabSound, GetActorLocation());
 		GetWorldTimerManager().SetTimer(SpikeCooldown_Timer, SpikeCooldownDuration, false);
 		//UE_LOG(LogTemp, Log, TEXT("Spike impact!"))
+
 	}
 }

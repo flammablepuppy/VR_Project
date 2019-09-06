@@ -41,7 +41,7 @@ void IGrabInterface::ReactToGrab(const FMotionControllerInfo& GrabbingMC)
 			break;
 
 		case EGrabAction::GA_ObjectToHandAccel:
-			SnapObjectToHand();
+			AccelObjectToHand();
 			break;
 
 		case EGrabAction::GA_HandToObject:

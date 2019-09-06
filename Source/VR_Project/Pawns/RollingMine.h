@@ -50,13 +50,12 @@ protected:
 	class AvrPlayer* TargetPlayer;
 
 	FVector FindTargetDirection();
-
-	UFUNCTION()
 	float FindMoveForce();
 	void MoveToTarget();
 	bool CheckIsAirbourne();
 
-	/** TODO Sound played while moving around */
+	// TODO
+	/** Sound played while moving around */
 	UPROPERTY(EditDefaultsOnly, Category = "Searching")
 	class USoundCue* RollingSound;
 	FTimerHandle RollLoop_Timer;

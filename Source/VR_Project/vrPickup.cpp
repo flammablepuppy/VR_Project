@@ -19,6 +19,11 @@ AvrPickup::AvrPickup()
 	PickupMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	RootComponent = PickupMesh;
 
+	//PickupHighlightMesh = CreateDefaultSubobject<UStaticMeshComponent>("Highlight");
+	//PickupHighlightMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	//PickupHighlightMesh->SetSimulatePhysics(false);
+	//PickupHighlightMesh->SetupAttachment(RootComponent);
+
 	SetReplicates(true);
 
 }
@@ -26,7 +31,8 @@ void AvrPickup::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InitializeGrabInterface(EGrabAction::GA_ObjectToHand, GetOwner());
+	InitializeGrabInterface(EGrabAction::GA_ObjectToHandSnap, GetOwner());
+	//InitializeHighlightMesh();
 
 }
 void AvrPickup::Tick(float DeltaTime)
@@ -69,7 +75,6 @@ void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketN
 	bMoving = true;
 	CurrentHomingSpeed = 0.f;
 }
-
 void AvrPickup::SnapOn()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -81,7 +86,6 @@ void AvrPickup::SnapOn()
 
 	OnSnappedOn.Broadcast(this);
 }
-
 void AvrPickup::Drop()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -111,7 +115,6 @@ void AvrPickup::Drop()
 	OnDrop.Broadcast(this);
 	OnDrop.Clear();
 }
-
 void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
 {
 	if (!TargetComponent) { bMoving = false; return; UE_LOG(LogTemp, Warning, TEXT("No SnapTarget, can't move or attach")) }
@@ -141,6 +144,28 @@ void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
 	{
 		SetActorLocation(NewLocation);
 		SetActorRotation(NewRotation);
+	}
+}
+
+
+// Highlight
+void AvrPickup::EnableHighlightMesh()
+{
+	PickupHighlightMesh->SetVisibility(true);
+}
+void AvrPickup::DisableHighlightMesh()
+{
+	PickupHighlightMesh->SetVisibility(false);
+}
+void AvrPickup::InitializeHighlightMesh()
+{
+	PickupHighlightMesh->SetVisibility(false);
+	PickupHighlightMesh->SetStaticMesh(PickupMesh->GetStaticMesh());
+
+	int32 MatNum = PickupMesh->GetMaterials().Num();
+	for (int32 i = 0; i < MatNum; i++)
+	{
+		PickupHighlightMesh->SetMaterial(i, HighlightMaterial);
 	}
 }
 

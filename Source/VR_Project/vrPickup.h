@@ -38,6 +38,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", Meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PickupMesh;
 
+	/** Copy of PickupMesh used for item highlighting */
+	UStaticMeshComponent* PickupHighlightMesh;
+
 	//		MOVING AND ATTACHING VARIABLES
 	//
 
@@ -86,12 +89,17 @@ protected:
 	/** Will attach to a vacant holster when dropped automatically */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	bool bSeeksHolster = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	UMaterialInterface* HighlightMaterial;
 	
 	//		FUNCTIONS
 	//
 
 	UFUNCTION()
 	void MoveTo(USceneComponent * TargetComponent, FName TargetSocket);
+
+	void InitializeHighlightMesh();
 
 public:	
 	//		PUBLIC FUNCTIONS
@@ -105,6 +113,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void Drop();
+
+	void EnableHighlightMesh();
+	void DisableHighlightMesh();
 
 	//		BP INPUT CALLS
 	//

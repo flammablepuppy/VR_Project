@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SpecialVariables.h"
 #include "Components/ActorComponent.h"
 #include "HealthStats.generated.h"
 
@@ -42,6 +43,9 @@ protected:
 	UPROPERTY()
 	TArray<AvrPickup*> YardSaleDrop;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default Values")
+	float BaseMoveSpeed;
+
 public:	
 
 // PUBLIC FUNCTIONS
@@ -72,6 +76,9 @@ public:
 	FORCEINLINE float GetMaxHealth() { return MaximumHealth; }
 
 	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetBaseMoveSpeed() { return BaseMoveSpeed; }
+
+	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool GetIsDead() { return bOwnerIsDead; }
 
 	UFUNCTION(BlueprintPure)
@@ -92,5 +99,14 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOwnerRespawned OnRespawn;
+
+
+
+	UFUNCTION()
+	void ApplySlow(float Power, float Duration);
+
+	UFUNCTION()
+	void UndoSlow(float Power);
+
 
 };

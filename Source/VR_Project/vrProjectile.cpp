@@ -43,7 +43,6 @@ void AvrProjectile::BeginPlay()
 void AvrProjectile::ResolveHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)
 {
 	FDamageEvent Damage;
-
 	AvrPickup* FiringWeapon = Cast<AvrPickup>(GetOwner());
 	if (FiringWeapon)
 	{

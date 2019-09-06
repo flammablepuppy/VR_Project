@@ -79,7 +79,6 @@ void UHealthStats::OwnerTakesDamage(AActor * DamagedActor, float Damage, const U
 		}
 	}
 }
-
 void UHealthStats::Die()
 {
 	AvrPlayer* Owner = Cast<AvrPlayer>(GetOwner());
@@ -89,12 +88,11 @@ void UHealthStats::Die()
 	//YardSale();
 
 }
-
 void UHealthStats::SetIsDead(bool NewState)
 {
 	bOwnerIsDead = NewState;
 }
-
+// TODO Should be handled in GameMode
 void UHealthStats::Respawn()
 {
 	OwningPlayer->EnableInput(Cast<APlayerController>(OwningPlayer->GetController()));
@@ -110,7 +108,7 @@ void UHealthStats::Respawn()
 
 }
 
-/** Owning Player drops all their stuff */
+// TODO Should be handled on the vrPlayer or UtilityBelt
 void UHealthStats::YardSale(float DroppedItemsLifespan)
 {
 	if (DroppedItemsLifespan > 0.f)
@@ -161,7 +159,6 @@ void UHealthStats::YardSale(float DroppedItemsLifespan)
 		RememberRight->SetSeeksHolster(true);
 	}
 }
-
 void UHealthStats::MemorizePlayerItems(TArray<AvrPickup*>& OutInventory)
 {
 	OutInventory.Reset();
@@ -176,8 +173,37 @@ void UHealthStats::MemorizePlayerItems(TArray<AvrPickup*>& OutInventory)
 	OutInventory.AddUnique(OwningPlayer->GetRightHeldObject());
 }
 
+// SETTERS
+////////////
 void UHealthStats::SetCurrentHealth(float NewHealth)
 {
 	CurrentHealth = NewHealth;
 }
 
+void UHealthStats::ApplySlow(float Power, float Duration)
+{
+	FTimerHandle Slow_Timer;
+	FTimerDelegate Slow_Delegate;
+	Slow_Delegate.BindUFunction(this, "UndoSlow", Power);
+
+	UCharacterMovementComponent* MoveComp = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
+	if (MoveComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MoveComp found, slow applied"))
+		MoveComp->MaxWalkSpeed *= 1.f - Power;
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(Slow_Timer, Slow_Delegate, Duration, false);
+
+}
+
+void UHealthStats::UndoSlow(float Power)
+{
+	UCharacterMovementComponent* MoveComp = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
+	if (MoveComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MoveComp found, slow reveresed"))
+		MoveComp->MaxWalkSpeed /= 1.f - Power;
+	}
+
+}
