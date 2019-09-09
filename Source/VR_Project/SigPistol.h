@@ -81,7 +81,7 @@ protected:
 	bool bSpawnsLoaded = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pistol Properties", meta = (EditCondition = "bSpawnsLoaded"))
-	bool bSpawnsChambered = false;
+	bool bSpawnsChambered = true;
 
 	/** Magazine that spawns with weapon when bSpawnsLoaded is true */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Magazine Properties")
