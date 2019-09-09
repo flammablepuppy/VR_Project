@@ -17,6 +17,7 @@ AvrPickup::AvrPickup()
 	PickupMesh = CreateDefaultSubobject<UStaticMeshComponent>("Pickup Mesh");
 	PickupMesh->SetSimulatePhysics(true);
 	PickupMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	PickupMesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	RootComponent = PickupMesh;
 
 	//PickupHighlightMesh = CreateDefaultSubobject<UStaticMeshComponent>("Highlight");

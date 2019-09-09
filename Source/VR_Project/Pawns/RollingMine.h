@@ -112,8 +112,13 @@ protected:
 
 	/** Damage dealt when RollingMine impacts an actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Stab")
-	float SpikeDamage = 10.f;
+	float SpikeDamage = 2.5f;
 
+	/** Damage dealt when RollingMine impacts an actor */
+	UPROPERTY(EditDefaultsOnly, Category = "Stab")
+	float BleedDamage = 12.5f;
+
+	/** Impulse away imparted on stabbed player */
 	UPROPERTY(EditDefaultsOnly, Category = "Stab")
 	float ImpulsePower = 100.f;
 

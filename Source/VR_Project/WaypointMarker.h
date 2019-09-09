@@ -85,6 +85,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE TArray<TSubclassOf<AvrPickup>> GetItemsToSpawn() { return ItemsToSpawn; }
 
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE UStaticMeshComponent* GetWaypointMesh() { return WaypointMesh; }
+
 // DELEGATES
 //////////////
 

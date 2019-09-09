@@ -72,7 +72,7 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 		AvrPlayer* vrP = Cast<AvrPlayer>(DyingActor);
 		if (vrP) { vrPlayers.AddUnique(vrP); }
 		FTimerHandle Respawn_Timer;
-		if (!GetWorldTimerManager().IsTimerActive(Respawn_Timer)) { GetWorldTimerManager().SetTimer(Respawn_Timer, this, &ARaceGameMode::RespawnPlayers, 2.f); }
+		if (!GetWorldTimerManager().IsTimerActive(Respawn_Timer)) { GetWorldTimerManager().SetTimer(Respawn_Timer, this, &ARaceGameMode::RespawnPlayers, 1.5f); }
 	}
 	else
 	{
@@ -122,24 +122,20 @@ void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclass
 	// Check if player already has item, remove it from the list of items to spawn if they already have it
 	TArray<AvrPickup*> HolsteredItems;
 	PlayerToEquip->GetUtilityBelt()->GetHolsteredItems(HolsteredItems);
-	HolsteredItems.AddUnique(PlayerToEquip->GetLeftHeldObject());
-	HolsteredItems.AddUnique(PlayerToEquip->GetRightHeldObject());
+	if (PlayerToEquip->GetLeftHeldObject())
+		HolsteredItems.AddUnique(PlayerToEquip->GetLeftHeldObject());
+	if (PlayerToEquip->GetRightHeldObject())
+		HolsteredItems.AddUnique(PlayerToEquip->GetRightHeldObject());
 
 	if (HolsteredItems.Num() > 0)
 	{
 		for (AvrPickup* Item : HolsteredItems)
 		{
-			if (Item)
+			for (TSubclassOf<AvrPickup> PickupSubclass : ItemsToEquip)
 			{
-				for (TSubclassOf<AvrPickup> PickupSubclass : ItemsToEquip)
+				if (Item->IsA(PickupSubclass))
 				{
-					if (PickupSubclass)
-					{
-						if (Item->IsA(PickupSubclass))
-						{
-							SpawnItems.Remove(PickupSubclass);
-						}
-					}
+					SpawnItems.Remove(PickupSubclass);
 				}
 			}
 		}
@@ -259,12 +255,14 @@ void ARaceGameMode::DisplayCurrentWaypoint()
 		if (Marker->GetWaypointNumber() == CurrentWaypoint)
 		{
 			Marker->ActivateWaypoint();
+			TargetWaypoint = Marker;
 		}
 	}
 	
 	if (CurrentWaypoint == LoadedCourse.Num())
 	{
 		CourseFinished();
+		TargetWaypoint = nullptr;
 	}
 }
 

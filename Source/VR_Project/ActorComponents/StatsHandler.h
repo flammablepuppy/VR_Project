@@ -18,15 +18,4 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Stats Handler", meta = (AllowPrivateAccess = "true"))
-	FPlayerBaseStats Stats;
-
-	UFUNCTION()
-	void DetermineBaseStats();
-
-	UFUNCTION()
-	void ApplySlow(float Power, float Duration);
-
-	UFUNCTION()
-	void UndoSlow(float Power);
 };

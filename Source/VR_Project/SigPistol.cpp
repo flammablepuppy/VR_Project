@@ -51,7 +51,7 @@ void ASigPistol::BeginPlay()
 		LoadedMagazine->SetActorLocation(PistolMesh->GetSocketLocation("MagazineWell"));
 		LoadedMagazine->SetActorRotation(PistolMesh->GetSocketRotation("MagazineWell"));
 
-		ChamberedRound = LoadedMagazine->GetCompatibleCartridge();
+		if (bSpawnsChambered) ChamberedRound = LoadedMagazine->GetCompatibleCartridge();
 
 		if (StarterCapacity != -1)
 		{
@@ -139,10 +139,14 @@ void ASigPistol::TriggerPulled(float Value)
 		{
 			bTriggerPulled = true;
 			DischargeRound();
+			//UE_LOG(LogTemp, Warning, TEXT("BANG! | Value: %f | bTriggerPulled: %s"), Value, bTriggerPulled ? TEXT("True") : TEXT("False"))
+
 		}
-		else if (Value < 0.3f)
+		else if (Value < 0.2f)
 		{
 			bTriggerPulled = false;
+			//UE_LOG(LogTemp, Warning, TEXT("Reset | Value: %f | bTriggerPulled: %s"), Value, bTriggerPulled ? TEXT("True") : TEXT("False"))
+
 		}
 	}
 }

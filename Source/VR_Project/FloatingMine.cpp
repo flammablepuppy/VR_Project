@@ -148,9 +148,9 @@ void AFloatingMine::Explode(UPrimitiveComponent * OverlappedComponent, AActor * 
 		for (AActor* HitActor : BlastedActors)
 		{
 			// Cast to vrPlayer to prevent from killing other nearby mines
-			AvrPlayer* Player = Cast<AvrPlayer>(HitActor);
+			AvrPlayer* HitPlayer = Cast<AvrPlayer>(HitActor);
 			{
-				if (Player)
+				if (HitPlayer)
 				{
 					FDamageEvent Damage;
 					HitActor->TakeDamage(MineDamage, Damage, nullptr, this);

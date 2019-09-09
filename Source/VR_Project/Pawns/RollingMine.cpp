@@ -240,7 +240,7 @@ void ARollingMine::SpikeStab(UPrimitiveComponent* HitComponent, AActor* OtherAct
 		FDamageEvent DamEve;
 		OtherActor->TakeDamage(SpikeDamage, DamEve, this->GetController(), this);
 
-		Player->GetHealthStats()->ApplySlow(0.5f, 5.f);
+		Player->GetHealthStats()->BleedOn(BleedDamage, 3.f, 2.f);
 
 		FVector ImpulseDirection = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal() + FVector(0.f, 0.f, 1.f);
 		Player->GetMovementComponent()->Velocity += ImpulseDirection.GetSafeNormal() * ImpulsePower;

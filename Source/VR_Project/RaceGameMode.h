@@ -36,6 +36,9 @@ protected:
 	int32 CurrentWaypoint = 0;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	AActor* TargetWaypoint;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	float CourseStartTime = 0.f;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -84,7 +87,10 @@ public:
 	void SetActiveCheckpoint(AActor * CheckpointActor);
 
 	UFUNCTION(BlueprintPure)
-	AActor* GetCurrentCheckpoint() { return CurrentCheckpoint; }
+	AActor* GetCurrentCheckpoint() { return CurrentCheckpoint;  }
+
+	UFUNCTION(BlueprintPure)
+	AActor* GetTargetWaypoint() { return TargetWaypoint; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetRespawnWithInventory(bool NewState);

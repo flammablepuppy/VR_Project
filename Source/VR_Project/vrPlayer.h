@@ -68,21 +68,8 @@ protected:
 	void MouseLookYaw(float Value);
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	bool bMouseEnabled = true;
-
-	/** 
-		Button based jumping and leap detection
-		- While button is held, motion input function is looking for leap motion input
-		- If the button is pressed then released in QuickJumpWindow time or less, a small jump fires
-	*/
 	UFUNCTION()
-	void MotionJumpScan();
-	UFUNCTION()
-	void StopMotionJumpScan();
-	bool bScanningJump = false;
-	FTimerHandle QuickJump_Timer;
-	UPROPERTY(EditDefaultsOnly, Category = "Jump")
-	float QuickJumpWindow = 0.4f;
-
+	void SmallJump();
 
 	// Snap Turn
 	//
@@ -138,16 +125,20 @@ protected:
 	UFUNCTION()
 	void ApplyImpactDamage();
 
+		UPROPERTY(EditDefaultsOnly, Category = "Motion Input: Impact Damage")
+		USoundCue* ImpactDamageSound;
+
+		/** Determines whether pawn can suffer impact damage */
 		UPROPERTY()
 		bool bImpactDamageActive = true;
 
 		/** Velocity change threshold beyond which damage is applied to the player */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Impact Damage")
-		float VelocityChangeDamageSpeed = 1000.f; 
+		float VelocityChangeDamageSpeed = 1250.f; 
 
 		/** The minimum amount of damage that will be dealt to the player after an abrupt velocity change */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Impact Damage") 
-		float MinimumImpactDamage = 30.f;
+		float MinimumImpactDamage = 15.f;
 
 		/** Damage delt per cm/s over velocity change threshold */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Impact Damage") 
@@ -160,50 +151,45 @@ protected:
 	UFUNCTION()
 	void MotionJump();
 
+		/** Sound that plays when a small jump fires */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		USoundCue* SmallJumpSound;
+
+		/** Upward impulse passed to the jump function when a small jump fires */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float SmallJumpHeight = 550.f;
+
 		/** Sound that plays when a big jump fires */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
 		USoundCue* BigJumpSound;
-
-		/** The amount of vertical acceleration the HMD must hit to trigger a jump */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float BigJumpHeadReq = 1.5f;
-
-		/** The amount of vertical acceleration both the controllers must hit to trigger a jump */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float BigJumpHandReq = 6.f;
-
-		/** The minimum duration the jumping motion must be made to trigger a big jump */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float JumpDurationReq = 0.08f;
 
 		/** Upward impulse passed to the jump function when a big jump fires */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
 		float BigJumpHeight = 840.f;
 
+		/** The amount of vertical acceleration the HMD must hit */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float BigJumpHeadReq = 1.2f;
+
+		/** The amount of vertical acceleration both the controllers must hit to trigger a jump */
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
+		float BigJumpHandReq = 8.f;
+
 		/** Additional impulse in the direction you're looking when performing a Big Jump with forward movement input */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float JumpBigForwardImpulse = 65.f;
+		float PostJumpImpulse = 500.f;
 
-		/** Sound that plays when a small jump fires */
+		/** Percentage of velocity added as bonus to velocity */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		USoundCue* SmallJumpSound;
+		float ChainJumpMultiplier = 0.05f;
 
-		/** When both hands move vertically by this speed without head movement upward, triggers a small jump */
+		/** Percentage of MaxSprintSpeed that jump will fire without head movement */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float JumpSmallReq = 12.f;
-
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float SmallJumpHeight = 550.f;
-
-		/** Set to true by MoveForward when axis value is greater than 0.3, used to limit accidental jumps and amplify forward motion on big jumps */
-		UPROPERTY()
-		bool bHasForwardMovementInput = false;
-
-		FTimerHandle HighSpeedJump_Timer;
+		float BigJumpHighSpeedFireMultiplier = 1.05f;
 
 	// Sprint
 	UFUNCTION()
-	void MotionSprint(FVector ImpulseDirection, float ImpulsePercent);
+	void MotionSprint(float ImpulsePercent, FVector Direction);
 
 		/** The X and Z relative velocity are added together and compared to this value, if they exceed it MotionSprint is fired */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
@@ -215,18 +201,18 @@ protected:
 
 		/** Time that must elapse before a motion controller can trigger another sprint impulse */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
-		float SprintCooldownDuration = 0.3f;
+		float SprintCooldownDuration = 0.2f;
 
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
-		float SprintDecelResetDuration = 0.35f;
+		float SprintDecelResetDuration = 0.75f;
 
 		/** Default walking speed */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
-		float SprintMinSpeed = 320.f;
+		float SprintMinSpeed = 280.f;
 
 		/** Max speed attainable by sprinting */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
-		float SprintMaxSpeed = 1200.f;
+		float SprintMaxSpeed = 1050.f;
 
 		/** Friction when sprinting, low value better simulates momentum of running */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
@@ -238,7 +224,9 @@ protected:
 
 		FTimerHandle SprintLeft_Timer;
 		FTimerHandle SprintRight_Timer;
-		FTimerHandle SprintDecelReset_Timer;
+		FTimerHandle SprintReset_Timer;
+		FTimerHandle SpawnJumpPrevention_Timer;
+
 		UPROPERTY()
 		FVector SprintLeftLastPos = FVector::ZeroVector;
 		UPROPERTY()
