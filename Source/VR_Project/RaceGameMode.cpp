@@ -25,11 +25,18 @@ void ARaceGameMode::BeginPlay()
 	{
 		ActorIter->GetHealthStats()->OnDeath.AddDynamic(this, &ARaceGameMode::HandlePlayerDeath);
 	}
+
+	// Activate all Waypoint 0's
+	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
+	{
+		if (ActorIter->GetWaypointNumber() == 0)
+		{
+			ActorIter->ActivateWaypoint();
+		}
+	}
 }
 
-/**
-*	Reaction when a player death has been broadcast.
-*/
+// Death and Respawning
 void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 {
 	// In this GameMode we don't want players to retain items they had on death, if they've hit a checkpoint the needed items will spawn on their belt
@@ -54,19 +61,12 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 	}
 
 	// If the current checkpoint is a waypoint, it's not a true race course so don't reset all the waypoints
-	AWaypointMarker* WaypointCheckpoint = Cast<AWaypointMarker>(CurrentCheckpoint);
-	if (LoadedCourse.Num() > 0 && !WaypointCheckpoint)
+	if (LoadedCourse.Num() > 0 && !CurrentCheckpoint)
 	{
 		CourseFinished();
 	}
-	// If using a waypoint checkpoint, make the first waypoint after the checkpoint the active checkpoint
-	if (WaypointCheckpoint)
-	{
-		HideAllWaypoints();
-		CurrentWaypoint = WaypointCheckpoint->GetWaypointNumber();
-		DisplayCurrentWaypoint();
-	}
 
+	// Respawn player at checkpoint if available
 	if (CurrentCheckpoint)
 	{
 		AvrPlayer* vrP = Cast<AvrPlayer>(DyingActor);
@@ -85,8 +85,6 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 	}
 
 }
-
-/** Respawn player, called by HandlePlayerDeath when CurrentCheckpoint is not nullptr */
 void ARaceGameMode::RespawnPlayers()
 {
 	for (AvrPlayer* Player : vrPlayers)
@@ -111,8 +109,6 @@ void ARaceGameMode::RespawnPlayers()
 		}
 	}
 }
-
-/** Spawn items that may be required for player progression and attach them their utility belt */
 void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclassOf<AvrPickup>> ItemsToEquip)
 {
 	if (!PlayerToEquip || ItemsToEquip.Num() == 0) { return; }
@@ -156,7 +152,12 @@ void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclass
 		}
 	}
 }
+void ARaceGameMode::ModeOpenLevel(FString LevelToOpen)
+{
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelToOpen));
+}
 
+// Waypoints and Races
 void ARaceGameMode::HideAllWaypoints()
 {
 	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
@@ -164,18 +165,6 @@ void ARaceGameMode::HideAllWaypoints()
 		ActorIter->DeactivateWaypoint();
 	}
 }
-
-void ARaceGameMode::ModeOpenLevel(FString LevelToOpen)
-{
-	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelToOpen));
-}
-
-void ARaceGameMode::SetShouldYardSale(bool NewState)
-{
-	bShouldYardSale = NewState;
-}
-
-/** End race and calculate times/performance */
 void ARaceGameMode::CourseFinished()
 {
 	if (LoadedCourse.Num() == TimeBetweenWaypoints.Num())
@@ -218,37 +207,40 @@ void ARaceGameMode::CourseFinished()
 		CurrentWaypoint = 0;
 	}
 }
-
-/** The '0' waypoint for a course is what loads the course */
 void ARaceGameMode::LoadCourse(FColor ColorCourseToLoad)
 {
+	// Set important variables
+	CurrentWaypoint = 0;
 	LoadedCourse.Reset();
 	TimeBetweenWaypoints.Reset();
+	CourseStartTime = GetWorld()->GetTimeSeconds();
+
 	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
 	{
-		AWaypointMarker* Marker = *ActorIter; 
+		// Waypoint of the correct color are added to array
+		AWaypointMarker* Marker = *ActorIter;
 		if (Marker->GetCourseColor() == ColorCourseToLoad)
 		{
-			CourseStartTime = GetWorld()->GetTimeSeconds();
 			LoadedCourse.AddUnique(Marker);
 			Marker->OnCollected.AddDynamic(this, &ARaceGameMode::DisplayCurrentWaypoint);
 		}
+		// Waypoints of other courses are unsubbed and deactivated
 		else if (Marker->GetCourseColor() != ColorCourseToLoad)
 		{
 			Marker->OnCollected.Clear();
 			Marker->DeactivateWaypoint();
 		}
 	}
+
 	UE_LOG(LogTemp, Warning, TEXT("Course loaded, %d points in course"), LoadedCourse.Num() - 1)
 }
-
-/** The first call to this function will be on the 0 waypoint for any given course */
 void ARaceGameMode::DisplayCurrentWaypoint()
 {
+	// Course time flags
 	float CheckpointTime = GetWorld()->GetTimeSeconds() - CourseStartTime;
 	TimeBetweenWaypoints.AddUnique(CheckpointTime);
 
-	CurrentWaypoint += 1;
+	CurrentWaypoint++;
 
 	for (AWaypointMarker* Marker : LoadedCourse)
 	{
@@ -256,24 +248,38 @@ void ARaceGameMode::DisplayCurrentWaypoint()
 		{
 			Marker->ActivateWaypoint();
 			TargetWaypoint = Marker;
+			UE_LOG(LogTemp, Warning, TEXT("%s is active."), *Marker->GetName())
+
+		}
+
+		if (CurrentWaypoint == LoadedCourse.Num())
+		{
+			CourseFinished();
+			TargetWaypoint = nullptr;
+			UE_LOG(LogTemp, Warning, TEXT("Course finished called."))
 		}
 	}
-	
-	if (CurrentWaypoint == LoadedCourse.Num())
-	{
-		CourseFinished();
-		TargetWaypoint = nullptr;
-	}
 }
 
+// Simple setters
 void ARaceGameMode::SetActiveCheckpoint(AActor * CheckpointActor)
 {
-	//CurrentCheckpoint->Destroy();
 	CurrentCheckpoint = CheckpointActor;
 }
-
 void ARaceGameMode::SetRespawnWithInventory(bool NewState)
 {
 	bRespawnWithInventory = NewState;
+}
+void ARaceGameMode::SetShouldYardSale(bool NewState)
+{
+	bShouldYardSale = NewState;
+}
+void ARaceGameMode::SetTargetWaypoint(AWaypointMarker* Waypoint)
+{
+	TargetWaypoint = Waypoint;
+}
+void ARaceGameMode::SetCurrentWaypoint(int32 WaypointNumber)
+{
+	CurrentWaypoint = WaypointNumber;
 }
 

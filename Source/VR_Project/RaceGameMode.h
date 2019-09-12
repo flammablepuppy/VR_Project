@@ -36,7 +36,7 @@ protected:
 	int32 CurrentWaypoint = 0;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	AActor* TargetWaypoint;
+	AWaypointMarker* TargetWaypoint;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	float CourseStartTime = 0.f;
@@ -90,7 +90,7 @@ public:
 	AActor* GetCurrentCheckpoint() { return CurrentCheckpoint;  }
 
 	UFUNCTION(BlueprintPure)
-	AActor* GetTargetWaypoint() { return TargetWaypoint; }
+	AWaypointMarker* GetTargetWaypoint() { return TargetWaypoint; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetRespawnWithInventory(bool NewState);
@@ -100,6 +100,16 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetShouldYardSale(bool NewState);
+
+	UFUNCTION(BlueprintCallable)
+	void SetTargetWaypoint(AWaypointMarker* Waypoint);
+
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentWaypoint(int32 WaypointNumber);
+	
+	UFUNCTION(BlueprintCallable)
+	TArray<AWaypointMarker*> GetLoadedCourse() { return LoadedCourse; }
+
 
 // DELEGATE
 /////////////

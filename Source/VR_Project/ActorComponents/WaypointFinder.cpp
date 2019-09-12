@@ -27,7 +27,7 @@ void AWaypointFinder::BeginPlay()
 	
 	ArrowMesh->SetVisibility(false);
 
-	ARaceGameMode* TheMode = Cast<ARaceGameMode>(UGameplayStatics::GetGameMode(this));
+	ARaceGameMode* TheMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
 	if (TheMode)
 	{
 		FTimerHandle Pointer_Ticker;
@@ -36,27 +36,30 @@ void AWaypointFinder::BeginPlay()
 
 }
 
+/**
+*
+*/
+
 void AWaypointFinder::Point()
 {
-	ARaceGameMode* TheMode = Cast<ARaceGameMode>(UGameplayStatics::GetGameMode(this));
+	ARaceGameMode* TheMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
 	if (TheMode->GetTargetWaypoint())
 	{
-		AWaypointMarker* TargetWP = Cast<AWaypointMarker>(TheMode->GetTargetWaypoint());
-		if (TargetWP)
+		AWaypointMarker* Waypoint = TheMode->GetTargetWaypoint();
+		if (Waypoint->GetWaypointIsActive())
 		{
 			// Display arrow
 			if (!ArrowMesh->IsVisible()) ArrowMesh->SetVisibility(true);
 
 			// Match arrow material to waypoint 
 			if (ArrowMaterial == nullptr)
-				ArrowMaterial = ArrowMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(1, TargetWP->GetWaypointMesh()->GetMaterial(1));
+				ArrowMaterial = ArrowMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(1, Waypoint->GetWaypointMesh()->GetMaterial(1));
 
 			// Point toward waypoint
 			FVector TargetLocation = TheMode->GetTargetWaypoint()->GetActorLocation();
 			FVector FromLocation = GetActorLocation();
 			FVector Direction = (TargetLocation - FromLocation).GetSafeNormal();
-			FRotator Rotation = Direction.Rotation();
-			ArrowMesh->SetWorldRotation(Rotation);
+			ArrowMesh->SetWorldRotation(Direction.Rotation());
 		}
 	}
 	else

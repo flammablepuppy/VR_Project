@@ -185,8 +185,10 @@ protected:
 
 		/** Percentage of MaxSprintSpeed that jump will fire without head movement */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Jump")
-		float BigJumpHighSpeedFireMultiplier = 1.05f;
+		float BigJumpHighSpeedFireMultiplier = 1.15f;
 
+		FTimerHandle Leap_Timer;
+		
 	// Sprint
 	UFUNCTION()
 	void MotionSprint(float ImpulsePercent, FVector Direction);
@@ -227,9 +229,8 @@ protected:
 		FTimerHandle SprintReset_Timer;
 		FTimerHandle SpawnJumpPrevention_Timer;
 
-		UPROPERTY()
+		/** Used for determining sprint impulse direction */
 		FVector SprintLeftLastPos = FVector::ZeroVector;
-		UPROPERTY()
 		FVector SprintRightLastPos = FVector::ZeroVector;
 
 	// Controller Function calls
@@ -316,6 +317,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetSprintSpeed() { return SprintMaxSpeed; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE float GetBigJumpHighSpeedFireMultiplier() { return BigJumpHighSpeedFireMultiplier; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetMouseEnabled(bool NewState);

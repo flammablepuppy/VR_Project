@@ -17,8 +17,6 @@ public:
 	AWaypointMarker();
 protected:
 	virtual void BeginPlay() override;
-public:	
-	virtual void Tick(float DeltaTime) override;
 
 protected:
 // COMPONENTS
@@ -48,12 +46,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
 	bool bFunctionsAsCheckpoint = false;
 
+	/** Sound played when overlapped by player */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Waypoint Properties")
 	class USoundBase* CollectionSound;
 
+	/** Flag for Race Game Mode */
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWaypointIsActive = false;
 
+	/** Flag for Race Game Mode, true does not reload 0 waypoints after completion */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	bool bFinalWaypoint = false;
+
+	/** Items to spawn when player respawns at this checkpoint */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
 	TArray<TSubclassOf<AvrPickup>> ItemsToSpawn;
 
@@ -74,19 +79,22 @@ public:
 	void DeactivateWaypoint();
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE bool GetWaypointIsActive() { return bWaypointIsActive; }
+	FORCEINLINE bool GetWaypointIsActive() { return bWaypointIsActive; } 
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE FColor GetCourseColor() { return CourseColor; }
+	FORCEINLINE FColor GetCourseColor() { return CourseColor; } 
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE int32 GetWaypointNumber() { return WaypointNumber; }
+	FORCEINLINE int32 GetWaypointNumber() { return WaypointNumber; }  
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE TArray<TSubclassOf<AvrPickup>> GetItemsToSpawn() { return ItemsToSpawn; }
+	FORCEINLINE TArray<TSubclassOf<AvrPickup>> GetItemsToSpawn() { return ItemsToSpawn; }  
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE UStaticMeshComponent* GetWaypointMesh() { return WaypointMesh; }
+	FORCEINLINE UStaticMeshComponent* GetWaypointMesh() { return WaypointMesh; } 
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool IsFinalWaypoint() { return bFinalWaypoint; }
 
 // DELEGATES
 //////////////

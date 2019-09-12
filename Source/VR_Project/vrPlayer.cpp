@@ -95,9 +95,9 @@ void AvrPlayer::BeginPlay()
 	RightLastRelPos = RightController->GetComponentLocation();
 
 	/** Prevent MotionImput from firing anything for a moment after starting */
-	GetWorldTimerManager().SetTimer(SprintLeft_Timer, 3.f, false);
-	GetWorldTimerManager().SetTimer(SprintRight_Timer, 3.f, false);
-	GetWorldTimerManager().SetTimer(SpawnJumpPrevention_Timer, 3.f, false);
+	GetWorldTimerManager().SetTimer(SprintLeft_Timer, 0.5f, false);
+	GetWorldTimerManager().SetTimer(SprintRight_Timer, 0.5f, false);
+	GetWorldTimerManager().SetTimer(SpawnJumpPrevention_Timer, 0.5f, false);
 
 }
 void AvrPlayer::Tick(float DeltaTime)
@@ -228,18 +228,22 @@ void AvrPlayer::MotionInputScan()
 		*	High jump with forward impulse when arms swing and head pops
 		*	Small jump when arms are whipped up quickly while moving forward
 		*/
-		// Big Jump
 		if (LeftRelVel.Z > BigJumpHandReq && 
 			RightRelVel.Z > BigJumpHandReq  && 
 			HeadRelVel.Z > BigJumpHeadReq &&
 			!GetWorldTimerManager().IsTimerActive(SpawnJumpPrevention_Timer) &&
-			!GetCharacterMovement()->IsFalling() ||
+			!GetCharacterMovement()->IsFalling() &&
+			!GetWorldTimerManager().IsTimerActive(Leap_Timer) ||
 
 			LeftRelVel.Z > BigJumpHandReq &&
 			RightRelVel.Z > BigJumpHandReq &&
 			!GetCharacterMovement()->IsFalling() &&
+			!GetWorldTimerManager().IsTimerActive(Leap_Timer) &&
 			GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed * BigJumpHighSpeedFireMultiplier)
 		{
+			// Set timer for cooldown, prevents multiple fires when jump up an incline
+			GetWorldTimerManager().SetTimer(Leap_Timer, 0.4f, false);
+
 			// Prevent sprint from firing simultaneously with the jump
 			GetWorldTimerManager().SetTimer(SprintLeft_Timer, SprintCooldownDuration, false);
 			GetWorldTimerManager().SetTimer(SprintRight_Timer, SprintCooldownDuration, false);
@@ -386,6 +390,13 @@ void AvrPlayer::MotionJump()
 {
 	if (!GetCharacterMovement()->IsFalling()) UGameplayStatics::PlaySoundAtLocation(GetWorld(), BigJumpSound, GetActorLocation());
 
+	// Prevent sprint impulses from amplifying your jump distance
+	if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed && 
+		GetCharacterMovement()->Velocity.Size() < SprintMaxSpeed * BigJumpHighSpeedFireMultiplier)
+	{
+		GetCharacterMovement()->Velocity *= (SprintMaxSpeed / GetCharacterMovement()->Velocity.Size());
+	}
+
 	// Set jump power and fire
 	GetCharacterMovement()->JumpZVelocity = BigJumpHeight;
 	Jump();
@@ -400,11 +411,10 @@ void AvrPlayer::MotionJump()
 		FVector Impulse = ImpulseDirection * PostJumpImpulse;
 
 		// Calculate chained jump impulse: this is multiplicative so the faster you're going the bigger boost you get
-		if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed * 1.25f)
+		if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed * BigJumpHighSpeedFireMultiplier)
 		{
 			float ChainBonus = FMath::Clamp(GetCharacterMovement()->Velocity.Size() * ChainJumpMultiplier, 0.f, VelocityChangeDamageSpeed);
 			FVector ChainBonusImpulse = Impulse + (ImpulseDirection * ChainBonus);
-			//UE_LOG(LogTemp, Warning, TEXT("Chain Bonus: %f"), ChainBonus)
 			GetCharacterMovement()->Velocity += ChainBonusImpulse;
 		}
 		// Regular jump impulse
@@ -433,7 +443,7 @@ void AvrPlayer::MotionSprint(float ImpulsePercent, FVector Direction)
 		// Prevent impulse from making you move faster than SprintMaxSpeed
 		if (GetCharacterMovement()->Velocity.Size() > SprintMaxSpeed)
 		{
-			GetCharacterMovement()->Velocity *= (SprintMaxSpeed / GetCharacterMovement()->Velocity.Size());
+			GetCharacterMovement()->Velocity *= ((SprintMaxSpeed * BigJumpHighSpeedFireMultiplier) / GetCharacterMovement()->Velocity.Size());
 		}
 
 		// Fire

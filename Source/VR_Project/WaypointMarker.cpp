@@ -11,8 +11,6 @@
 
 AWaypointMarker::AWaypointMarker()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
 	WaypointRoot = CreateDefaultSubobject<USceneComponent>("Waypoint Root");
 	RootComponent = WaypointRoot;
 
@@ -24,21 +22,12 @@ AWaypointMarker::AWaypointMarker()
 	WaypointCollectionSphere->SetupAttachment(RootComponent);
 
 }
-
 void AWaypointMarker::BeginPlay()
 {
 	Super::BeginPlay();
 
 	WaypointCollectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWaypointMarker::WaypointReached);
-	if (WaypointNumber == 0) { ActivateWaypoint(); }
-	else { DeactivateWaypoint(); }
-	
-}
-
-void AWaypointMarker::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	DeactivateWaypoint();
 }
 
 /**
@@ -51,37 +40,31 @@ void AWaypointMarker::WaypointReached(UPrimitiveComponent * OverlappedComponent,
 	AvrPlayer* OverlappingPlayer = Cast<AvrPlayer>(OtherActor);
 	if (OverlappingPlayer && bWaypointIsActive)
 	{
-		bWaypointIsActive = false;
-
-		// Check if the GameMode is Race and load the course this point is associated with if it's the 0 point
-		if (WaypointNumber == 0 && RaceMode)
-		{
+		if (WaypointNumber == 0)
 			RaceMode->LoadCourse(CourseColor);
-			UE_LOG(LogTemp, Warning, TEXT("RaceMode detected, %s course loaded."), *CourseColor.ToString())
 
+		if (bFinalWaypoint)
+		{
+			RaceMode->SetTargetWaypoint(nullptr);
+			RaceMode->SetCurrentWaypoint(-1);
 		}
+		else
+			OnCollected.Broadcast();
 
-		// Do the other stuff
-		OnCollected.Broadcast();
 		DeactivateWaypoint();
-		if (CollectionSound) { UGameplayStatics::PlaySoundAtLocation(GetWorld(), CollectionSound, OverlappingPlayer->GetActorLocation()); }
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), CollectionSound, OverlappingPlayer->GetActorLocation());
 
 		if (bFunctionsAsCheckpoint)
-		{
 			RaceMode->SetActiveCheckpoint(this);
-		}
 	}
 }
-
 void AWaypointMarker::ActivateWaypoint()
 {
 	bWaypointIsActive = true;
 	WaypointMesh->SetVisibility(true);
 }
-
 void AWaypointMarker::DeactivateWaypoint()
 {
 	bWaypointIsActive = false;
 	WaypointMesh->SetVisibility(false);
 }
-
