@@ -28,6 +28,15 @@ void AWaypointMarker::BeginPlay()
 
 	WaypointCollectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWaypointMarker::WaypointReached);
 	DeactivateWaypoint();
+
+	if (bActivatePointerOnBeginPlay)
+	{
+		ARaceGameMode* RaceMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
+		if (RaceMode)
+		{
+			RaceMode->SetTargetWaypoint(this);
+		}
+	}
 }
 
 /**

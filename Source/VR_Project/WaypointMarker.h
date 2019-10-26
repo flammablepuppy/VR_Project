@@ -62,6 +62,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
 	TArray<TSubclassOf<AvrPickup>> ItemsToSpawn;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties", meta = (EditCondition = "WaypointNumber == 0"))
+	bool bActivatePointerOnBeginPlay = false;
+
 // FUNCTIONS
 //////////////
 
