@@ -71,7 +71,7 @@ void AWeaponMag::SetCapacity(int32 NewCurrentCapacity)
 }
 void AWeaponMag::ExpendCartridge(int32 RoundsExpended)
 {
-	FMath::Clamp(CurrentCapacity -= RoundsExpended, 0, MaxCapacity);
+	CurrentCapacity = FMath::Clamp(CurrentCapacity -= RoundsExpended, 0, MaxCapacity);
 }
 
 void AWeaponMag::SetLoading(bool NewState)
