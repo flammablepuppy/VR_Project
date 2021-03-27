@@ -36,7 +36,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USceneComponent* vrRoot;
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UCameraComponent* HeadsetCamera;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UMotionControllerComponent* LeftController;
