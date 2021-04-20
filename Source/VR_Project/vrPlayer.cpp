@@ -18,7 +18,6 @@
 #include "vrBelt.h"
 #include "Sound/SoundCue.h"
 #include "RaceGameMode.h"
-#include "UMG\Public\Components\WidgetInteractionComponent.h"
 
 AvrPlayer::AvrPlayer()
 {

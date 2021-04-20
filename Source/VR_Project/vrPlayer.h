@@ -279,11 +279,11 @@ protected:
 
 	UPROPERTY()
 	AvrPickup* LeftScanTarget;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	AvrPickup* LeftHeldObject;
 	UPROPERTY()
 	AvrPickup* RightScanTarget;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	AvrPickup* RightHeldObject;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Level Reset")
@@ -291,10 +291,10 @@ protected:
 
 public:	
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE AvrPickup* GetLeftHeldObject() { return LeftHeldObject; }
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE AvrPickup* GetRightHeldObject() { return RightHeldObject; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
