@@ -107,6 +107,9 @@ void ARaceGameMode::RespawnPlayers()
 				EquipRequiredItem(Player, Cast<AWaypointMarker>(CurrentCheckpoint)->GetItemsToSpawn());
 			}
 		}
+
+		OnPlayerRespawn.Broadcast(Player);
+
 	}
 }
 void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclassOf<AvrPickup>> ItemsToEquip)

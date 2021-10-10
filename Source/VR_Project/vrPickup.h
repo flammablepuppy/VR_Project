@@ -74,6 +74,14 @@ protected:
 	UPROPERTY()
 	bool bPickupEnabled = true;
 
+	/** When enabled, object can't be dropped after being grabbed */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Interaction")
+	bool bDisableDropOnGrip = false;
+
+	/** Used when you want the grabbed item to stay attached, even when the grip button is released */
+	UPROPERTY()
+	bool bCanDrop = true;
+
 	/** Activates movement through tick when true */
 	UPROPERTY()
 	bool bMoving = false;
@@ -168,6 +176,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool GetSeeksHolster() { return bSeeksHolster; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE bool GetCanDrop() { return bCanDrop; }
+
 
 	//		SET
 	//
@@ -180,6 +191,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetSeeksHolster(bool NewState);
+
+	UFUNCTION(BlueprintCallable)
+	void SetCanDrop(bool NewState);
 
 	//		DELEGATE
 	//

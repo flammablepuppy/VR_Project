@@ -11,6 +11,7 @@ class AvrPlayer;
 class AvrPickup;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSendMessageSignature, FString, TextToPrint);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerRespawnNotice, AvrPlayer*, RespawnedPlayer);
 
 /**
  * 
@@ -116,4 +117,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FSendMessageSignature OnMessageSend;
+
+	UPROPERTY(BlueprintAssignable)
+	FPlayerRespawnNotice OnPlayerRespawn;
 };

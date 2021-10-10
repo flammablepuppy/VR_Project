@@ -29,6 +29,8 @@ void AHandThruster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (!OwningPlayer) return;
+
 	if (bSetAutoHoverThrottle)
 	{
 		FVector OwnerVelocity = OwningPlayer->GetCharacterMovement()->Velocity;
@@ -55,7 +57,14 @@ void AHandThruster::Tick(float DeltaTime)
 	}
 	if (bFuelRechargeTick && bFuelRecharges)
 	{
+		// This bit makes the recharge rate double when on the ground
+		if (!OwningPlayer->GetMovementComponent()->IsFalling())
+		{
+				CurrentFuel = FMath::Clamp(CurrentFuel + (MaxFuel / FuelRechargeRate) * DeltaTime, 0.f, MaxFuel);
+		}
+
 		CurrentFuel = FMath::Clamp(CurrentFuel + (MaxFuel / FuelRechargeRate) * DeltaTime, 0.f, MaxFuel);
+
 		if (CurrentFuel == MaxFuel)
 		{
 			bFuelRechargeTick = false;
@@ -115,6 +124,8 @@ void AHandThruster::TopPushed()
 {
 	Super::TopPushed();
 
+	//AvrPlayer* OP = Cast<AvrPlayer>(GetOwner());
+	//if (OP && !OwningPlayer->GetMovementComponent()->IsFalling()) OP->Jump();
 	bSetAutoHoverThrottle = true;
 
 }

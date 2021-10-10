@@ -45,7 +45,7 @@ protected:
 	// Thrust
 	/** Power provided by a full trigger pull */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Thruster Power") 
-	float ThrustPowerSetter = 11.5f;
+	float ThrustPowerSetter = 18.f;
 	/** Max acheivable speed from thruster */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Power")
 	float TerminalVelocitySpeed = 6100.f;
@@ -70,10 +70,10 @@ protected:
 	float TranslationalLiftMultiplier = 0.95f;
 	/** Speed at which TL advantage is highest, ie. Max Endurance Airspeed */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Translational Lift")
-	float MaxBenefitSpeed = 4750.f;
+	float MaxBenefitSpeed = 4000.f;
 	/** TL benefit begins at MaxBenefitSpeed +/- this amount */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Translational Lift")
-	float BenefitDelta = 4250.f;
+	float BenefitDelta = 3350.f;
 
 	UPROPERTY()
 	float TranslationalLiftCurveBase = 0.f;
@@ -96,7 +96,7 @@ protected:
 
 	/** Target thrust value auto-hover calculates for taking into account GE and TL */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Features")
-	float AutoHoverTargetThrust = 11.2f;
+	float AutoHoverTargetThrust = 14.f;
 
 
 	UPROPERTY(BlueprintReadOnly)

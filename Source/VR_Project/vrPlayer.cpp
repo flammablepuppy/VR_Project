@@ -262,10 +262,13 @@ void AvrPlayer::MotionInputScan()
 		FTimerDelegate SprintReset_Delegate;
 		SprintReset_Delegate.BindUFunction(GetHealthStats(), "SetSpeed", SprintMinSpeed, -1.f);
 
+		// Make movement input a requirement for impulses, they fire on accident too often otherwise
+		if (GetCharacterMovement()->Velocity.Size() > 50.f)
+		{
 			// LEFT HAND
-			if (LeftSwing > SprintMinImpulseSpeed && 
+			if (LeftSwing > SprintMinImpulseSpeed &&
 				RightSwing < -SprintMinImpulseSpeed * 0.45f &&
-				!GetWorldTimerManager().IsTimerActive(SprintLeft_Timer) && 
+				!GetWorldTimerManager().IsTimerActive(SprintLeft_Timer) &&
 				!GetCharacterMovement()->IsFalling() &&
 				!GetHealthStats()->EffectIsActive(EEffectTag::Tag_Slow))
 			{
@@ -274,10 +277,10 @@ void AvrPlayer::MotionInputScan()
 
 				// Set timer for sprint end
 				GetWorldTimerManager().SetTimer(SprintReset_Timer, SprintReset_Delegate, SprintDecelResetDuration, false);
-			
+
 				// Determine impulse power
 				float Percent = LeftSwing - SprintMinImpulseSpeed / SprintMaxImpulseSpeed;
-				if (Percent > 1.f) Percent = 1.f; 
+				if (Percent > 1.f) Percent = 1.f;
 
 				// Find proper direction to apply impulse
 				// Method compensates for the way the hand points the controller while swinging arms
@@ -291,11 +294,11 @@ void AvrPlayer::MotionInputScan()
 				// Fire
 				MotionSprint(Percent, Direction);
 			}
-			
+
 			// RIGHT HAND
-			if (RightSwing > SprintMinImpulseSpeed && 
+			if (RightSwing > SprintMinImpulseSpeed &&
 				LeftSwing < -SprintMinImpulseSpeed * 0.45f &&
-				!GetWorldTimerManager().IsTimerActive(SprintRight_Timer) && 
+				!GetWorldTimerManager().IsTimerActive(SprintRight_Timer) &&
 				!GetCharacterMovement()->IsFalling() &&
 				!GetHealthStats()->EffectIsActive(EEffectTag::Tag_Slow))
 			{
@@ -307,7 +310,7 @@ void AvrPlayer::MotionInputScan()
 
 				// Determine impulse power
 				float Percent = RightSwing - SprintMinImpulseSpeed / SprintMaxImpulseSpeed;
-				if (Percent > 1.f) Percent = 1.f; 
+				if (Percent > 1.f) Percent = 1.f;
 
 				// Find proper direction to apply impulse
 				// Method compensates for the way the hand points the controller while swinging arms
@@ -327,7 +330,7 @@ void AvrPlayer::MotionInputScan()
 			if (GetCharacterMovement()->IsFalling() &&
 				GetCharacterMovement()->Velocity.Size() > SprintMinSpeed &&
 				GetCharacterMovement()->MaxWalkSpeed < SprintMaxSpeed &&
-				!GetHealthStats()->EffectIsActive(EEffectTag::Tag_Slow) )
+				!GetHealthStats()->EffectIsActive(EEffectTag::Tag_Slow))
 			{
 				GetHealthStats()->ApplyHaste(SprintMaxSpeed, -1.f, true, SprintMaxSpeed);
 				GetWorldTimerManager().SetTimer(SprintReset_Timer, SprintReset_Delegate, 0.1f, false);
@@ -343,6 +346,7 @@ void AvrPlayer::MotionInputScan()
 			{
 				GetWorldTimerManager().UnPauseTimer(SprintReset_Timer);
 			}
+		}
 
 	//	Remember positions from this tick for use in the next tick
 	HeadLastRelPos = HeadRelative;
@@ -455,6 +459,11 @@ void AvrPlayer::MotionSprint(float ImpulsePercent, FVector Direction)
 // Interaction Calls
 void AvrPlayer::LeftGripPull()
 {
+	if (LeftHeldObject)
+	{
+		if (!LeftHeldObject->GetCanDrop()) return;
+	}
+
 	ScanForClosestObject(LeftVolume, LeftScanTarget, LeftController);
 	ExecuteGrip(LeftScanTarget, LeftHeldObject, LeftController);
 	if (OnGrip.IsBound())
@@ -465,7 +474,7 @@ void AvrPlayer::LeftGripPull()
 }
 void AvrPlayer::LeftGripRelease()
 {
-	if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController)
+	if (LeftHeldObject && LeftHeldObject->GetOwningMC() == LeftController && LeftHeldObject->GetCanDrop())
 	{
 		ExecuteDrop(LeftHeldObject);
 	}
@@ -508,6 +517,11 @@ void AvrPlayer::LeftBottomRelease()
 
 void AvrPlayer::RightGripPull()
 {
+	if (RightHeldObject) 
+	{
+		if (!RightHeldObject->GetCanDrop()) return;
+	}
+
 	ScanForClosestObject(RightVolume, RightScanTarget, RightController);
 	ExecuteGrip(RightScanTarget, RightHeldObject, RightController);
 	if (OnGrip.IsBound())
@@ -518,7 +532,7 @@ void AvrPlayer::RightGripPull()
 }
 void AvrPlayer::RightGripRelease()
 {
-	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController)
+	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController && RightHeldObject->GetCanDrop())
 	{
 		ExecuteDrop(RightHeldObject);
 	}
@@ -572,6 +586,30 @@ void AvrPlayer::ResetTestingMap()
 	}
 }
 
+void AvrPlayer::AssignLeftGrip(AvrPickup* NewGrippedObject)
+{
+	if (LeftHeldObject) LeftHeldObject = nullptr;
+
+	ExecuteGrip(NewGrippedObject, LeftHeldObject, LeftController);
+	if (OnGrip.IsBound())
+	{
+		OnGrip.Broadcast(LeftController);
+		OnGrip.Clear();
+	}
+}
+
+void AvrPlayer::AssignRightGrip(AvrPickup* NewGrippedObject)
+{
+	if (RightHeldObject) RightHeldObject = nullptr;
+
+	ExecuteGrip(NewGrippedObject, RightHeldObject, RightController);
+	if (OnGrip.IsBound())
+	{
+		OnGrip.Broadcast(RightController);
+		OnGrip.Clear();
+	}
+}
+
 // Interaction Execution
 void AvrPlayer::ExecuteGrip(AvrPickup* &ScanObject, AvrPickup* &GrippedObjectPointer, UMotionControllerComponent* GrabbingMC)
 {
@@ -584,7 +622,7 @@ void AvrPlayer::ExecuteGrip(AvrPickup* &ScanObject, AvrPickup* &GrippedObjectPoi
 }
 void AvrPlayer::ExecuteDrop(AvrPickup *& ObjectToDrop)
 {
-	if (ObjectToDrop)
+	if (ObjectToDrop && ObjectToDrop->GetCanDrop())
 	{
 		ObjectToDrop->Drop();
 		ObjectToDrop = nullptr;

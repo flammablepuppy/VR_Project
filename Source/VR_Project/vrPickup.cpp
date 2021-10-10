@@ -86,9 +86,13 @@ void AvrPickup::SnapOn()
 	if (OwningMC) {	OwningMC->SetShowDeviceModel(true);	}
 
 	OnSnappedOn.Broadcast(this);
+
+	if (bDisableDropOnGrip) bCanDrop = false;
 }
 void AvrPickup::Drop()
 {
+	if (!bCanDrop) { return; }
+
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	PickupMesh->SetSimulatePhysics(true);
 
@@ -223,4 +227,9 @@ void AvrPickup::NullifySnapTarget()
 void AvrPickup::SetSeeksHolster(bool NewState)
 {
 	bSeeksHolster = NewState;
+}
+
+void AvrPickup::SetCanDrop(bool NewState) 
+{
+	bCanDrop = NewState;
 }

@@ -203,7 +203,7 @@ protected:
 
 		/** Time that must elapse before a motion controller can trigger another sprint impulse */
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
-		float SprintCooldownDuration = 0.2f;
+		float SprintCooldownDuration = 0.5f;
 
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Motion Input: Sprint")
 		float SprintDecelResetDuration = 0.75f;
@@ -263,6 +263,12 @@ protected:
 	void RightBottomPush();
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightBottomRelease();
+
+	UFUNCTION(BlueprintCallable, Category = "External Assignment")
+	void AssignLeftGrip(AvrPickup* NewGrippedObject);
+
+	UFUNCTION(BlueprintCallable, Category = "External Assignment")
+	void AssignRightGrip(AvrPickup* NewGrippedObject);
 
 	UFUNCTION()
 	void ResetTestingMap();

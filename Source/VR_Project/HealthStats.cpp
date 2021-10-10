@@ -138,6 +138,7 @@ void UHealthStats::YardSale(float DroppedItemsLifespan)
 	{
 		AvrPickup* RememberLeft = OwningPlayer->GetLeftHeldObject();
 		RememberLeft->SetSeeksHolster(false);
+		RememberLeft->SetCanDrop(true);
 		RememberLeft->Drop();
 		RememberLeft->SetSeeksHolster(true);
 	}
@@ -146,6 +147,7 @@ void UHealthStats::YardSale(float DroppedItemsLifespan)
 	{
 		AvrPickup* RememberRight = OwningPlayer->GetRightHeldObject();
 		RememberRight->SetSeeksHolster(false);
+		RememberRight->SetCanDrop(true);
 		RememberRight->Drop();
 		RememberRight->SetSeeksHolster(true);
 	}
