@@ -2,21 +2,23 @@
 
 #include "HandThruster.h"
 
-#include "AssetTypeCategories.h"
 #include "vrPlayer.h"
 #include "vrPickup.h"
 #include "Engine/World.h"
-#include "MotionControllerComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/CapsuleComponent.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
-#include "Sound/SoundBase.h"
+#include "Components/AudioComponent.h"
 
 AHandThruster::AHandThruster()
 {
-	
+	FuelRechargeSound = CreateDefaultSubobject<UAudioComponent>("Recharge Sound");
+	FuelRechargeSound->SetupAttachment(RootComponent);
+	FuelRechargeSound->VolumeMultiplier = 0.f;
+
+	ThrusterSound = CreateDefaultSubobject<UAudioComponent>("Thruster Sound");
+	ThrusterSound->SetupAttachment(RootComponent);
 }
 void AHandThruster::BeginPlay()
 {
@@ -24,16 +26,11 @@ void AHandThruster::BeginPlay()
 
 	CurrentFuel = MaxFuel;
 	TranslationalLiftCurveBase = -1 / (BenefitDelta * BenefitDelta);
-}
-void AHandThruster::FuelRechargeToggle()
-{
-	bFuelRechargeTick = true;
+	CurrentTriggerAxisValue = 0.f;
 }
 void AHandThruster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (!OwningPlayer) return;
 
 	if (bSetAutoHoverThrottle)
 	{
@@ -62,7 +59,7 @@ void AHandThruster::Tick(float DeltaTime)
 	if (bFuelRechargeTick && bFuelRecharges)
 	{
 		// This bit makes the recharge rate double when on the ground
-		if (!OwningPlayer->GetMovementComponent()->IsFalling())
+		if (OwningPlayer && !OwningPlayer->GetMovementComponent()->IsFalling())
 		{
 				CurrentFuel = FMath::Clamp(CurrentFuel + (MaxFuel / FuelRechargeRate) * DeltaTime, 0.f, MaxFuel);
 		}
@@ -72,18 +69,7 @@ void AHandThruster::Tick(float DeltaTime)
 		if (CurrentFuel/MaxFuel > 0.25f) bIsLowFuel = false;
 		if (CurrentFuel == MaxFuel) bFuelRechargeTick = false;
 	}
-
-	if(!bFuelRechargeTick && !bIsLowFuel && CurrentFuel/MaxFuel <= 0.25f)
-	{
-		bIsLowFuel = true;
-		UGameplayStatics::SpawnSoundAttached(LowFuelSound, this->GetRootComponent());
-	}
-
-	if(CurrentFuel < SMALL_NUMBER && bWasThrusting)
-	{
-		bWasThrusting = false;
-		UGameplayStatics::SpawnSoundAttached(ThrustStopSound, this->GetRootComponent());
-	}
+	PlayThrusterSound();
 }
 
 // Object functions
@@ -132,19 +118,7 @@ void AHandThruster::TriggerPulled(float Value)
 		bFuelRechargeTick = false;
 		CurrentTriggerAxisValue = LockedThrottleValue;
 	}
-
-	if(!bWasThrusting && Value > 0.1f && CurrentFuel > 0.f)
-	{
-		bWasThrusting = true;
-		UGameplayStatics::SpawnSoundAttached(ThrustStartSound, this->GetRootComponent());
-	}
-	if(bWasThrusting && Value < 0.1f)
-	{
-		bWasThrusting = false;
-		UGameplayStatics::SpawnSoundAttached(ThrustStopSound, this->GetRootComponent());
-	}
 }
-
 void AHandThruster::TopPushed()
 {
 	Super::TopPushed();
@@ -154,16 +128,6 @@ void AHandThruster::TopPushed()
 	bSetAutoHoverThrottle = true;
 
 }
-//void AHandThruster::TopReleased()
-//{
-//	Super::TopReleased();
-//
-//}
-//void AHandThruster::BottomPushed()
-//{
-//	Super::BottomPushed();
-//
-//}
 void AHandThruster::BottomReleased()
 {
 	Super::BottomReleased();
@@ -171,13 +135,7 @@ void AHandThruster::BottomReleased()
 	CurrentTriggerAxisValue = 0.f;
 	bThrottleLocked ? bThrottleLocked = false : bThrottleLocked = true;
 	bSetLockedThrottle = true; // This bool is only used in TriggerPulled
-
-	if(ThrustStopSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ThrustStopSound, GetActorLocation(), GetActorRotation());
-	}
 }
-
 void AHandThruster::ApplyThrust(float ThrustPercent)
 {
 	// If fuel runs out, turn everything off
@@ -257,4 +215,55 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 	}
 
 	OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
+}
+void AHandThruster::PlayThrusterSound()
+{
+	// START SFX
+	if(!bWasThrusting && CurrentTriggerAxisValue > 0.1f && CurrentFuel > 0.f)
+	{
+		bWasThrusting = true;
+		UGameplayStatics::SpawnSoundAttached(ThrustStartSound, this->GetRootComponent());
+	}
+	
+	// THRUST-LOOP SFX
+	if(CurrentTriggerAxisValue > 0.1f && CurrentFuel > 0.f)
+	{
+		const float NewVolume = FMath::Lerp(0.8f, 1.25f, CurrentTriggerAxisValue);
+		ThrusterSound->SetVolumeMultiplier(NewVolume);
+		const float NewPitch = FMath::Lerp(0.2f, 0.95f, CurrentTriggerAxisValue);
+		ThrusterSound->SetPitchMultiplier(NewPitch);
+	}
+	else if (CurrentTriggerAxisValue < SMALL_NUMBER || CurrentFuel < SMALL_NUMBER)
+	{
+		ThrusterSound->SetVolumeMultiplier(0.f);
+		ThrusterSound->SetPitchMultiplier(0.f);
+	}
+
+	// STOP SFX
+	if(CurrentFuel < SMALL_NUMBER && bWasThrusting || bWasThrusting && CurrentTriggerAxisValue < 0.1f)
+	{
+		bWasThrusting = false;
+		UGameplayStatics::SpawnSoundAttached(ThrustStopSound, this->GetRootComponent());
+	}
+	
+	// LOW FUEL TONE
+	if(!bFuelRechargeTick && !bIsLowFuel && CurrentFuel/MaxFuel <= 0.25f)
+	{
+		bIsLowFuel = true;
+		UGameplayStatics::SpawnSoundAttached(LowFuelSound, this->GetRootComponent());
+	}
+	
+	// RECHARGE ON HANDLED IN RECHARGE TOGGLE
+	// RECHARGE OFF
+	if (!bFuelRechargeTick)
+	{
+		bFuelRechargeTick = false;
+		FuelRechargeSound->FadeOut(0.1f, 0.f);
+	}
+}
+void AHandThruster::FuelRechargeToggle()
+{
+	bFuelRechargeTick = true;
+	FuelRechargeSound->VolumeMultiplier = 0.55f;
+	FuelRechargeSound->FadeIn(0.1f);
 }
