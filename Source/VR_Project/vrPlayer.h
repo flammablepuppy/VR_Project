@@ -264,12 +264,22 @@ protected:
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightBottomRelease();
 
+	// External grip assignment
 	UFUNCTION(BlueprintCallable, Category = "External Assignment")
 	void AssignLeftGrip(AvrPickup* NewGrippedObject);
-
 	UFUNCTION(BlueprintCallable, Category = "External Assignment")
 	void AssignRightGrip(AvrPickup* NewGrippedObject);
 
+	// Double press activator for force dropping objects, useful for objects flagged to not drop on release
+	UFUNCTION(BlueprintCallable, Category = "Special Input")
+	void ForceDropLeft();
+	UFUNCTION(BlueprintCallable, Category = "Special Input")
+	void ForceDropRight();
+	FTimerHandle ForceLeftDrop_Timer;
+	FTimerHandle ForceRightDrop_Timer;
+	// Duration of timer that checks for ForceDrop double press activation
+	float ForceDropTime = 0.33f;
+	
 	UFUNCTION()
 	void ResetTestingMap();
 

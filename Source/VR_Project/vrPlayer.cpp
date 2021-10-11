@@ -478,6 +478,14 @@ void AvrPlayer::LeftGripRelease()
 	{
 		ExecuteDrop(LeftHeldObject);
 	}
+	else if(GetWorldTimerManager().IsTimerActive(ForceLeftDrop_Timer))
+	{
+		ForceDropLeft();
+	}
+	else
+	{
+		GetWorldTimerManager().SetTimer(ForceLeftDrop_Timer, ForceDropTime, false);
+	}
 }
 void AvrPlayer::LeftTriggerHandle(float Value)
 {
@@ -535,6 +543,14 @@ void AvrPlayer::RightGripRelease()
 	if (RightHeldObject && RightHeldObject->GetOwningMC() == RightController && RightHeldObject->GetCanDrop())
 	{
 		ExecuteDrop(RightHeldObject);
+	}
+	else if(GetWorldTimerManager().IsTimerActive(ForceRightDrop_Timer))
+	{
+		ForceDropRight();
+	}
+	else
+	{
+		GetWorldTimerManager().SetTimer(ForceRightDrop_Timer, ForceDropTime, false);
 	}
 }
 void AvrPlayer::RightTriggerHandle(float Value)
@@ -607,6 +623,24 @@ void AvrPlayer::AssignRightGrip(AvrPickup* NewGrippedObject)
 	{
 		OnGrip.Broadcast(RightController);
 		OnGrip.Clear();
+	}
+}
+
+void AvrPlayer::ForceDropLeft()
+{
+	if (LeftHeldObject && !LeftHeldObject->GetCanDrop())
+	{
+		LeftHeldObject->SetCanDrop(true);
+		LeftGripRelease();
+	}
+}
+
+void AvrPlayer::ForceDropRight()
+{
+	if (RightHeldObject && !RightHeldObject->GetCanDrop())
+	{
+		RightHeldObject->SetCanDrop(true);
+		RightGripRelease();
 	}
 }
 

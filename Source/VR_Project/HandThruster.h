@@ -9,6 +9,9 @@
 /**
  * 
  */
+
+class USoundBase;
+
 UCLASS()
 class VR_PROJECT_API AHandThruster : public AvrPickup
 {
@@ -33,7 +36,6 @@ protected:
 	/** How many seconds to go from empty to full */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel")
 	float FuelRechargeRate = 12.f;
-
 	FTimerHandle FuelRecharge_Handle;
 	UPROPERTY(BlueprintReadOnly)
 	float CurrentFuel;
@@ -41,7 +43,12 @@ protected:
 	bool bFuelRechargeTick = false;
 	UFUNCTION()
 	void FuelRechargeToggle();
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel")
+	USoundBase* LowFuelSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel")
+	USoundBase* FuelEmptySound;
+	bool bIsLowFuel = false;
+	
 	// Thrust
 	/** Power provided by a full trigger pull */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Thruster Power") 
@@ -49,11 +56,18 @@ protected:
 	/** Max acheivable speed from thruster */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Power")
 	float TerminalVelocitySpeed = 6100.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Power")
+	USoundBase* ThrustSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Power")
+	USoundBase* ThrustStopSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Power")
+	USoundBase* ThrustStartSound;
+	bool bWasThrusting = false;
 
 	// Ground Effect -- This behaves pretty unrealistically right now
 	/** Percent increase in thruster power when in ground effect */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Ground Effect") 
-	float GroundEffectMultiplier = 0.32;
+	float GroundEffectMultiplier = 0.70;
 	/** Max height at which ground effect fully tapers off */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Ground Effect") 
 	float GroundEffectLoss = 600.f;
@@ -67,7 +81,7 @@ protected:
 	bool bExperiencesTranslationalLift = true;
 	/** Max additional lift percentage that can be gained by translational lift */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Translational Lift")
-	float TranslationalLiftMultiplier = 0.95f;
+	float TranslationalLiftMultiplier = 0.65f;
 	/** Speed at which TL advantage is highest, ie. Max Endurance Airspeed */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Thruster Translational Lift")
 	float MaxBenefitSpeed = 4000.f;

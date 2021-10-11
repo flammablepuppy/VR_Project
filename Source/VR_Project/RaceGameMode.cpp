@@ -66,7 +66,7 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 		CourseFinished();
 	}
 
-	// Respawn player at checkpoint if available
+	// Respawn player at checkpoint if available otherwise reload the level
 	if (CurrentCheckpoint)
 	{
 		AvrPlayer* vrP = Cast<AvrPlayer>(DyingActor);
@@ -89,6 +89,18 @@ void ARaceGameMode::RespawnPlayers()
 {
 	for (AvrPlayer* Player : vrPlayers)
 	{
+		// Waypoints reached before a respawn are reset back to the checkpoint as well
+		AWaypointMarker* WP = Cast<AWaypointMarker>(CurrentCheckpoint);
+		if (WP)
+		{
+			for (AWaypointMarker* Waypoint : LoadedCourse)
+			{
+				Waypoint->DeactivateWaypoint();
+			}
+			SetCurrentWaypoint(WP->GetWaypointNumber());
+			DisplayCurrentWaypoint();
+		}
+				
 		// Reposition, respawn
 		Player->SetActorLocation(CurrentCheckpoint->GetActorLocation(), false, nullptr, ETeleportType::ResetPhysics);
 		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
@@ -242,7 +254,7 @@ void ARaceGameMode::DisplayCurrentWaypoint()
 	// Course time flags
 	float CheckpointTime = GetWorld()->GetTimeSeconds() - CourseStartTime;
 	TimeBetweenWaypoints.AddUnique(CheckpointTime);
-
+	
 	CurrentWaypoint++;
 
 	for (AWaypointMarker* Marker : LoadedCourse)

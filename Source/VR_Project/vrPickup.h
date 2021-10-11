@@ -12,6 +12,7 @@ class UStaticMeshComponent;
 class UMotionControllerComponent;
 class USceneComponent;
 class USkeletalMesh;
+class AvrPlayer;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPickupDropped, AvrPickup*, DroppedPickup);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPickupSnappedOn, AvrPickup*, PickupToEnable);
@@ -79,9 +80,13 @@ protected:
 	bool bDisableDropOnGrip = false;
 
 	/** Used when you want the grabbed item to stay attached, even when the grip button is released */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool bCanDrop = true;
 
+	/** If an item is sticky, it will toggle bCanDrop to false after being dropped */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Interatction")
+	bool bSticky = false;
+	
 	/** Activates movement through tick when true */
 	UPROPERTY()
 	bool bMoving = false;

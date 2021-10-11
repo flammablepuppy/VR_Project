@@ -1,6 +1,8 @@
 // Copyright Aviator Games 2019
 
 #include "HandThruster.h"
+
+#include "AssetTypeCategories.h"
 #include "vrPlayer.h"
 #include "vrPickup.h"
 #include "Engine/World.h"
@@ -9,6 +11,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 AHandThruster::AHandThruster()
 {
@@ -65,10 +69,20 @@ void AHandThruster::Tick(float DeltaTime)
 
 		CurrentFuel = FMath::Clamp(CurrentFuel + (MaxFuel / FuelRechargeRate) * DeltaTime, 0.f, MaxFuel);
 
-		if (CurrentFuel == MaxFuel)
-		{
-			bFuelRechargeTick = false;
-		}
+		if (CurrentFuel/MaxFuel > 0.25f) bIsLowFuel = false;
+		if (CurrentFuel == MaxFuel) bFuelRechargeTick = false;
+	}
+
+	if(!bFuelRechargeTick && !bIsLowFuel && CurrentFuel/MaxFuel <= 0.25f)
+	{
+		bIsLowFuel = true;
+		UGameplayStatics::SpawnSoundAttached(LowFuelSound, this->GetRootComponent());
+	}
+
+	if(CurrentFuel < SMALL_NUMBER && bWasThrusting)
+	{
+		bWasThrusting = false;
+		UGameplayStatics::SpawnSoundAttached(ThrustStopSound, this->GetRootComponent());
 	}
 }
 
@@ -119,7 +133,18 @@ void AHandThruster::TriggerPulled(float Value)
 		CurrentTriggerAxisValue = LockedThrottleValue;
 	}
 
-} 
+	if(!bWasThrusting && Value > 0.1f && CurrentFuel > 0.f)
+	{
+		bWasThrusting = true;
+		UGameplayStatics::SpawnSoundAttached(ThrustStartSound, this->GetRootComponent());
+	}
+	if(bWasThrusting && Value < 0.1f)
+	{
+		bWasThrusting = false;
+		UGameplayStatics::SpawnSoundAttached(ThrustStopSound, this->GetRootComponent());
+	}
+}
+
 void AHandThruster::TopPushed()
 {
 	Super::TopPushed();
@@ -146,6 +171,11 @@ void AHandThruster::BottomReleased()
 	CurrentTriggerAxisValue = 0.f;
 	bThrottleLocked ? bThrottleLocked = false : bThrottleLocked = true;
 	bSetLockedThrottle = true; // This bool is only used in TriggerPulled
+
+	if(ThrustStopSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ThrustStopSound, GetActorLocation(), GetActorRotation());
+	}
 }
 
 void AHandThruster::ApplyThrust(float ThrustPercent)

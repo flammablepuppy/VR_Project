@@ -25,7 +25,7 @@ AvrPickup::AvrPickup()
 	//PickupHighlightMesh->SetSimulatePhysics(false);
 	//PickupHighlightMesh->SetupAttachment(RootComponent);
 
-	SetReplicates(true);
+	//SetReplicates(true);
 
 }
 void AvrPickup::BeginPlay()
@@ -48,7 +48,7 @@ void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketN
 {
 	SetLifeSpan(-1.f);
 
-	if (!bPickupEnabled) { return; }
+	if (!bPickupEnabled && OwningPlayer) { return; }
 	bPickupEnabled = false;
 
 	if (OnGrabbed.IsBound()) { OnGrabbed.Broadcast(this); }
@@ -119,6 +119,8 @@ void AvrPickup::Drop()
 
 	OnDrop.Broadcast(this);
 	OnDrop.Clear();
+
+	if(bSticky) bCanDrop = false;
 }
 void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
 {
