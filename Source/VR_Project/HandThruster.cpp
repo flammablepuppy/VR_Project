@@ -219,14 +219,14 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 void AHandThruster::PlayThrusterSound()
 {
 	// START SFX
-	if(!bWasThrusting && CurrentTriggerAxisValue > 0.1f && CurrentFuel > 0.f)
+	if (!bWasThrusting && CurrentTriggerAxisValue > 0.1f && CurrentFuel > 0.f)
 	{
 		bWasThrusting = true;
 		UGameplayStatics::SpawnSoundAttached(ThrustStartSound, this->GetRootComponent());
 	}
 	
 	// THRUST-LOOP SFX
-	if(CurrentTriggerAxisValue > 0.1f && CurrentFuel > 0.f)
+	if (CurrentTriggerAxisValue > 0.1f && CurrentFuel > 0.f)
 	{
 		const float NewVolume = FMath::Lerp(0.8f, 1.25f, CurrentTriggerAxisValue);
 		ThrusterSound->SetVolumeMultiplier(NewVolume);
@@ -240,10 +240,16 @@ void AHandThruster::PlayThrusterSound()
 	}
 
 	// STOP SFX
-	if(CurrentFuel < SMALL_NUMBER && bWasThrusting || bWasThrusting && CurrentTriggerAxisValue < 0.1f)
+	if (bWasThrusting && CurrentTriggerAxisValue < 0.1f)
 	{
 		bWasThrusting = false;
 		UGameplayStatics::SpawnSoundAttached(ThrustStopSound, this->GetRootComponent());
+	}
+	else if (CurrentFuel < SMALL_NUMBER && bWasThrusting)
+	{
+		bWasThrusting = false;
+		UGameplayStatics::SpawnSoundAttached(ThrustStopSound, this->GetRootComponent());
+		UGameplayStatics::SpawnSoundAttached(FuelEmptySound, this->GetRootComponent());
 	}
 	
 	// LOW FUEL TONE

@@ -45,6 +45,8 @@ protected:
 	void FuelRechargeToggle();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel")
 	USoundBase* LowFuelSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel")
+	USoundBase* FuelEmptySound;
 	bool bIsLowFuel = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
