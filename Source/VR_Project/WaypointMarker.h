@@ -8,6 +8,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaypointCollected);
 
+class AvrPickup;
+
 UCLASS()
 class VR_PROJECT_API AWaypointMarker : public AActor
 {
@@ -17,6 +19,8 @@ public:
 	AWaypointMarker();
 protected:
 	virtual void BeginPlay() override;
+public:
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 // COMPONENTS
@@ -31,23 +35,26 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Waypoint Components")
 	class USphereComponent* WaypointCollectionSphere;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Waypoint Components")
+	UAudioComponent* CollectingTone;
+
 // VARIABLES
 //////////////
 
 	/** Used by GameMode to determine which waypoint should be active */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
 	int32 WaypointNumber = 0;
 
 	/** Used by GameMode to differntiate between multiple routes in a level */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
 	FColor CourseColor = FColor::Green;
 
 	/** If true, player will respawn at this checkpoint upon death */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
 	bool bFunctionsAsCheckpoint = false;
 
 	/** Sound played when overlapped by player */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Waypoint Properties")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Course Properties")
 	class USoundBase* CollectionSound;
 
 	/** Flag for Race Game Mode */
@@ -55,22 +62,41 @@ protected:
 	bool bWaypointIsActive = false;
 
 	/** Flag for Race Game Mode, true does not reload 0 waypoints after completion */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
 	bool bFinalWaypoint = false;
 
 	/** Items to spawn when player respawns at this checkpoint */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
 	TArray<TSubclassOf<AvrPickup>> ItemsToSpawn;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waypoint Properties", meta = (EditCondition = "WaypointNumber == 0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties", meta = (EditCondition = "WaypointNumber == 0"))
 	bool bActivatePointerOnBeginPlay = false;
-
+		
 // FUNCTIONS
 //////////////
 
 	UFUNCTION(BlueprintCallable)
 	void WaypointReached(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	UFUNCTION(BlueprintCallable)
+	void WaypointLeft(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintCallable)
+	void AdvanceCourse(AActor* CollectingActor);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
+	bool bTimedCollection = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
+	float CheckpointCollectionTime = 1.5f;
+	
+	FTimerHandle Collection_Timer;
+
+	// Used in tick for collection tone
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsCollecting = false;
+	float CollectingPitchChange = 1.f;
+		
 public:
 // PUBLIC FUNCTIONS
 /////////////////////

@@ -193,6 +193,7 @@ void ASigPistol::BottomPushed()
 		LoadedMagazine->SetMagSearchForHolster(OwningPlayer);
 
 		LoadedMagazine->Drop();
+		LoadedMagazine->SetPickupEnabled(true);
 		LoadedMagazine->SetActorRelativeLocation(PickupMesh->GetSocketLocation("Muzzle") + (PickupMesh->GetUpVector() * -10.f));
 
 		BPBottomPush();

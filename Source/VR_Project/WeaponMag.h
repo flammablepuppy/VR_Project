@@ -46,6 +46,7 @@ protected:
 	UPROPERTY()
 	AvrPlayer* TargetPlayerForHolstering;
 
+
 	//		FUNCTIONS
 	//
 
@@ -69,16 +70,16 @@ public:
 	//
 
 	UFUNCTION(Category = "Getter")
-	FORCEINLINE TSubclassOf<AMagCartridge> GetCompatibleCartridge() { return CompatibleCartidge; }
+	FORCEINLINE TSubclassOf<AMagCartridge> GetCompatibleCartridge() const { return CompatibleCartidge; }
 
 	UFUNCTION(Category = "Getter")
-	FORCEINLINE USphereComponent* GetCartridgeLoadSphere() { return CartridgeLoadSphere; }
+	FORCEINLINE USphereComponent* GetCartridgeLoadSphere() const { return CartridgeLoadSphere; }
 
 	UFUNCTION(Category = "Getter")
-	FORCEINLINE int32 GetMaxCapacity() { return MaxCapacity; }
+	FORCEINLINE int32 GetMaxCapacity() const { return MaxCapacity; }
 
 	UFUNCTION(Category = "Getter")
-	FORCEINLINE int32 GetCurrentCapacity() { return CurrentCapacity; }
+	FORCEINLINE int32 GetCurrentCapacity() const { return CurrentCapacity; }
 
 	//		SET
 	//

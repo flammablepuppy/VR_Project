@@ -64,7 +64,6 @@ void AWeaponMag::UnPrimeCartridge(UPrimitiveComponent * OverlappedComponent, AAc
 		Cartridge->SetTargetMag(nullptr);
 	}
 }
-
 void AWeaponMag::SetCapacity(int32 NewCurrentCapacity)
 {
 	CurrentCapacity = NewCurrentCapacity;
@@ -73,7 +72,6 @@ void AWeaponMag::ExpendCartridge(int32 RoundsExpended)
 {
 	CurrentCapacity = FMath::Clamp(CurrentCapacity -= RoundsExpended, 0, MaxCapacity);
 }
-
 void AWeaponMag::SetLoading(bool NewState)
 {
 	bLoading = NewState;
@@ -81,9 +79,14 @@ void AWeaponMag::SetLoading(bool NewState)
 void AWeaponMag::SnapOn()
 {
 	Super::SnapOn();
-	
+
+	// Check to see if it's loaded into a gun
 	AvrHolster* OwnedByHolster = Cast<AvrHolster>(SnapTarget->GetOwner());
-	if (!OwningMC && !OwnedByHolster) { PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
+	if (!OwningMC && !OwnedByHolster)
+	{
+		PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		bPickupEnabled = false;
+	}
 
 }
 void AWeaponMag::Drop()

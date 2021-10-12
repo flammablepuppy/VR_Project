@@ -40,6 +40,7 @@ protected:
 	UStaticMeshComponent* PickupMesh;
 
 	/** Copy of PickupMesh used for item highlighting */
+	UPROPERTY()
 	UStaticMeshComponent* PickupHighlightMesh;
 
 	//		MOVING AND ATTACHING VARIABLES
@@ -82,10 +83,6 @@ protected:
 	/** Used when you want the grabbed item to stay attached, even when the grip button is released */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool bCanDrop = true;
-
-	/** If an item is sticky, it will toggle bCanDrop to false after being dropped */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Interatction")
-	bool bSticky = false;
 	
 	/** Activates movement through tick when true */
 	UPROPERTY()

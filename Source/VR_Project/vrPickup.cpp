@@ -48,7 +48,7 @@ void AvrPickup::SnapInitiate(USceneComponent * NewParentComponent, FName SocketN
 {
 	SetLifeSpan(-1.f);
 
-	if (!bPickupEnabled && OwningPlayer) { return; }
+	if (!bPickupEnabled) { return; }
 	bPickupEnabled = false;
 
 	if (OnGrabbed.IsBound()) { OnGrabbed.Broadcast(this); }
@@ -119,8 +119,6 @@ void AvrPickup::Drop()
 
 	OnDrop.Broadcast(this);
 	OnDrop.Clear();
-
-	if(bSticky) bCanDrop = false;
 }
 void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
 {
@@ -214,7 +212,6 @@ void AvrPickup::SetPickupEnabled(bool NewState)
 {
 	bPickupEnabled = NewState;
 }
-
 void AvrPickup::NullifySnapTarget()
 {
 	if (bReadyToUse && OwningMC) { OwningMC->SetShowDeviceModel(false); }
@@ -225,12 +222,10 @@ void AvrPickup::NullifySnapTarget()
 	bReadyToUse = false;
 	bPickupEnabled = true;
 }
-
 void AvrPickup::SetSeeksHolster(bool NewState)
 {
 	bSeeksHolster = NewState;
 }
-
 void AvrPickup::SetCanDrop(bool NewState) 
 {
 	bCanDrop = NewState;
