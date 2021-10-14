@@ -134,6 +134,10 @@ public:
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetMaxFuel() { return MaxFuel; }
+
+	// Increases thruster fuel by a percent of MaxFuel (0.3 = 30%), or can optionally add a specific amount
+	UFUNCTION(BlueprintCallable)
+	void AddFuel(float AmountToAdd, bool AmountIsPercent = true);
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE float GetCurrentFuel() { return CurrentFuel; }

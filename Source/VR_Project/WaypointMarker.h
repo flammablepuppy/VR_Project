@@ -7,6 +7,8 @@
 #include "WaypointMarker.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaypointCollected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollectingDelegate, const FTimerHandle&, CollectingTimer);
+
 
 class AvrPickup;
 
@@ -71,7 +73,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties", meta = (EditCondition = "WaypointNumber == 0"))
 	bool bActivatePointerOnBeginPlay = false;
-		
+
+	/** EndOverlap always fires right after begin overlap, so this sets a timer to check again after EndOverlap because theres a decent chance overlap didn't end */
+	UFUNCTION()
+	void ScanForPlayer();
+
+	UFUNCTION()
+	void StopCollection();
+	
 // FUNCTIONS
 //////////////
 
@@ -90,11 +99,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
 	float CheckpointCollectionTime = 1.5f;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FTimerHandle Collection_Timer;
 
 	// Used in tick for collection tone
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsCollecting = false;
+	
 	float CollectingPitchChange = 1.f;
 		
 public:
@@ -108,27 +119,32 @@ public:
 	void DeactivateWaypoint();
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE bool GetWaypointIsActive() { return bWaypointIsActive; } 
+	FORCEINLINE bool GetWaypointIsActive() const { return bWaypointIsActive; } 
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE FColor GetCourseColor() { return CourseColor; } 
+	FORCEINLINE FColor GetCourseColor() const { return CourseColor; } 
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE int32 GetWaypointNumber() { return WaypointNumber; }  
+	FORCEINLINE int32 GetWaypointNumber() const { return WaypointNumber; }  
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE TArray<TSubclassOf<AvrPickup>> GetItemsToSpawn() { return ItemsToSpawn; }  
+	FORCEINLINE TArray<TSubclassOf<AvrPickup>> GetItemsToSpawn() const { return ItemsToSpawn; }  
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE UStaticMeshComponent* GetWaypointMesh() { return WaypointMesh; } 
+	FORCEINLINE UStaticMeshComponent* GetWaypointMesh() const { return WaypointMesh; } 
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE bool IsFinalWaypoint() { return bFinalWaypoint; }
+	FORCEINLINE bool IsFinalWaypoint() const { return bFinalWaypoint; }
 
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE FTimerHandle& GetCollectionTimer() { return Collection_Timer; }
+	
 // DELEGATES
 //////////////
 
 	UPROPERTY(BlueprintAssignable)
 	FWaypointCollected OnCollected;
-
+	
+	UPROPERTY(BlueprintAssignable)
+	FCollectingDelegate OnBeginCollecting;
 };

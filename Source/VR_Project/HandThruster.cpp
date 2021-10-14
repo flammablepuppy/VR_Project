@@ -216,6 +216,11 @@ void AHandThruster::ApplyThrust(float ThrustPercent)
 
 	OwningPlayer->GetMovementComponent()->UpdateComponentVelocity();
 }
+void AHandThruster::AddFuel(float AmountToAdd, bool AmountIsPercent)
+{
+	CurrentFuel += MaxFuel * AmountToAdd;
+	CurrentFuel = FMath::Clamp<float>(CurrentFuel, 0.f, MaxFuel);
+}
 void AHandThruster::PlayThrusterSound()
 {
 	// START SFX

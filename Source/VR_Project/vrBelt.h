@@ -51,6 +51,7 @@ protected:
 // FUNCTIONS
 //////////////
 
+	/** Resets and populates the array containing all the attached holsters */
 	UFUNCTION(BlueprintCallable)
 	void FindAllHolsters();
 
@@ -59,8 +60,17 @@ public:
 // PUBLIC FUNCTIONS
 //////////////////////
 
+	/**
+	*	Finds a vacant holster
+	*	@param PickupRequestingHolster, Finds a holster that is specifically for this item
+	*	@param OverrideProximityRequirement, When true item will snap to the holster even if outside it's sphere
+	*/
 	UFUNCTION()
 	AvrHolster* GetVacantHolster(AvrPickup* PickupRequestingHolster, bool OverrideProximityRequirement = false);
+
+	// Drops all items in all holsters
+	UFUNCTION()
+	void YardSale(float NewLifespan = 1.5f, bool CanRecover = false);
 
 	/** Populates output parameter array with all items found holstered on belt */
 	UFUNCTION()

@@ -84,10 +84,8 @@ void AvrPickup::SnapOn()
 	bReadyToUse = true;
 	AttachToComponent(SnapTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SnapSocket);
 	if (OwningMC) {	OwningMC->SetShowDeviceModel(true);	}
-
-	OnSnappedOn.Broadcast(this);
-
 	if (bDisableDropOnGrip) bCanDrop = false;
+	OnSnappedOn.Broadcast(this);
 }
 void AvrPickup::Drop()
 {
@@ -119,6 +117,8 @@ void AvrPickup::Drop()
 
 	OnDrop.Broadcast(this);
 	OnDrop.Clear();
+	if (bDisableDropOnGrip) bCanDrop = false;
+
 }
 void AvrPickup::MoveTo(USceneComponent * TargetComponent, FName TargetSocket)
 {

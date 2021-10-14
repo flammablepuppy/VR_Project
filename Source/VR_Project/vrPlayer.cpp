@@ -82,6 +82,8 @@ void AvrPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	PlayerInputComponent->BindAction("LeftStickClick", IE_Pressed, this, &AvrPlayer::SmallJump);
 
+	PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &AvrPlayer::MenuPressed);
+	PlayerInputComponent->BindAction("Menu", IE_Released, this, &AvrPlayer::MenuReleased);
 }
 void AvrPlayer::BeginPlay()
 {
@@ -589,6 +591,24 @@ void AvrPlayer::RightBottomRelease()
 	}
 }
 
+void AvrPlayer::MenuPressed()
+{
+	if (GetWorldTimerManager().IsTimerActive(MenuPress_Timer)) return;
+	else
+	{
+		MenuRequested();
+		// FTimerDelegate Del;
+		// Del.BindUFunction(this, FName("MenuRequested"));
+		// GetWorldTimerManager().SetTimer(MenuPress_Timer, Del, MenuButtonHoldTime, false);
+	}
+} 
+
+void AvrPlayer::MenuReleased()
+{
+	if (GetWorldTimerManager().IsTimerActive(MenuPress_Timer))
+		GetWorldTimerManager().ClearTimer(MenuPress_Timer);
+}
+
 void AvrPlayer::ResetTestingMap()
 {
 	if (bCommitsSeppuku)
@@ -601,7 +621,6 @@ void AvrPlayer::ResetTestingMap()
 
 	}
 }
-
 void AvrPlayer::AssignLeftGrip(AvrPickup* NewGrippedObject)
 {
 	if (LeftHeldObject) LeftHeldObject = nullptr;
@@ -613,7 +632,6 @@ void AvrPlayer::AssignLeftGrip(AvrPickup* NewGrippedObject)
 		OnGrip.Clear();
 	}
 }
-
 void AvrPlayer::AssignRightGrip(AvrPickup* NewGrippedObject)
 {
 	if (RightHeldObject) RightHeldObject = nullptr;
@@ -625,7 +643,6 @@ void AvrPlayer::AssignRightGrip(AvrPickup* NewGrippedObject)
 		OnGrip.Clear();
 	}
 }
-
 void AvrPlayer::ForceDropLeft()
 {
 	if (LeftHeldObject && !LeftHeldObject->GetCanDrop())
@@ -634,7 +651,6 @@ void AvrPlayer::ForceDropLeft()
 		LeftGripRelease();
 	}
 }
-
 void AvrPlayer::ForceDropRight()
 {
 	if (RightHeldObject && !RightHeldObject->GetCanDrop())

@@ -81,17 +81,18 @@ void AWeaponMag::SnapOn()
 	Super::SnapOn();
 
 	// Check to see if it's loaded into a gun
-	AvrHolster* OwnedByHolster = Cast<AvrHolster>(SnapTarget->GetOwner());
-	if (!OwningMC && !OwnedByHolster)
+	ASigPistol* LoadedInPistol = Cast<ASigPistol>(GetOwner());
+	if (LoadedInPistol)
 	{
 		PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		bPickupEnabled = false;
+		LoadedInPistol->OnDestroyed.AddUniqueDynamic(this, &AWeaponMag::Sepeku);
 	}
-
 }
 void AWeaponMag::Drop()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	
 	PickupMesh->SetSimulatePhysics(true);
 
 	if (bReadyToUse && OwningMC) { OwningMC->SetShowDeviceModel(false); bReadyToUse = false; }
@@ -164,4 +165,9 @@ void AWeaponMag::SnapToVacantHolster()
 	}
 
 	TargetPlayerForHolstering = nullptr;
+}
+void AWeaponMag::Sepeku(AActor* Actor)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Sepeku called on magazine."))
+	Destroy();
 }

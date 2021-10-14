@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WaypointMarker.h"
 #include "GameFramework/Actor.h"
 #include "WaypointFinder.generated.h"
 
@@ -20,10 +21,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UStaticMeshComponent* ArrowMesh;
 
+	UPROPERTY()
 	UMaterialInstanceDynamic* ArrowMaterial;
 
 	UFUNCTION()
 	void Point();
 
+	UFUNCTION()
+	void HandleCourseLoaded(AWaypointMarker* CourseWaypoint);
+
+	UFUNCTION()
+	void HandleCourseCompleted();
 
 };

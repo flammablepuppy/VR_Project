@@ -65,6 +65,10 @@ public:
 
 	virtual void SnapOn() override;
 	virtual void Drop() override;
+	
+	/** Bound when loaded into a gun, ensures it is destroyed when gun it's loaded into is destroyed */
+	UFUNCTION()
+	void Sepeku(AActor* Actor);
 
 	//		GET
 	//

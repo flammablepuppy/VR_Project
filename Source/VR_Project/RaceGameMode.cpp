@@ -182,6 +182,9 @@ void ARaceGameMode::HideAllWaypoints()
 }
 void ARaceGameMode::CourseFinished()
 {
+	OnCourseComplete.Broadcast();
+	TargetWaypoint = nullptr;
+	
 	if (LoadedCourse.Num() == TimeBetweenWaypoints.Num())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Course completed!"))
@@ -229,6 +232,7 @@ void ARaceGameMode::LoadCourse(FColor ColorCourseToLoad)
 	LoadedCourse.Reset();
 	TimeBetweenWaypoints.Reset();
 	CourseStartTime = GetWorld()->GetTimeSeconds();
+	TargetWaypoint = nullptr; // This should start null and be set null in CourseFinished, but somehow it isn't sometimes so this becomes necessary
 
 	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
 	{
@@ -236,6 +240,7 @@ void ARaceGameMode::LoadCourse(FColor ColorCourseToLoad)
 		AWaypointMarker* Marker = *ActorIter;
 		if (Marker->GetCourseColor() == ColorCourseToLoad)
 		{
+			if (TargetWaypoint == nullptr) TargetWaypoint = Marker; // this needs to be set for OnCourseLoaded broadcast
 			LoadedCourse.AddUnique(Marker);
 			Marker->OnCollected.AddDynamic(this, &ARaceGameMode::DisplayCurrentWaypoint);
 		}
@@ -247,6 +252,7 @@ void ARaceGameMode::LoadCourse(FColor ColorCourseToLoad)
 		}
 	}
 
+	OnCourseLoaded.Broadcast(GetTargetWaypoint());
 	UE_LOG(LogTemp, Warning, TEXT("Course loaded, %d points in course"), LoadedCourse.Num() - 1)
 }
 void ARaceGameMode::DisplayCurrentWaypoint()
@@ -270,7 +276,6 @@ void ARaceGameMode::DisplayCurrentWaypoint()
 		if (CurrentWaypoint == LoadedCourse.Num())
 		{
 			CourseFinished();
-			TargetWaypoint = nullptr;
 			UE_LOG(LogTemp, Warning, TEXT("Course finished called."))
 		}
 	}

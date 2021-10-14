@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SpecialVariables.h"
 #include "Components/ActorComponent.h"
 #include "HealthStats.generated.h"
 
@@ -12,6 +11,7 @@ const class UDamageType*, DamageType, class AController*, InstigatedBy, AActor*,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOwnerDied, AActor*, DyingActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOwnerRespawned, AActor*, RespawningActor);
 
+class AvrPickup;
 
 // COMBAT EFFECTS HANDLING 
 //////////////////////////////
@@ -113,9 +113,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void YardSale(float DroppedItemsLifespan = -1.f);
-
-	UFUNCTION(BlueprintCallable)
-	void MemorizePlayerItems(TArray<AvrPickup*>& OutInventory);
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE float GetCurrentHealth() { return CurrentHealth; }

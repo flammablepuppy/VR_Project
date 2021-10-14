@@ -25,40 +25,30 @@ void AWaypointFinder::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	ArrowMesh->SetVisibility(false);
-
-	ARaceGameMode* TheMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
-	if (TheMode)
+	ARaceGameMode* GM = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
+	if (GM)
 	{
+		
 		FTimerHandle Pointer_Ticker;
-		GetWorldTimerManager().SetTimer(Pointer_Ticker, this, &AWaypointFinder::Point, 1.f / 45.f, true, 0.f);
+		GetWorldTimerManager().SetTimer(Pointer_Ticker, this, &AWaypointFinder::Point, 1.f / /* TODO: Make this variable based on the headset in use, Quest 1 display runs at 72hz */72.f, true, 0.f);
+		GM->OnCourseLoaded.AddUniqueDynamic(this, &AWaypointFinder::HandleCourseLoaded);
+		GM->OnCourseComplete.AddUniqueDynamic(this, &AWaypointFinder::HandleCourseCompleted);
 	}
 
 }
 
-/**
-*
-*/
-
 void AWaypointFinder::Point()
 {
-	ARaceGameMode* TheMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
-	if (TheMode->GetTargetWaypoint())
+	ARaceGameMode* GM = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
+	if (GM->GetTargetWaypoint())
 	{
-		AWaypointMarker* Waypoint = TheMode->GetTargetWaypoint();
+		const AWaypointMarker* Waypoint = GM->GetTargetWaypoint();
 		if (Waypoint->GetWaypointIsActive())
 		{
-			// Display arrow
-			if (!ArrowMesh->IsVisible()) ArrowMesh->SetVisibility(true);
-
-			// Match arrow material to waypoint 
-			if (ArrowMaterial == nullptr)
-				ArrowMaterial = ArrowMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(1, Waypoint->GetWaypointMesh()->GetMaterial(1));
-
 			// Point toward waypoint
-			FVector TargetLocation = TheMode->GetTargetWaypoint()->GetActorLocation();
-			FVector FromLocation = GetActorLocation();
-			FVector Direction = (TargetLocation - FromLocation).GetSafeNormal();
+			const FVector TargetLocation = GM->GetTargetWaypoint()->GetActorLocation();
+			const FVector FromLocation = GetActorLocation();
+			const FVector Direction = (TargetLocation - FromLocation).GetSafeNormal();
 			ArrowMesh->SetWorldRotation(Direction.Rotation());
 		}
 	}
@@ -68,5 +58,16 @@ void AWaypointFinder::Point()
 		ArrowMaterial = nullptr;
 	}
 
+}
+void AWaypointFinder::HandleCourseLoaded(AWaypointMarker* CourseWaypoint)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Arrow turns on"))
+	ArrowMesh->SetVisibility(true, true);
+	ArrowMaterial = ArrowMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(1, CourseWaypoint->GetWaypointMesh()->GetMaterial(1));
+}
+void AWaypointFinder::HandleCourseCompleted()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Arrow turns off"))
+	ArrowMesh->SetVisibility(false);
 }
 

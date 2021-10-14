@@ -5,7 +5,6 @@
 #include "Camera/CameraComponent.h"
 #include "vrPickup.h"
 #include "vrHolster.h"
-#include "Components/CapsuleComponent.h"
 
 UvrBelt::UvrBelt()
 {
@@ -45,7 +44,6 @@ void UvrBelt::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 	}
 }
 
-/** Resets and populates the array containing all the attached holsters */
 void UvrBelt::FindAllHolsters()
 {
 	EquippedHolsters.Reset();
@@ -65,12 +63,6 @@ void UvrBelt::FindAllHolsters()
 		}
 	}
 }
-
-/**
-*	Finds a vacant holster
-*	@param PickupRequestingHolster, Finds a holster that is specifically for this item
-*	@param OverrideProximityRequirement, When true item will snap to the holster even if outside it's sphere
-*/
 AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool OverrideProximityRequirement)
 {
 	if (PickupRequestingHolster != nullptr)
@@ -96,8 +88,17 @@ AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool
 	}
 	return nullptr;
 }
-
-/** Populates provided array with all the items currently attached to any holster on the belt */
+void UvrBelt::YardSale(float NewLifespan, bool CanRecover)
+{
+	FindAllHolsters();
+	for (AvrHolster* Pocket : EquippedHolsters)
+	{
+		if (!Pocket || !Pocket->GetHolsteredItem()) continue;
+		Pocket->GetHolsteredItem()->SetLifeSpan(NewLifespan);
+		Pocket->GetHolsteredItem()->SetPickupEnabled(CanRecover);
+		Pocket->DropHolsteredItem();
+	}
+}
 void UvrBelt::GetHolsteredItems(TArray<AvrPickup*>& Items)
 {
 	for (AvrHolster* Holster : EquippedHolsters)
@@ -109,11 +110,6 @@ void UvrBelt::GetHolsteredItems(TArray<AvrPickup*>& Items)
 		}
 	}
 }
-
-/** TODO: Make a pickup item that spawns a holster when you pick it up 
-*	TODO: Figure out how to check if there's already a holster in the place it's being told to spawn
-*/
-
 void UvrBelt::SpawnHolster(FVector BeltPosition, TSubclassOf<AvrHolster> HolsterType, AvrHolster*& OutHolster, bool RequiresProximity)
 {
 	// Check if spawning the holster will exceed number allowed
@@ -136,7 +132,6 @@ void UvrBelt::SpawnHolster(FVector BeltPosition, TSubclassOf<AvrHolster> Holster
 		OutHolster = SpawnedHolster;
 	}
 }
-
 void UvrBelt::SetMaxHolsters(int32 NewMax)
 {
 	MaxHolsters = NewMax;

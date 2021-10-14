@@ -264,6 +264,16 @@ protected:
 	UFUNCTION(Category = "Right Controller Functions")
 	void RightBottomRelease();
 
+	UFUNCTION(Category = "Menu")
+	void MenuPressed();
+	UFUNCTION(Category = "Menu")
+	void MenuReleased();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float MenuButtonHoldTime = 0.85f;
+	FTimerHandle MenuPress_Timer;
+	UFUNCTION(BlueprintImplementableEvent)
+	void MenuRequested();
+	
 	// External grip assignment
 	UFUNCTION(BlueprintCallable, Category = "External Assignment")
 	void AssignLeftGrip(AvrPickup* NewGrippedObject);

@@ -50,7 +50,8 @@ void ASigPistol::BeginPlay()
 		LoadedMagazine->GetPickupMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Normally taken care of by the magazine in SnapOn
 		LoadedMagazine->SetActorLocation(PistolMesh->GetSocketLocation("MagazineWell"));
 		LoadedMagazine->SetActorRotation(PistolMesh->GetSocketRotation("MagazineWell"));
-
+		OnDestroyed.AddUniqueDynamic(LoadedMagazine, &AWeaponMag::Sepeku);
+		
 		if (bSpawnsChambered) ChamberedRound = LoadedMagazine->GetCompatibleCartridge();
 
 		if (StarterCapacity != -1)
@@ -189,6 +190,7 @@ void ASigPistol::BottomPushed()
 	if (LoadedMagazine)
 	{
 		LoadedMagazine->OnDrop.Clear();
+		OnDestroyed.RemoveAll(this);
 
 		LoadedMagazine->SetMagSearchForHolster(OwningPlayer);
 
@@ -200,7 +202,6 @@ void ASigPistol::BottomPushed()
 		LoadedMagazine = nullptr;
 	}
 }
-
 void ASigPistol::Drop()
 {
 	Super::Drop();

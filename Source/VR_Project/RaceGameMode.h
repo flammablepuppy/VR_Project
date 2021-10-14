@@ -12,6 +12,8 @@ class AvrPickup;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSendMessageSignature, FString, TextToPrint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerRespawnNotice, AvrPlayer*, RespawnedPlayer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCourseLoadedDelegate, AWaypointMarker*, CourseWaypoint);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCourseCompletedDelegate);
 
 /**
  * 
@@ -120,4 +122,10 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FPlayerRespawnNotice OnPlayerRespawn;
+
+	UPROPERTY(BlueprintAssignable)
+	FCourseLoadedDelegate OnCourseLoaded;
+
+	UPROPERTY(BlueprintAssignable)
+	FCourseCompletedDelegate OnCourseComplete;
 };

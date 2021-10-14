@@ -62,7 +62,27 @@ void AWaypointMarker::Tick(float DeltaTime)
 	}
 }
 
+void AWaypointMarker::ScanForPlayer()
+{
+	TArray<AActor*> Actors;
+	WaypointCollectionSphere->GetOverlappingActors(Actors);
 
+	for (AActor* Actor : Actors)
+	{
+		AvrPlayer* IsPlayer = Cast<AvrPlayer>(Actor);
+		if (IsPlayer) return;
+	}
+
+	StopCollection();
+}
+void AWaypointMarker::StopCollection()
+{
+	if (GetWorldTimerManager().IsTimerActive(Collection_Timer))
+	{
+		bIsCollecting = false;
+		GetWorldTimerManager().ClearTimer(Collection_Timer);
+	}
+}
 void AWaypointMarker::WaypointReached(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	AvrPlayer* OverlappingPlayer = Cast<AvrPlayer>(OtherActor);
@@ -78,16 +98,25 @@ void AWaypointMarker::WaypointReached(UPrimitiveComponent * OverlappedComponent,
 			FTimerDelegate Collection_Delegate;
 			Collection_Delegate.BindUFunction(this, FName("AdvanceCourse"), OtherActor);
 			GetWorldTimerManager().SetTimer(Collection_Timer, Collection_Delegate, CheckpointCollectionTime, false);
+			OnBeginCollecting.Broadcast(Collection_Timer);
 		}
 	}
 }
 void AWaypointMarker::WaypointLeft(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (GetWorldTimerManager().IsTimerActive(Collection_Timer))
+	TArray<AActor*> Actors;
+	WaypointCollectionSphere->GetOverlappingActors(Actors);
+
+	for (AActor* Actor : Actors)
 	{
-		bIsCollecting = false;
-		GetWorldTimerManager().ClearTimer(Collection_Timer);
+		if (OtherActor == Actor) return;
 	}
+
+	FTimerHandle DoubleCheck_Timer;
+	FTimerDelegate DoubleCheck_Delegate;
+	DoubleCheck_Delegate.BindUFunction(this, FName("ScanForPlayer"));
+	GetWorldTimerManager().SetTimer(DoubleCheck_Timer, DoubleCheck_Delegate, 0.05f, false);
+	
 }
 void AWaypointMarker::AdvanceCourse(AActor* CollectingActor)
 {

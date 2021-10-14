@@ -3,14 +3,12 @@
 #include "HealthStats.h"
 #include "GameFramework/Actor.h"
 #include "vrPlayer.h"
-#include "MotionControllerComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "vrPickup.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "vrBelt.h"
 #include "vrHolster.h"
-#include "TimerManager.h"
 
 UHealthStats::UHealthStats()
 {
@@ -98,40 +96,18 @@ void UHealthStats::Respawn()
 	OnRespawn.Broadcast(GetOwner());
 
 }
-
-// TODO Should be handled on the vrPlayer or UtilityBelt
 void UHealthStats::YardSale(float DroppedItemsLifespan)
 {
-	if (DroppedItemsLifespan > 0.f)
+	if (OwningPlayer->GetUtilityBelt())
 	{
-		TArray<AvrPickup*> PlayerInventory;
-		MemorizePlayerItems(PlayerInventory);
-		for (AvrPickup* Item : PlayerInventory)
+		OwningPlayer->GetUtilityBelt()->YardSale(DroppedItemsLifespan);
+			
+		TArray<AvrHolster*> Holsters = OwningPlayer->GetUtilityBelt()->GetEquippedHolsters();
+		for (AvrHolster* Holster : Holsters)
 		{
-			if (Item)
-			{
-				Item->SetLifeSpan(DroppedItemsLifespan);
-
-				// TODO: Make a bool for wether or not dropped items can be recovered
-				Item->SetPickupEnabled(false);
-				// Weapon magazines were not destroying, this attempts and fails to take care of that TODO TODO TODO
-				TArray<AActor*> Children;
-				Item->GetAttachedActors(Children);
-				for (AActor* Child : Children)
-				{
-					if (Child)
-					{
-						Child->SetLifeSpan(DroppedItemsLifespan);
-					}
-				}
-			}
+			if (!Holster) continue;
+			Holster->DropHolsteredItem();
 		}
-	}
-
-	TArray<AvrHolster*> Holsters = OwningPlayer->GetUtilityBelt()->GetEquippedHolsters();
-	for (AvrHolster* Holster : Holsters)
-	{
-		Holster->DropHolsteredItem();
 	}
 
 	if (OwningPlayer->GetLeftHeldObject())
@@ -141,6 +117,7 @@ void UHealthStats::YardSale(float DroppedItemsLifespan)
 		RememberLeft->SetCanDrop(true);
 		RememberLeft->Drop();
 		RememberLeft->SetSeeksHolster(true);
+		RememberLeft->SetLifeSpan(DroppedItemsLifespan);
 	}
 
 	if (OwningPlayer->GetRightHeldObject())
@@ -150,20 +127,8 @@ void UHealthStats::YardSale(float DroppedItemsLifespan)
 		RememberRight->SetCanDrop(true);
 		RememberRight->Drop();
 		RememberRight->SetSeeksHolster(true);
+		RememberRight->SetLifeSpan(DroppedItemsLifespan);
 	}
-}
-void UHealthStats::MemorizePlayerItems(TArray<AvrPickup*>& OutInventory)
-{
-	OutInventory.Reset();
-
-	TArray<AvrHolster*> Holsters = OwningPlayer->GetUtilityBelt()->GetEquippedHolsters();
-	for (AvrHolster* Holster : Holsters)
-	{
-		OutInventory.AddUnique(Holster->GetHolsteredItem());
-	}
-
-	OutInventory.AddUnique(OwningPlayer->GetLeftHeldObject());
-	OutInventory.AddUnique(OwningPlayer->GetRightHeldObject());
 }
 
 // SETTERS
