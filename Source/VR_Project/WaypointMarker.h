@@ -9,7 +9,6 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaypointCollected);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollectingDelegate, const FTimerHandle&, CollectingTimer);
 
-
 class AvrPickup;
 
 UCLASS()
@@ -80,6 +79,14 @@ protected:
 
 	UFUNCTION()
 	void StopCollection();
+
+	/** Tag that can be used by Race Game Mode to spawn additional actors for this section of the course */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
+	FName CheckpointActorTag;
+
+	/** If the checkpoint is over certain death, this should be on */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Course Properties")
+	bool bAutoHoverCheckpoint = false;
 	
 // FUNCTIONS
 //////////////
@@ -118,6 +125,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DeactivateWaypoint();
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE	bool IsAutoHoverCheckpoint() { return bAutoHoverCheckpoint; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetAutoHoverCheckpoint(bool NewState);
+	
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool GetWaypointIsActive() const { return bWaypointIsActive; } 
 
@@ -139,12 +152,17 @@ public:
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE FTimerHandle& GetCollectionTimer() { return Collection_Timer; }
 	
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE FName GetCheckpointActorTag() const { return CheckpointActorTag; }
+
+	
 // DELEGATES
 //////////////
 
 	UPROPERTY(BlueprintAssignable)
 	FWaypointCollected OnCollected;
-	
+
+	// This was an attempt to pass a UI widget a timer for use in displaying a cooldown based on time remaining. Didn't work.
 	UPROPERTY(BlueprintAssignable)
 	FCollectingDelegate OnBeginCollecting;
 };

@@ -163,6 +163,7 @@ void AvrHolster::DropHolsteredItem()
 	if (HolsteredItem)
 	{
 		HolsteredItem->OnGrabbed.Clear();
+		HolsteredItem->OnDrop.Clear();
 		HolsteredItem->Drop();
 		HolsteredItem = nullptr;
 		HolsterMesh->SetVisibility(true);

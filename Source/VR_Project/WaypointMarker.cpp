@@ -125,7 +125,6 @@ void AWaypointMarker::AdvanceCourse(AActor* CollectingActor)
 	ARaceGameMode* RaceMode = Cast<ARaceGameMode>(GetWorld()->GetAuthGameMode());
 	if (WaypointNumber == 0)
 		RaceMode->LoadCourse(CourseColor);
-
 	if (bFinalWaypoint)
 	{
 		RaceMode->SetTargetWaypoint(nullptr);
@@ -139,6 +138,8 @@ void AWaypointMarker::AdvanceCourse(AActor* CollectingActor)
 
 	if (bFunctionsAsCheckpoint)
 		RaceMode->SetActiveCheckpoint(this);
+
+	if (RaceMode) RaceMode->SpawnCheckpointTagActors();
 }
 void AWaypointMarker::ActivateWaypoint()
 {
@@ -149,4 +150,8 @@ void AWaypointMarker::DeactivateWaypoint()
 {
 	bWaypointIsActive = false;
 	WaypointMesh->SetVisibility(false);
+}
+void AWaypointMarker::SetAutoHoverCheckpoint(bool NewState)
+{
+	bAutoHoverCheckpoint = NewState;
 }

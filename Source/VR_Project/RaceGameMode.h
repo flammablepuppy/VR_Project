@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HandThruster.h"
 #include "GameFramework/GameMode.h"
 #include "RaceGameMode.generated.h"
 
@@ -11,7 +12,7 @@ class AvrPlayer;
 class AvrPickup;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSendMessageSignature, FString, TextToPrint);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerRespawnNotice, AvrPlayer*, RespawnedPlayer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPlayerRespawnNotice, AvrPlayer*, RespawnedPlayer, FName, Tag);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCourseLoadedDelegate, AWaypointMarker*, CourseWaypoint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCourseCompletedDelegate);
 
@@ -56,6 +57,22 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bShouldYardSale = true;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
+	bool bRaceSetup = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
+	bool bFloorIsLava = false;
+	
+	// Type of Hand Thruster given to player when GivePlayerThruster is called.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
+	TSubclassOf<AHandThruster> GivenThruster;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
+	TSubclassOf<AActor> TagSpawnedPickup;
+
+	UPROPERTY()
+	TArray<AActor*> CurrentCheckpointActors;
+	
 // FUNCTIONS
 //////////////
 
@@ -71,7 +88,11 @@ protected:
 	void EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclassOf<AvrPickup>> ItemsToEquip);
 
 	UFUNCTION(BlueprintCallable)
-	void HideAllWaypoints();
+	void GivePlayerThruster(AvrPlayer* Player);
+
+	UFUNCTION()
+	void CleanUpSpawns();
+
 	   
 public:
 // PUBLIC FUNCTIONS
@@ -112,8 +133,14 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	TArray<AWaypointMarker*> GetLoadedCourse() { return LoadedCourse; }
-
-
+	
+	/** Destroys player utility belt and holsters, spawns a non-drop thruster */
+	UFUNCTION(BlueprintCallable)
+	void PrepPlayerForRace();
+	
+	UFUNCTION()
+	void SpawnCheckpointTagActors();
+	
 // DELEGATE
 /////////////
 
@@ -129,3 +156,4 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FCourseCompletedDelegate OnCourseComplete;
 };
+

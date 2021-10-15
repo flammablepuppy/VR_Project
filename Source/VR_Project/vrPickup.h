@@ -180,6 +180,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool GetCanDrop() { return bCanDrop; }
+	
 
 
 	//		SET
@@ -197,6 +198,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetCanDrop(bool NewState);
 
+	UFUNCTION(BlueprintCallable)
+	void SetDisableDropOnGrip(bool NewState);
+	
 	//		DELEGATE
 	//
 

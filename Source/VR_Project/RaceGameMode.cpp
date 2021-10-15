@@ -2,6 +2,9 @@
 
 
 #include "RaceGameMode.h"
+
+#include <Actor.h>
+
 #include "Engine\World.h"
 #include "EngineUtils.h"
 #include "WaypointMarker.h"
@@ -12,7 +15,11 @@
 #include "TimerManager.h"
 #include "vrBelt.h"
 #include "HandThruster.h"
+#include "Landscape.h"
 #include "vrHolster.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/PlayerStart.h"
+#include "Landscape/Classes/Landscape.h"
 
 ARaceGameMode::ARaceGameMode()
 {
@@ -32,6 +39,72 @@ void ARaceGameMode::BeginPlay()
 		if (ActorIter->GetWaypointNumber() == 0)
 		{
 			ActorIter->ActivateWaypoint();
+		}
+	}
+}
+
+// Race Setup Helpers
+void ARaceGameMode::PrepPlayerForRace()
+{
+	for (TActorIterator<AvrPlayer> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		GivePlayerThruster(*ActorItr);
+
+		if (ActorItr->GetUtilityBelt())
+		{
+			ActorItr->GetUtilityBelt()->DestoryHolsters();
+			ActorItr->GetUtilityBelt()->Deactivate();
+			ActorItr->GetUtilityBelt()->DestroyComponent();
+		}
+	}
+
+	// This can only be used if there is a single player start
+	for (TActorIterator<APlayerStart> ActorIterator(GetWorld()); ActorIterator; ++ActorIterator)
+	{
+		SetActiveCheckpoint(*ActorIterator);
+	}
+	
+	bRaceSetup = true;
+
+}
+void ARaceGameMode::GivePlayerThruster(AvrPlayer* Player)
+{
+	if (GivenThruster)
+	{
+		AActor* NewThruster = GetWorld()->SpawnActor(GivenThruster);
+		AHandThruster* Thruster = Cast<AHandThruster>(NewThruster);
+		Thruster->SetCanDrop(false);
+		Thruster->SetDisableDropOnGrip(true);
+		Player->AssignRightGrip(Thruster);
+	}
+}
+void ARaceGameMode::CleanUpSpawns()
+{
+	for (TActorIterator<AActor> ActorIterator(GetWorld()); ActorIterator; ++ActorIterator)
+	{
+		if (ActorIterator->ActorHasTag(FName("Kill")))
+			ActorIterator->Destroy();
+	}
+}
+void ARaceGameMode::SpawnCheckpointTagActors()
+{
+	CleanUpSpawns();
+	
+	const AWaypointMarker* Checkpoint = Cast<AWaypointMarker>(CurrentCheckpoint);
+	
+	// Spawn current checkpoint TagSpawnedPickups
+	for (TActorIterator<AActor> ActorIterator(GetWorld()); ActorIterator; ++ActorIterator)
+	{		
+		AWaypointMarker* CheckpointWithTags = Cast<AWaypointMarker>(GetCurrentCheckpoint());
+		if (CheckpointWithTags)
+		{
+			if (ActorIterator->ActorHasTag(Checkpoint->GetCheckpointActorTag()))
+			{
+				FActorSpawnParameters Params;
+				AActor* NewActor = GetWorld()->SpawnActor<AActor>(TagSpawnedPickup, ActorIterator->GetActorLocation(), FRotator::ZeroRotator, Params);
+				NewActor->Tags.AddUnique(FName("Kill"));
+				CurrentCheckpointActors.AddUnique(NewActor);
+			}
 		}
 	}
 }
@@ -83,7 +156,6 @@ void ARaceGameMode::HandlePlayerDeath(AActor* DyingActor)
 
 		GetWorldTimerManager().SetTimer(LoadLevel_Handle, LoadLevelDelegate, 2.f, false);
 	}
-
 }
 void ARaceGameMode::RespawnPlayers()
 {
@@ -91,7 +163,7 @@ void ARaceGameMode::RespawnPlayers()
 	{
 		// Waypoints reached before a respawn are reset back to the checkpoint as well
 		AWaypointMarker* WP = Cast<AWaypointMarker>(CurrentCheckpoint);
-		if (WP)
+		if (WP && LoadedCourse.Num() > 0)
 		{
 			for (AWaypointMarker* Waypoint : LoadedCourse)
 			{
@@ -120,13 +192,32 @@ void ARaceGameMode::RespawnPlayers()
 			}
 		}
 
-		OnPlayerRespawn.Broadcast(Player);
+		if (bRaceSetup)
+		{
+			GivePlayerThruster(Player);
+
+			AWaypointMarker* Checkpoint = Cast<AWaypointMarker>(CurrentCheckpoint);
+			if (Checkpoint)
+			{
+				
+				AHandThruster* Thruster = Cast<AHandThruster>(Player->GetRightHeldObject());
+				if (Thruster && Checkpoint->IsAutoHoverCheckpoint())
+				{
+					Thruster->EnableAutoHover();
+				}
+			}
+		}
+
+		AWaypointMarker* Checkpoint = Cast<AWaypointMarker>(CurrentCheckpoint);
+		if (TagSpawnedPickup) SpawnCheckpointTagActors();
+		if (Checkpoint) OnPlayerRespawn.Broadcast(Player, Checkpoint->GetCheckpointActorTag());
+		else OnPlayerRespawn.Broadcast(Player, "");
 
 	}
 }
 void ARaceGameMode::EquipRequiredItem(AvrPlayer* PlayerToEquip, TArray<TSubclassOf<AvrPickup>> ItemsToEquip)
 {
-	if (!PlayerToEquip || ItemsToEquip.Num() == 0) { return; }
+	if (!PlayerToEquip || ItemsToEquip.Num() == 0 || !PlayerToEquip->GetUtilityBelt() || PlayerToEquip->GetUtilityBelt()->GetEquippedHolsters().Num() == 0) { return; }
 
 	TArray<TSubclassOf<AvrPickup>> SpawnItems = ItemsToEquip; // For some reason I have to copy the list, can't figure out how to manipulate the list I took as a parameter
 
@@ -173,17 +264,9 @@ void ARaceGameMode::ModeOpenLevel(FString LevelToOpen)
 }
 
 // Waypoints and Races
-void ARaceGameMode::HideAllWaypoints()
-{
-	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
-	{
-		ActorIter->DeactivateWaypoint();
-	}
-}
 void ARaceGameMode::CourseFinished()
 {
 	OnCourseComplete.Broadcast();
-	TargetWaypoint = nullptr;
 	
 	if (LoadedCourse.Num() == TimeBetweenWaypoints.Num())
 	{
@@ -195,11 +278,6 @@ void ARaceGameMode::CourseFinished()
 			float CheckpointTime = TimeBetweenWaypoints[i];
 			UE_LOG(LogTemp, Warning, TEXT("Time to checkpoint %d: %f"), iCount, CheckpointTime)
 
-			// TODO: Figure out how to do this properly
-			/*FString Message = "Time to checkpoint ";
-			Message += FString::FromInt(iCount);
-			Message += ": ";
-			Message += FString::SanitizeFloat(CheckpointTime);*/
 			OnMessageSend.Broadcast("You won.");
 
 		}
@@ -209,7 +287,15 @@ void ARaceGameMode::CourseFinished()
 		UE_LOG(LogTemp, Warning, TEXT("Course not completed."))
 	}
 
-	// Reset all initial waypoints so courses can be run again
+	// If marked as final waypoint, destroy the course head so won't load again
+	if (TargetWaypoint->IsFinalWaypoint())
+	{
+		LoadedCourse[0]->Destroy();
+	}
+	
+	LoadedCourse.Reset();
+
+	// Reset all initial waypoints so courses can be run again, unless it was flagged as a final waypoint
 	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
 	{
 		if (ActorIter->GetWaypointNumber() == 0)
@@ -232,7 +318,7 @@ void ARaceGameMode::LoadCourse(FColor ColorCourseToLoad)
 	LoadedCourse.Reset();
 	TimeBetweenWaypoints.Reset();
 	CourseStartTime = GetWorld()->GetTimeSeconds();
-	TargetWaypoint = nullptr; // This should start null and be set null in CourseFinished, but somehow it isn't sometimes so this becomes necessary
+	TargetWaypoint = nullptr;
 
 	for (TActorIterator<AWaypointMarker> ActorIter(GetWorld()); ActorIter; ++ActorIter)
 	{
@@ -274,7 +360,7 @@ void ARaceGameMode::DisplayCurrentWaypoint()
 		}
 
 		if (CurrentWaypoint == LoadedCourse.Num())
-		{
+		{			
 			CourseFinished();
 			UE_LOG(LogTemp, Warning, TEXT("Course finished called."))
 		}

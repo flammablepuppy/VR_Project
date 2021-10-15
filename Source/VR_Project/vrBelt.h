@@ -47,7 +47,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Holster Properties")
 	int32 MaxHolsters = 4;
 
-
 // FUNCTIONS
 //////////////
 
@@ -87,5 +86,8 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE int32 GetMaxHolsters() { return MaxHolsters; }
+
+	UFUNCTION(BlueprintCallable)
+	void DestoryHolsters();
 	
 };

@@ -65,7 +65,8 @@ void UvrBelt::FindAllHolsters()
 }
 AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool OverrideProximityRequirement)
 {
-	if (PickupRequestingHolster != nullptr)
+	FindAllHolsters();
+	if (PickupRequestingHolster != nullptr && EquippedHolsters.Num() > 0)
 	{
 		for (AvrHolster* Holster : EquippedHolsters)
 		{
@@ -91,6 +92,8 @@ AvrHolster * UvrBelt::GetVacantHolster(AvrPickup * PickupRequestingHolster, bool
 void UvrBelt::YardSale(float NewLifespan, bool CanRecover)
 {
 	FindAllHolsters();
+	if (EquippedHolsters.Num() == 0) return;
+	
 	for (AvrHolster* Pocket : EquippedHolsters)
 	{
 		if (!Pocket || !Pocket->GetHolsteredItem()) continue;
@@ -135,4 +138,14 @@ void UvrBelt::SpawnHolster(FVector BeltPosition, TSubclassOf<AvrHolster> Holster
 void UvrBelt::SetMaxHolsters(int32 NewMax)
 {
 	MaxHolsters = NewMax;
+}
+
+void UvrBelt::DestoryHolsters()
+{
+	FindAllHolsters();
+	for (AvrHolster* Holster : GetEquippedHolsters())
+	{
+		Holster->Destroy();
+	}
+	
 }

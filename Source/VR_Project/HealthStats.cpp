@@ -98,18 +98,6 @@ void UHealthStats::Respawn()
 }
 void UHealthStats::YardSale(float DroppedItemsLifespan)
 {
-	if (OwningPlayer->GetUtilityBelt())
-	{
-		OwningPlayer->GetUtilityBelt()->YardSale(DroppedItemsLifespan);
-			
-		TArray<AvrHolster*> Holsters = OwningPlayer->GetUtilityBelt()->GetEquippedHolsters();
-		for (AvrHolster* Holster : Holsters)
-		{
-			if (!Holster) continue;
-			Holster->DropHolsteredItem();
-		}
-	}
-
 	if (OwningPlayer->GetLeftHeldObject())
 	{
 		AvrPickup* RememberLeft = OwningPlayer->GetLeftHeldObject();
@@ -129,6 +117,9 @@ void UHealthStats::YardSale(float DroppedItemsLifespan)
 		RememberRight->SetSeeksHolster(true);
 		RememberRight->SetLifeSpan(DroppedItemsLifespan);
 	}
+
+	if (OwningPlayer->GetUtilityBelt())	OwningPlayer->GetUtilityBelt()->YardSale(DroppedItemsLifespan);
+	
 }
 
 // SETTERS

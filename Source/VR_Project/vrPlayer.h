@@ -273,13 +273,15 @@ protected:
 	FTimerHandle MenuPress_Timer;
 	UFUNCTION(BlueprintImplementableEvent)
 	void MenuRequested();
-	
+
+public:
 	// External grip assignment
 	UFUNCTION(BlueprintCallable, Category = "External Assignment")
 	void AssignLeftGrip(AvrPickup* NewGrippedObject);
 	UFUNCTION(BlueprintCallable, Category = "External Assignment")
 	void AssignRightGrip(AvrPickup* NewGrippedObject);
 
+protected:
 	// Double press activator for force dropping objects, useful for objects flagged to not drop on release
 	UFUNCTION(BlueprintCallable, Category = "Special Input")
 	void ForceDropLeft();

@@ -61,13 +61,13 @@ void AWaypointFinder::Point()
 }
 void AWaypointFinder::HandleCourseLoaded(AWaypointMarker* CourseWaypoint)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Arrow turns on"))
+	//UE_LOG(LogTemp, Warning, TEXT("Arrow turns on"))
 	ArrowMesh->SetVisibility(true, true);
 	ArrowMaterial = ArrowMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(1, CourseWaypoint->GetWaypointMesh()->GetMaterial(1));
 }
 void AWaypointFinder::HandleCourseCompleted()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Arrow turns off"))
+	//UE_LOG(LogTemp, Warning, TEXT("Arrow turns off"))
 	ArrowMesh->SetVisibility(false);
 }
 

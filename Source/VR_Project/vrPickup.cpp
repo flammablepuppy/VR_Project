@@ -98,7 +98,7 @@ void AvrPickup::Drop()
 	else { bReadyToUse = false; }
 
 	if (OwningMC) { OwningMC = nullptr; }
-	if (OwningPlayer) 
+	if (OwningPlayer && OwningPlayer->GetUtilityBelt()) 
 	{ 
 		AvrHolster* VacantHolster = Cast<AvrHolster>(OwningPlayer->GetUtilityBelt()->GetVacantHolster(this));
 		if (VacantHolster && (GetVelocity() - OwningPlayer->GetVelocity()).Size() < NoHolsterSpeed && bSeeksHolster)
@@ -229,4 +229,8 @@ void AvrPickup::SetSeeksHolster(bool NewState)
 void AvrPickup::SetCanDrop(bool NewState) 
 {
 	bCanDrop = NewState;
+}
+void AvrPickup::SetDisableDropOnGrip(bool NewState)
+{
+	bDisableDropOnGrip = NewState;
 }

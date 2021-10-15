@@ -34,6 +34,8 @@ void AHandThruster::Tick(float DeltaTime)
 
 	if (bSetAutoHoverThrottle)
 	{
+		AutoHoverThrust = 0.f;
+		
 		FVector OwnerVelocity = OwningPlayer->GetCharacterMovement()->Velocity;
 		OwnerVelocity.Z = 0.f;
 		if (OwnerVelocity.Size() > (MaxBenefitSpeed - BenefitDelta) &&
@@ -44,8 +46,10 @@ void AHandThruster::Tick(float DeltaTime)
 		}
 		else
 		{
-			AutoHoverThrust = AutoHoverTargetThrust / (ThrustPowerSetter * (1.f + GroundEffectMultiplier));
+			AutoHoverThrust += 0.1f;
 		}
+		
+		AutoHoverThrust += AutoHoverTargetThrust / (ThrustPowerSetter * (1.f + GroundEffectMultiplier));
 
 		LockedThrottleValue = AutoHoverThrust;
 		CurrentTriggerAxisValue = AutoHoverThrust;
@@ -220,6 +224,11 @@ void AHandThruster::AddFuel(float AmountToAdd, bool AmountIsPercent)
 {
 	CurrentFuel += MaxFuel * AmountToAdd;
 	CurrentFuel = FMath::Clamp<float>(CurrentFuel, 0.f, MaxFuel);
+	if (CurrentFuel > FuelWarningAmount) bIsLowFuel = false;
+}
+void AHandThruster::EnableAutoHover()
+{
+	bSetAutoHoverThrottle = true;
 }
 void AHandThruster::PlayThrusterSound()
 {
@@ -258,7 +267,7 @@ void AHandThruster::PlayThrusterSound()
 	}
 	
 	// LOW FUEL TONE
-	if(!bFuelRechargeTick && !bIsLowFuel && CurrentFuel/MaxFuel <= 0.25f)
+	if(!bFuelRechargeTick && !bIsLowFuel && CurrentFuel/MaxFuel <= FuelWarningAmount)
 	{
 		bIsLowFuel = true;
 		UGameplayStatics::SpawnSoundAttached(LowFuelSound, this->GetRootComponent());

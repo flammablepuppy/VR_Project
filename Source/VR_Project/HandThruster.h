@@ -48,6 +48,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Thruster Fuel")
 	USoundBase* FuelEmptySound;
 	bool bIsLowFuel = false;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fuel")
+	float FuelWarningAmount = 0.25f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	UAudioComponent* FuelRechargeSound;
@@ -144,5 +147,8 @@ public:
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE bool GetThrottleLocked() { return bThrottleLocked; }
+
+	UFUNCTION()
+	void EnableAutoHover();
 
 };
